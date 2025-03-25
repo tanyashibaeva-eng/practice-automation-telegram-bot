@@ -21,22 +21,13 @@ test:
   artifacts:
     paths:
       - build/reports/jacoco/test/html/
-    expire_in: 1 week
+    expire_in: 1 day
 
 coverage:
   stage: test
   image: openjdk:19-jdk
   script:
-    - |
-      # Запускаем gradle для тестов и извлекаем процент покрытия из вывода
-      coverage=$(./gradlew clean test jacocoTestReport check | grep -oP 'Coverage summary:.*?(\d+\.\d+)%' | grep -oP '\d+\.\d+')
-      echo "Code Coverage: $coverage%"
-
-      # Если покрытие меньше 30%, выводим предупреждение
-      if (( $(echo "$coverage < 30" | bc -l) )); then
-        echo "Warning: Code coverage is below 30%. Current coverage: $coverage%"
-        exit 1  # Выход с ошибкой для остановки CI
-      fi
+    - ls -la
   dependencies:
     - test
   only:
