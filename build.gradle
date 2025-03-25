@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'jacoco' // coverage для тестов
-    id 'com.github.ksoichiro.console.reporter' version '0.6.3'
+    id 'com.github.ksoichiro.console.reporter' version '0.6.3' // для генерации отчета о тестировании в терминал
 }
 
 group = 'ru.itmo'
