@@ -4,7 +4,7 @@ stages:
 
 build:
   stage: build
-  image: gradle:7.4-jdk11
+  image: openjdk:19-jdk
   script:
     - ./gradlew clean build
   artifacts:
@@ -13,7 +13,7 @@ build:
 
 test:
   stage: test
-  image: gradle:7.4-jdk11
+  image: openjdk:19-jdk
   script:
     - ./gradlew clean test jacocoTestReport check
   dependencies:
@@ -23,3 +23,21 @@ test:
       - build/reports/jacoco/test/html/
     expire_in: 1 week
 
+coverage:
+  stage: test
+  image: openjdk:19-jdk
+  script:
+    - |
+      # Извлекаем процент покрытия из XML отчета JaCoCo
+      coverage=$(xmllint --xpath "string(//coverage)" build/reports/jacoco/test/jacocoTestReport.xml)
+      echo "Code Coverage: $coverage%"
+
+      # Если покрытие меньше 30%, выводим предупреждение
+      if (( $(echo "$coverage < 30" | bc -l) )); then
+        echo "Warning: Code coverage is below 30%. Current coverage: $coverage%"
+        exit 1  # Выход с ошибкой для остановки CI
+      fi
+  dependencies:
+    - test
+  only:
+    - branches
