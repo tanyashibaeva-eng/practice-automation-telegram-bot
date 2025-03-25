@@ -11,7 +11,31 @@ repositories {
     mavenCentral()
 }
 
+jar {
+    doFirst {
+        manifest {
+            attributes(
+                    'Main-Class': 'ru.itmo.Main'
+            )
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 19
+    options.encoding = 'UTF-8'
+}
+
+tasks.jar {
+    manifest {
+        archiveFileName.set("${project.name}.jar")
+    }
+}
+
 dependencies {
+    implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("org.postgresql:postgresql:42.7.5")
+
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
 }
@@ -24,9 +48,9 @@ jacocoTestReport {
     dependsOn test
 
     reports {
-        xml.required=true
-        html.required=true
-        csv.required=true
+        xml.required = true
+        html.required = true
+        csv.required = true
     }
 }
 
