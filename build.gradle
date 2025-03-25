@@ -29,3 +29,13 @@ jacocoTestReport {
         csv.required=true
     }
 }
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.2
+            }
+        }
+    }
+}

@@ -28,16 +28,7 @@ coverage:
   stage: test
   image: openjdk:19-jdk
   script:
-    - |
-      # Извлекаем процент покрытия из XML отчета JaCoCo
-      coverage=$(xmllint --xpath "string(//coverage)" build/reports/jacoco/test/jacocoTestReport.xml)
-      echo "Code Coverage: $coverage%"
-
-      # Если покрытие меньше 30%, выводим предупреждение
-      if (( $(echo "$coverage < 30" | bc -l) )); then
-        echo "Warning: Code coverage is below 30%. Current coverage: $coverage%"
-        exit 1  # Выход с ошибкой для остановки CI
-      fi
+    - apt-get update && apt-get install -y xargs
+    - ./gradlew test jacocoTestReport jacocoTestCoverageVerification
   dependencies:
     - test
-  only:
