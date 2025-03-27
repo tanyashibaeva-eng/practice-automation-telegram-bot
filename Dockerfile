@@ -2,7 +2,6 @@ FROM openjdk:19-jdk
 
 WORKDIR /app
 
-# COPY src gradlew gradle build.gradle settings.gradle .
 COPY . .
 
 RUN ./gradlew clean build

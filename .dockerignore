@@ -1,0 +1,10 @@
+.dockerignore
+.git
+.gradle
+.idea
+.gitignore
+.gitlab-ci.yml
+docker-compose.yaml
+Dockerfile
+gradlew.bat
+README.md
