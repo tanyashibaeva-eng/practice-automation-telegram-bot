@@ -10,25 +10,24 @@ import static java.util.Objects.requireNonNull;
 
 @Log
 public class PropertiesProvider {
-    private static final String RESOURCES_PATH = requireNonNull(PropertiesProvider.class.getClassLoader().getResource("")).getPath();
-    private static final String PROPERTIES_FILENAME = "application.properties";
     private static final Properties properties;
 
     static {
-        String appPropertiesFilepath = RESOURCES_PATH + PROPERTIES_FILENAME;
-        properties = loadProperties(appPropertiesFilepath);
+        properties = loadProperties();
     }
 
-    private static Properties loadProperties(String path) {
+    private static Properties loadProperties() {
         Properties properties = new Properties();
-        try {
-            properties.load(new FileInputStream(path));
+        try (FileInputStream fis = new FileInputStream("src/main/resources/application.properties")) {
+            properties.load(fis);
         } catch (IOException ex) {
             log.severe(ex.getMessage());
             throw new RuntimeException(ex);
         }
         return properties;
     }
+
+
 
     public static String getToken() {
         return properties.getProperty("token");
