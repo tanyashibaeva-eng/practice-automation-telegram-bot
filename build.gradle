@@ -1,7 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     id 'java'
     id 'jacoco' // coverage для тестов
     id 'com.github.ksoichiro.console.reporter' version '0.6.3' // для генерации отчета о тестировании в терминал
+    id 'com.github.johnrengelman.shadow' version "8.1.1"
 }
 
 group = 'ru.itmo'
@@ -11,31 +14,23 @@ repositories {
     mavenCentral()
 }
 
-jar {
-    doFirst {
-        manifest {
-            attributes(
-                    'Main-Class': 'ru.itmo.Main',
-            )
-        }
-    }
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.release = 19
     options.encoding = 'UTF-8'
 }
 
-tasks.jar {
+tasks.named('shadowJar', ShadowJar) {
     manifest {
         archiveFileName.set("${project.name}.jar")
+        attributes(
+                'Main-Class': 'ru.itmo.Main',
+        )
     }
 }
 
 dependencies {
     implementation 'org.telegram:telegrambots-client:7.6.1'
     implementation 'org.telegram:telegrambots-longpolling:8.0.0'
-
 
     implementation 'org.postgresql:postgresql:42.7.5'
 

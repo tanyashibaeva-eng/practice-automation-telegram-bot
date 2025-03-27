@@ -30,6 +30,14 @@ public class PropertiesProvider {
 
 
     public static String getToken() {
-        return properties.getProperty("token");
+        String token = System.getenv("token");
+        if (token != null)
+            return token;
+
+        token = properties.getProperty("token");
+        if (token == null)
+            throw new RuntimeException("Token is not set");
+
+        return token;
     }
 }

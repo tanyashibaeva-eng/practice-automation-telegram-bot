@@ -7,7 +7,8 @@ import ru.itmo.util.PropertiesProvider;
 @Log
 public class Main {
     public static void main(String[] args) {
-        String token = PropertiesProvider.getToken();
+        final String token = PropertiesProvider.getToken();
+
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             botsApplication.registerBot(token, new Bot());
             Thread.currentThread().join();
