@@ -36,14 +36,6 @@ coverage:
 
 deploy:
   stage: deploy
-  image: docker:latest
-  services:
-    - docker:19.03.12-dind
   script:
-    - docker build -t my-app .
-    - docker run -d --name my-app-container --network practice-bot-network my-app
-    - docker ps
-    - docker logs my-app-container
-  only:
-    - main
-  when: manual
+    - ls -la
+    - docker compose up -d
