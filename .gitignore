@@ -1,4 +1,4 @@
-src/main/resources/application.properties
+./token.secret
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar

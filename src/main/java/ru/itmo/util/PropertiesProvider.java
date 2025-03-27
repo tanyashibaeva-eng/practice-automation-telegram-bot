@@ -30,13 +30,13 @@ public class PropertiesProvider {
 
 
     public static String getToken() {
-        String token = System.getenv("token");
+        String token = System.getenv("BOT_TOKEN");
         if (token != null)
             return token;
 
-        token = properties.getProperty("token");
+        token = properties.getProperty("BOT_TOKEN");
         if (token == null)
-            throw new RuntimeException("Token is not set");
+            throw new RuntimeException("BOT_TOKEN env is not set");
 
         return token;
     }
