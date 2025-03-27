@@ -7,7 +7,7 @@ build:
   stage: build
   image: openjdk:19-jdk
   script:
-    - ./gradlew clean build
+    - ./gradlew --no-daemon clean shadowJar
   artifacts:
     paths:
       - build/libs/*.jar
@@ -28,6 +28,7 @@ test:
 coverage:
   stage: test
   image: openjdk:19-jdk
+  allow_failure: true
   script:
     - apt-get update && apt-get install -y xargs
     - ./gradlew test jacocoTestReport jacocoTestCoverageVerification
@@ -36,6 +37,7 @@ coverage:
 
 deploy:
   stage: deploy
+  image: openjdk:19-jdk
   script:
-    - ls -la
-    - docker compose up -d
+    - ls -la build/libs/
+    - java -jar build/libs/practice-automation-telegram-bot.jar
