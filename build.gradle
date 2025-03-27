@@ -36,7 +36,11 @@ dependencies {
     implementation 'org.telegram:telegrambots-client:7.6.1'
     implementation 'org.telegram:telegrambots-longpolling:8.0.0'
 
+
     implementation 'org.postgresql:postgresql:42.7.5'
+
+    implementation 'org.slf4j:slf4j-api:2.0.17'
+    implementation 'org.slf4j:slf4j-simple:2.0.17'
 
     compileOnly 'org.projectlombok:lombok:1.18.36'
     annotationProcessor 'org.projectlombok:lombok:1.18.36'
