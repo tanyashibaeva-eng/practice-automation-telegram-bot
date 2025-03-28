@@ -34,6 +34,8 @@ dependencies {
 
     implementation 'org.postgresql:postgresql:42.7.5'
 
+    implementation 'commons-io:commons-io:2.18.0'
+
     implementation 'org.slf4j:slf4j-api:2.0.17'
     implementation 'org.slf4j:slf4j-simple:2.0.17'
 

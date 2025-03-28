@@ -1,5 +1,2 @@
-token := $(shell cat token.secret)
-
 up:
-	@echo "Starting docker-compose with token: $(token)"
-	@docker-compose up -d
+	@docker compose --env-file .env up --build --force-recreate --remove-orphans

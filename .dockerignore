@@ -1,3 +1,5 @@
+.env
+Makefile
 .dockerignore
 .git
 .gradle

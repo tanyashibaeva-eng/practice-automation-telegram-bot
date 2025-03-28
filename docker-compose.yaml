@@ -18,7 +18,7 @@ services:
 #    depends_on:
 #      - db
     environment:
-      BOT_TOKEN: $token
+      BOT_TOKEN: $BOT_TOKEN
     restart: unless-stopped
     networks:
       - practice-bot-network

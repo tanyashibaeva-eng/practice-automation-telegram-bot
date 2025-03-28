@@ -11,6 +11,7 @@ public class Main {
 
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
             botsApplication.registerBot(token, new Bot());
+            log.info("Bot is up and ready to receive messages");
             Thread.currentThread().join();
         } catch (Exception ex) {
             log.severe(ex.getMessage());

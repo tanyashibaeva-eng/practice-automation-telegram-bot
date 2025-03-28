@@ -21,23 +21,17 @@ public class PropertiesProvider {
         try (FileInputStream fis = new FileInputStream("src/main/resources/application.properties")) {
             properties.load(fis);
         } catch (IOException ex) {
-            log.severe(ex.getMessage());
+            log.severe("Could not load properties file: " + ex.getMessage());
             throw new RuntimeException(ex);
         }
         return properties;
     }
 
 
-
     public static String getToken() {
         String token = System.getenv("BOT_TOKEN");
-        if (token != null)
-            return token;
-
-        token = properties.getProperty("BOT_TOKEN");
         if (token == null)
-            throw new RuntimeException("BOT_TOKEN env is not set");
-
+            throw new RuntimeException("BOT_TOKEN variable in .env file is not set");
         return token;
     }
 }
