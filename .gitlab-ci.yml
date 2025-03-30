@@ -54,7 +54,7 @@ deploy:
   script:
     - echo "Deploying Docker container"
     - docker rm -f my-app-container || true
-    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN -e PG_DSN=$PG_DSN my-app:latest
+    - docker run --name my-app-container -e BOT_TOKEN=$BOT_TOKEN -e PG_DSN=$PG_DSN my-app:latest
   only:
     - main
   dependencies:
