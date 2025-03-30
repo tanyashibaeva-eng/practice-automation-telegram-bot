@@ -1,24 +1,23 @@
 services:
-#  db:
-#    image: postgres:14-alpine
-#    environment:
-#      POSTGRES_USER: postgres
-#      POSTGRES_PASSWORD: postgres
-#      POSTGRES_DB: practice_bot
-#    volumes:
-#      - <sql scripts for db initialization>
-#    restart: unless-stopped
-#    networks:
-#      - practice-bot-network
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: practice_bot
+    restart: unless-stopped
+    networks:
+      - practice-bot-network
 
   app:
     build:
       context: .
       dockerfile: ./Dockerfile
-#    depends_on:
-#      - db
+    depends_on:
+      - db
     environment:
       BOT_TOKEN: $BOT_TOKEN
+      PG_DSN: $PG_DSN
     restart: unless-stopped
     networks:
       - practice-bot-network
