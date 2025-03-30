@@ -12,6 +12,17 @@ build:
     paths:
       - build/libs/*.jar
 
+build-image:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker build -t my-app:latest .
+  artifacts:
+    paths:
+      - Dockerfile
+
 test:
   stage: test
   image: openjdk:19-jdk
@@ -37,7 +48,13 @@ coverage:
 
 deploy:
   stage: deploy
-  image: openjdk:19-jdk
+  image: docker:latest
+  services:
+    - docker:dind
   script:
-    - ls -la build/libs/
-    - java -jar build/libs/practice-automation-telegram-bot.jar
+    - echo "Deploying Docker container"
+    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN my-app:latest
+  only:
+    - main
+  dependencies:
+    - build-image
