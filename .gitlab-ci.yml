@@ -22,6 +22,8 @@ build-image:
   artifacts:
     paths:
       - Dockerfile
+  only:
+    - main
 
 test:
   stage: test
