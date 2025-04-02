@@ -22,6 +22,8 @@ build-image:
   artifacts:
     paths:
       - Dockerfile
+  only:
+    - main
 
 test:
   stage: test
@@ -53,7 +55,8 @@ deploy:
     - docker:dind
   script:
     - echo "Deploying Docker container"
-    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN my-app:latest
+    - docker rm -f my-app-container || true
+    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN -e PG_DSN=$PG_DSN my-app:latest
   only:
     - main
   dependencies:

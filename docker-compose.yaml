@@ -5,8 +5,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: practice_bot
-#    volumes:
-#      - ./src/main/resources/migrations/init.sql:/docker-entrypoint-initdb.d/01-init.sql
     restart: unless-stopped
     networks:
       - practice-bot-network

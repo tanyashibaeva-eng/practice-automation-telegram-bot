@@ -44,5 +44,3 @@ CREATE TABLE IF NOT EXISTS student (
     company_lead_job_title  text,
     primary key (chat_id, edu_stream_id)
 );
-
-
