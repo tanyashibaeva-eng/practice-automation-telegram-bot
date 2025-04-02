@@ -1,6 +1,6 @@
 package ru.itmo.infra.excel;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,11 +24,11 @@ public class ParserTest {
             "Статус",
             "Комментарий",
             "ИНН Компании",
-            "Имя Компании",
-            "ФИО Руководителя",
+            "Компания",
+            "Руководитель",
             "Телефон Руководителя",
             "Почта Руководителя",
-            "Должность руководителя"
+            "Должность Руководителя"
     };
 
     @BeforeEach
@@ -38,7 +38,7 @@ public class ParserTest {
 
     @Test
     void testParseExcelFile_ValidFile_ShouldReturnStudentsWithErrors() throws Exception {
-        var workbook = new HSSFWorkbook();
+        var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
         var headerRow = sheet.createRow(0);
@@ -87,7 +87,7 @@ public class ParserTest {
 
     @Test
     void testParseExcelFile_InvalidTemplate_ShouldThrowBadRequestException() {
-        var workbook = new HSSFWorkbook();
+        var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
         var headerRow = sheet.createRow(0);
@@ -109,7 +109,7 @@ public class ParserTest {
 
     @Test
     void testParseExcelFile_MissingRequiredColumn_ShouldReturnErrors() throws Exception {
-        var workbook = new HSSFWorkbook();
+        var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
         var headerRow = sheet.createRow(0);

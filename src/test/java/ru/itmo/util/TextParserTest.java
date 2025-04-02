@@ -20,7 +20,7 @@ public class TextParserTest {
         var exception = assertThrows(BadRequestException.class, () -> {
             textParser.parseInt("abc");
         });
-        assertEquals("должно быть строкой", exception.getMessage());
+        assertEquals("должно быть числом", exception.getMessage());
     }
 
     @Test
