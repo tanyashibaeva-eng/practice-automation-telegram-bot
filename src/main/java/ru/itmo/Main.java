@@ -13,7 +13,7 @@ public class Main {
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
 
             // TODO: just for testing, remove afterwards
-            Class.forName("ru.itmo.persistence.DatabaseManager");
+            Class.forName("ru.itmo.infra.storage.DatabaseManager");
 
             botsApplication.registerBot(token, new PracticeAutomationBot());
             log.info("Bot is up and ready to receive messages");

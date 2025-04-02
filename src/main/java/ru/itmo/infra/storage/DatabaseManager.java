@@ -1,4 +1,4 @@
-package ru.itmo.persistence;
+package ru.itmo.infra.storage;
 
 import lombok.Getter;
 import lombok.extern.java.Log;

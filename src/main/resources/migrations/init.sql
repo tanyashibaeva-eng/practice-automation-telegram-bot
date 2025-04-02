@@ -5,10 +5,10 @@ DO $$ BEGIN
         'practice_in_itmo',
         'company_info_waiting_approval',
         'company_info_returned',
-        'ticket_waiting_submission',
-        'ticket_returned',
-        'ticket_waiting_signing',
-        'ticket_signed'
+        'application_waiting_submission',
+        'application_returned',
+        'application_waiting_signing',
+        'application_signed'
     );
 EXCEPTION
     WHEN duplicate_object THEN null;
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS student (
     chat_id                 bigint          NOT NULL REFERENCES tg_user(chat_id) ON DELETE CASCADE,
     edu_stream_id           bigint          NOT NULL REFERENCES edu_stream(id) ON DELETE CASCADE,
     isu                     int             NOT NULL,
-    st_group                int             NOT NULL,
+    st_group                varchar(8)      NOT NULL,
     fullname                text            NOT NULL,
     status                  st_status       NOT NULL DEFAULT 'not_registered',
     comments                text            NOT NULL DEFAULT '',
@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS student (
     company_lead_fullname   text,
     company_lead_phone      text,
     company_lead_email      text,
-    company_lead_post       text,
+    company_lead_job_title  text,
     primary key (chat_id, edu_stream_id)
 );
+
+
