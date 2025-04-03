@@ -1,5 +1,7 @@
 package ru.itmo.util;
 
+import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
@@ -49,9 +51,31 @@ public class TextParser {
         }
         try {
             // TODO: переделать на удобочитаемый формат
-            return StudentStatus.valueOfIgnoreCase(text.trim());
+            return StudentStatus.valueOfIgnoreCase(text);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("неверный статус");
+        }
+    }
+
+    public PracticeFormat parsePracticeFormat(String text) throws BadRequestException {
+        if (text == null || text.trim().isEmpty()) {
+            throw new BadRequestException("должно быть строкой, представляющей формат прохождения практики.");
+        }
+        try {
+            return PracticeFormat.valueOfIgnoreCase(text);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("неверный формат прохождения практики");
+        }
+    }
+
+    public PracticePlace parsePracticePlace(String text) throws BadRequestException {
+        if (text == null || text.trim().isEmpty()) {
+            throw new BadRequestException("должно быть строкой, представляющей место прохождения практики.");
+        }
+        try {
+            return PracticePlace.valueOfIgnoreCase(text);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("неверное место прохождения практики");
         }
     }
 }

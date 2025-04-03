@@ -2,6 +2,8 @@ package ru.itmo.domain.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 
 @Getter
@@ -12,10 +14,14 @@ public class ExcelStudentDTO {
     private String fullName;
     private StudentStatus status;
     private String comments;
+    private String callStatusComments;
+    private PracticePlace practicePlace;
+    private PracticeFormat practiceFormat;
     private Integer companyINN;
     private String companyName;
     private String companyLeadFullName;
     private String companyLeadPhone;
     private String companyLeadEmail;
     private String companyLeadJobTitle;
+    private String cellHexColor;
 }
