@@ -28,6 +28,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         }
     }
 
+    // TODO: подумать над тем как прокидывать сюда кнопки/несколько сообщений
     private static void sendMessage(String message, long chatId) {
         SendMessage sendMessage = SendMessage
                 .builder()
