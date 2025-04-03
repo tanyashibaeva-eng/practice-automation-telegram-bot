@@ -9,6 +9,7 @@ import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
+import ru.itmo.infra.storage.IStudentRepo;
 import ru.itmo.util.TextParser;
 
 import java.io.File;
@@ -34,24 +35,34 @@ public class Parser {
 
     private static final TextParser textParser = new TextParser();
 
-    public StudentsWithErrors parseExcelFile(File file) throws BadRequestException, InternalException {
+    private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
+
+    public HashMap<String, StudentsWithErrors> parseExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
-            var sheet = workbook.getSheetAt(0);
 
-            var headers = sheet.getRow(0);
-            checkTemplate(headers.cellIterator());
+            if (workbook.getNumberOfSheets() != groups.size()) {
+                throw invalidTemplateException;
+            }
 
-            var rowIterator = sheet.iterator();
-            if (rowIterator.hasNext()) rowIterator.next();
-            return parseStudents(rowIterator);
+            var groupToErrors = new HashMap<String, StudentsWithErrors>();
+            for (var sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+                var sheet = workbook.getSheetAt(sheetIndex);
+                var headers = sheet.getRow(0);
+                checkTemplate(headers.cellIterator());
+
+                var rowIterator = sheet.iterator();
+                if (rowIterator.hasNext()) rowIterator.next();
+                groupToErrors.put(groups.get(sheetIndex), parseStudents(rowIterator));
+            }
+
+            return groupToErrors;
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         }
     }
 
     private static void checkTemplate(Iterator<Cell> headersIterator) throws BadRequestException {
-        var invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
         try {
             var columnCount = 0;
             while (headersIterator.hasNext()) {
