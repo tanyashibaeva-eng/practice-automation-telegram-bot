@@ -1,2 +1,4 @@
 up:
-	@docker compose --env-file .env up --build --force-recreate --remove-orphans
+	./gradlew --no-daemon shadowJar
+	@docker-compose --env-file .env up --build --force-recreate --remove-orphans
+
