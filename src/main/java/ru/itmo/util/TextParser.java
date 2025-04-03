@@ -49,7 +49,7 @@ public class TextParser {
         }
         try {
             // TODO: переделать на удобочитаемый формат
-            return StudentStatus.valueOf(text.trim().toUpperCase());
+            return StudentStatus.valueOfIgnoreCase(text.trim());
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("неверный статус");
         }

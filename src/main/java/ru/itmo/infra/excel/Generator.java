@@ -13,7 +13,7 @@ import java.util.List;
 
 @Log
 public class Generator {
-    private static final String[] errorColumns = {
+    private static final String[] errorHeadersColumns = {
             "ИСУ",
             "Группа",
             "ФИО",
@@ -33,9 +33,9 @@ public class Generator {
         var sheet = workbook.createSheet("Список студентов");
 
         var headerRow = sheet.createRow(0);
-        for (int i = 0; i < errorColumns.length; i++) {
+        for (int i = 0; i < errorHeadersColumns.length; i++) {
             var cell = headerRow.createCell(i);
-            cell.setCellValue(errorColumns[i]);
+            cell.setCellValue(errorHeadersColumns[i]);
         }
 
         var students = studentsWithErrors.getStudents();

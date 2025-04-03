@@ -23,6 +23,6 @@ public class TelegramUserService {
         if (currentCommandFunctionMap.containsKey(chatId)) {
             return currentCommandFunctionMap.get(chatId);
         }
-        throw new UnknownUserException("user with chat id: " + chatId + " not found");
+        throw new UnknownUserException(chatId);
     }
 }

@@ -14,7 +14,7 @@ public class StudentService {
     private static final Parser excelParser = new Parser();
     private static final Generator excelGenerator = new Generator();
 
-    public File updatesStudentsFromExcel(File file) throws InternalException, BadRequestException {
+    public File updateStudentsFromExcel(File file) throws InternalException, BadRequestException {
         var studentDTOsWithErrors = excelParser.parseExcelFile(file);
         if (!studentDTOsWithErrors.getErrorsByRows().isEmpty()) {
             return excelGenerator.generateExcelWithErrors(studentDTOsWithErrors);

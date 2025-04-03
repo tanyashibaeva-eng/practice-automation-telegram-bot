@@ -98,7 +98,7 @@ public class Parser {
                 var leadFullName = (parseString(row.getCell(7), errorsByRows, true));
                 var leadPhone = (parsePhone(row.getCell(8), errorsByRows, true));
                 var leadEmail = (parseEmail(row.getCell(9), errorsByRows, true));
-                var leadPos = (parseString(row.getCell(10), errorsByRows, true));
+                var leadJobTitle = (parseString(row.getCell(10), errorsByRows, true));
 
                 var studentDTO = new ExcelStudentDTO(
                         isu,
@@ -110,7 +110,7 @@ public class Parser {
                         leadFullName,
                         leadPhone,
                         leadEmail,
-                        leadPos
+                        leadJobTitle
                 );
                 students.add(studentDTO);
             } catch (Exception e) {
@@ -132,10 +132,9 @@ public class Parser {
             case Cell.CELL_TYPE_STRING:
                 return cell.getStringCellValue();
             case Cell.CELL_TYPE_BLANK:
-                if (canBeEmpty) {
-                    return null;
+                if (!canBeEmpty) {
+                    addErr(cell.getRowIndex(), "поле %s является обязательным".formatted(columns[cell.getColumnIndex()]), errorsByRows);
                 }
-                addErr(cell.getRowIndex(), "поле %s является обязательным".formatted(columns[cell.getColumnIndex()]), errorsByRows);
                 return null;
             case Cell.CELL_TYPE_BOOLEAN:
                 return cell.getBooleanCellValue() + "";
@@ -145,47 +144,47 @@ public class Parser {
                 return cell.getCellFormula();
             default:
                 addErr(cell.getRowIndex(), "неверный тип ячейки: %s".formatted(cell.getCellType()), errorsByRows);
-                return "";
+                return null;
         }
     }
 
     private static Integer parseInt(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if ((canBeEmpty && strVal == null) || (!canBeEmpty && strVal == null)) {
+            if (strVal == null) {
                 return null;
             }
             return textParser.parseDoubleToInt(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return 0;
+        return null;
     }
 
     private static String parsePhone(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if ((canBeEmpty && strVal == null) || (!canBeEmpty && strVal == null)) {
+            if (strVal == null) {
                 return null;
             }
             return textParser.parsePhone(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть номером телефона (+7 925 123 45 67)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return "";
+        return null;
     }
 
     private static String parseEmail(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if ((canBeEmpty && strVal == null) || (!canBeEmpty && strVal == null)) {
+            if (strVal == null) {
                 return null;
             }
             return textParser.parseEmail(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть электронной почтой (ivanov@yandex.ru)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return "";
+        return null;
     }
 
     private static StudentStatus parseStatus(Cell cell, HashMap<Integer, List<String>> errorsByRows) {

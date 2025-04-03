@@ -1,6 +1,7 @@
 package ru.itmo.util;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import ru.itmo.domain.type.StudentStatus;
@@ -35,7 +36,11 @@ public class TextParserTest {
     public void testParsePhone_InvalidPhone() {
         var exception = assertThrows(BadRequestException.class, () -> {
             textParser.parsePhone("12345");
-            assertEquals("+7 (925) 123 45 67", textParser.parsePhone("+7 (925) 123 45 67"));
+        });
+        assertEquals("неверный формат номера телефона", exception.getMessage());
+
+        exception = assertThrows(BadRequestException.class, () -> {
+            textParser.parsePhone("+7 (925) 123 45 67");
         });
         assertEquals("неверный формат номера телефона", exception.getMessage());
 

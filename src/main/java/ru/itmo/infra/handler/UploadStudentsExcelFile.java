@@ -20,7 +20,7 @@ public class UploadStudentsExcelFile {
         var file = Handler.getFileFromMessage(message);
 
         StudentService studentService = new StudentService();
-        var res = studentService.updatesStudentsFromExcel(file);
+        var res = studentService.updateStudentsFromExcel(file);
         System.out.println(res);
 
         Handler.setNextCommandFunction(chatID, UploadStudentsExcelFile::feedback);
