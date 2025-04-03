@@ -6,14 +6,21 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
+import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.exception.InternalException;
 
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GeneratorTest {
 
@@ -27,8 +34,8 @@ class GeneratorTest {
     @Test
     void testGenerateExcelWithErrors() throws InternalException, IOException {
         var students = Arrays.asList(
-                new ExcelStudentDTO(1, "group1", "John Doe", null, "comment", 12345, "Company1", "Lead1", "+7 123 456 78 90", "lead1@example.com", "Manager"),
-                new ExcelStudentDTO(2, "group2", "Jane Doe", null, "comment2", 67890, "Company2", "Lead2", "+7 987 654 32 10", "lead2@example.com", "Director")
+                new ExcelStudentDTO(1, "group1", "John Doe", null, "comment", "called", PracticePlace.ITMO_MARKINA, PracticeFormat.ONLINE, 12345, "Company1", "Lead1", "+7 123 456 78 90", "lead1@example.com", "Manager", "FFFFFF"),
+                new ExcelStudentDTO(2, "group2", "Jane Doe", null, "comment2", "not answering", PracticePlace.ITMO_UNIVERSITY, PracticeFormat.HYBRID, 67890, "Company2", "Lead2", "+7 987 654 32 10", "lead2@example.com", "Director", "FFFFFF")
         );
 
         var errors = new HashMap<Integer, List<String>>();

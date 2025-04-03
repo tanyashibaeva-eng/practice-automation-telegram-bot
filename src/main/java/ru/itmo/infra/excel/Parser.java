@@ -6,6 +6,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
+import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
@@ -24,6 +26,9 @@ public class Parser {
             "ФИО",
             "Статус",
             "Комментарий",
+            "Комментарий по звонкам руководителю",
+            "Место практики",
+            "Формат практики",
             "ИНН Компании",
             "Компания",
             "Руководитель",
@@ -81,36 +86,45 @@ public class Parser {
             var row = rowIterator.next();
             if (row == null) continue;
 
-            for (var i = 0; i < 4; i++) {
+            for (int i : new int[]{0, 1, 2, 3, 6, 7}) {
                 if (row.getCell(i) == null) {
-                    addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i+1]), errorsByRows);
+                    addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i + 1]), errorsByRows);
                 }
             }
 
             try {
-                var isu = (parseInt(row.getCell(0), errorsByRows, false));
-                var group = (parseString(row.getCell(1), errorsByRows, false));
-                var fullName = (parseString(row.getCell(2), errorsByRows, false));
-                var status = (parseStatus(row.getCell(3), errorsByRows));
-                var comment = (parseString(row.getCell(4), errorsByRows, true));
-                var companyINN = (parseInt(row.getCell(5), errorsByRows, true));
-                var companyName = (parseString(row.getCell(6), errorsByRows, true));
-                var leadFullName = (parseString(row.getCell(7), errorsByRows, true));
-                var leadPhone = (parsePhone(row.getCell(8), errorsByRows, true));
-                var leadEmail = (parseEmail(row.getCell(9), errorsByRows, true));
-                var leadJobTitle = (parseString(row.getCell(10), errorsByRows, true));
+                var isu = parseInt(row.getCell(0), errorsByRows, false);
+                var group = parseString(row.getCell(1), errorsByRows, false);
+                var fullName = parseString(row.getCell(2), errorsByRows, false);
+                var status = parseStatus(row.getCell(3), errorsByRows);
+                var comment = parseString(row.getCell(4), errorsByRows, true);
+                var callStatusComments = parseString(row.getCell(5), errorsByRows, true);
+                var practicePlace = parsePracticePlace(row.getCell(6), errorsByRows);
+                var practiceFormat = parsePracticeFormat(row.getCell(7), errorsByRows);
+                var companyINN = parseInt(row.getCell(8), errorsByRows, true);
+                var companyName = parseString(row.getCell(9), errorsByRows, true);
+                var leadFullName = parseString(row.getCell(10), errorsByRows, true);
+                var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
+                var leadEmail = parseEmail(row.getCell(12), errorsByRows, true);
+                var leadJobTitle = parseString(row.getCell(13), errorsByRows, true);
+                var cellHexColor = parseString(row.getCell(14), errorsByRows, false);
 
                 var studentDTO = new ExcelStudentDTO(
                         isu,
                         group,
                         fullName,
-                        status, comment,
+                        status,
+                        comment,
+                        callStatusComments,
+                        practicePlace,
+                        practiceFormat,
                         companyINN,
                         companyName,
                         leadFullName,
                         leadPhone,
                         leadEmail,
-                        leadJobTitle
+                        leadJobTitle,
+                        cellHexColor
                 );
                 students.add(studentDTO);
             } catch (Exception e) {
@@ -121,34 +135,30 @@ public class Parser {
         return new StudentsWithErrors(students, errorsByRows);
     }
 
-    private static String parseString(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) throws InternalException {
+    private static String parseString(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         if (cell == null) {
             return null;
         }
 
-        switch (cell.getCellType()) {
-            case Cell.CELL_TYPE_NUMERIC:
-                return cell.getNumericCellValue() + "";
-            case Cell.CELL_TYPE_STRING:
-                return cell.getStringCellValue();
-            case Cell.CELL_TYPE_BLANK:
-                if (!canBeEmpty) {
+        return switch (cell.getCellType()) {
+            case Cell.CELL_TYPE_NUMERIC -> cell.getNumericCellValue() + "";
+            case Cell.CELL_TYPE_STRING -> cell.getStringCellValue();
+            case Cell.CELL_TYPE_BLANK -> {
+                if (!canBeEmpty)
                     addErr(cell.getRowIndex(), "поле %s является обязательным".formatted(columns[cell.getColumnIndex()]), errorsByRows);
-                }
-                return null;
-            case Cell.CELL_TYPE_BOOLEAN:
-                return cell.getBooleanCellValue() + "";
-            case Cell.CELL_TYPE_ERROR:
-                return cell.getErrorCellValue() + "";
-            case Cell.CELL_TYPE_FORMULA:
-                return cell.getCellFormula();
-            default:
+                yield null;
+            }
+            case Cell.CELL_TYPE_BOOLEAN -> cell.getBooleanCellValue() + "";
+            case Cell.CELL_TYPE_ERROR -> cell.getErrorCellValue() + "";
+            case Cell.CELL_TYPE_FORMULA -> cell.getCellFormula();
+            default -> {
                 addErr(cell.getRowIndex(), "неверный тип ячейки: %s".formatted(cell.getCellType()), errorsByRows);
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 
-    private static Integer parseInt(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
+    private static Integer parseInt(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
             if (strVal == null) {
@@ -161,7 +171,7 @@ public class Parser {
         return null;
     }
 
-    private static String parsePhone(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
+    private static String parsePhone(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
             if (strVal == null) {
@@ -174,7 +184,7 @@ public class Parser {
         return null;
     }
 
-    private static String parseEmail(Cell cell, HashMap<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
+    private static String parseEmail(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
             if (strVal == null) {
@@ -187,7 +197,7 @@ public class Parser {
         return null;
     }
 
-    private static StudentStatus parseStatus(Cell cell, HashMap<Integer, List<String>> errorsByRows) {
+    private static StudentStatus parseStatus(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null) {
@@ -195,12 +205,39 @@ public class Parser {
             }
             return textParser.parseStatus(strVal);
         } catch (Exception e) {
-            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows); // TODO: сделать статусы
+            // TODO: сделать статусы
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
         return null;
     }
 
-    private static void addErr(int row, String text, HashMap<Integer, List<String>> errorsByRows) {
+    private static PracticeFormat parsePracticeFormat(Cell cell, Map<Integer, List<String>> errorsByRows) {
+        try {
+            var strVal = parseString(cell, errorsByRows, false);
+            if (strVal == null)
+                return null;
+            return textParser.parsePracticeFormat(strVal);
+        } catch (Exception e) {
+            // TODO: сделать форматы прохождения практики
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+        }
+        return null;
+    }
+
+    private static PracticePlace parsePracticePlace(Cell cell, Map<Integer, List<String>> errorsByRows) {
+        try {
+            var strVal = parseString(cell, errorsByRows, false);
+            if (strVal == null)
+                return null;
+            return textParser.parsePracticePlace(strVal);
+        } catch (Exception e) {
+            // TODO: сделать места прохождения практики
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+        }
+        return null;
+    }
+
+    private static void addErr(int row, String text, Map<Integer, List<String>> errorsByRows) {
         if (!errorsByRows.containsKey(row)) {
             errorsByRows.put(row, new ArrayList<>());
         }
