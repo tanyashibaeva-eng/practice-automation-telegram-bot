@@ -1,5 +1,6 @@
 package ru.itmo.infra.handler;
 
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -14,6 +15,7 @@ import ru.itmo.exception.UnknownUserException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
@@ -33,7 +35,7 @@ public class Handler {
 
     }
 
-    public static String handleMessage(Message message) {
+    public static String handleMessage(Message message) throws Exception {
         Function<Message, String> nextFunc;
         try {
             nextFunc = contextHolder.getNextFunction(message.getChatId());

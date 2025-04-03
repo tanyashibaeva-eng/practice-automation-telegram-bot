@@ -11,7 +11,6 @@ import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.storage.IStudentRepo;
 import ru.itmo.util.TextParser;
 
 import java.io.File;
@@ -118,7 +117,6 @@ public class Parser {
                 var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
                 var leadEmail = parseEmail(row.getCell(12), errorsByRows, true);
                 var leadJobTitle = parseString(row.getCell(13), errorsByRows, true);
-                var cellHexColor = parseString(row.getCell(14), errorsByRows, false);
 
                 var studentDTO = new ExcelStudentDTO(
                         isu,
@@ -135,7 +133,7 @@ public class Parser {
                         leadPhone,
                         leadEmail,
                         leadJobTitle,
-                        cellHexColor
+                        null
                 );
                 students.add(studentDTO);
             } catch (Exception e) {

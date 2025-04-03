@@ -18,9 +18,10 @@ public class UploadStudentsExcelFile {
     public static String upload(Message message) {
         var chatID = message.getChatId();
         var file = Handler.getFileFromMessage(message);
+        var eduStreamId = Handler.getStreamEduId(chatID);
 
         StudentService studentService = new StudentService();
-        var res = studentService.updateStudentsFromExcel(file);
+        var res = studentService.updateStudentsFromExcel(file, eduStreamId);
         System.out.println(res);
 
         Handler.setNextCommandFunction(chatID, UploadStudentsExcelFile::feedback);
