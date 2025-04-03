@@ -4,10 +4,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
@@ -23,6 +27,9 @@ public class ParserTest {
             "ФИО",
             "Статус",
             "Комментарий",
+            "Комментарий по звонкам руководителю",
+            "Место практики",
+            "Формат практики",
             "ИНН Компании",
             "Компания",
             "Руководитель",
@@ -42,7 +49,7 @@ public class ParserTest {
         var sheet = workbook.createSheet("Sheet1");
 
         var headerRow = sheet.createRow(0);
-        for (var i = 0; i < 11; i++) {
+        for (var i = 0; i < columns.length; i++) {
             var cell = headerRow.createCell(i);
             cell.setCellValue(columns[i]);
         }
@@ -53,12 +60,15 @@ public class ParserTest {
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("REGISTERED");
         dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue(123456789);
-        dataRow.createCell(6).setCellValue("Company1");
-        dataRow.createCell(7).setCellValue("Jane Doe");
-        dataRow.createCell(8).setCellValue("+7 925 123 45 67");
-        dataRow.createCell(9).setCellValue("jane.doe@example.com");
-        dataRow.createCell(10).setCellValue("Manager");
+        dataRow.createCell(5).setCellValue("didn't answer");
+        dataRow.createCell(6).setCellValue("ITMO_MARKINA");
+        dataRow.createCell(7).setCellValue("NOT_SPECIFIED");
+        dataRow.createCell(8).setCellValue(123456789);
+        dataRow.createCell(9).setCellValue("Company1");
+        dataRow.createCell(10).setCellValue("Jane Doe");
+        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(12).setCellValue("jane.doe@example.com");
+        dataRow.createCell(13).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
@@ -77,6 +87,9 @@ public class ParserTest {
         assertEquals("John Doe", student.getFullName());
         assertEquals(StudentStatus.REGISTERED, student.getStatus());
         assertEquals("No comment", student.getComments());
+        assertEquals("didn't answer", student.getCallStatusComments());
+        assertEquals(PracticePlace.ITMO_MARKINA, student.getPracticePlace());
+        assertEquals(PracticeFormat.NOT_SPECIFIED, student.getPracticeFormat());
         assertEquals(123456789, student.getCompanyINN());
         assertEquals("Company1", student.getCompanyName());
         assertEquals("Jane Doe", student.getCompanyLeadFullName());
@@ -113,7 +126,7 @@ public class ParserTest {
         var sheet = workbook.createSheet("Sheet1");
 
         var headerRow = sheet.createRow(0);
-        for (var i = 0; i < 11; i++) {
+        for (var i = 0; i < columns.length; i++) {
             headerRow.createCell(i).setCellValue(columns[i]);
         }
 
@@ -123,12 +136,15 @@ public class ParserTest {
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("A");
         dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue(123456789);
-        dataRow.createCell(6).setCellValue("Company1");
-        dataRow.createCell(7).setCellValue("Jane Doe");
-        dataRow.createCell(8).setCellValue("+7 (925) 123-45-67");
-        dataRow.createCell(9).setCellValue("jane.doe@example.com");
-        dataRow.createCell(10).setCellValue("Manager");
+        dataRow.createCell(5).setCellValue("didn't answer");
+        dataRow.createCell(6).setCellValue("ITMO_MARKINA");
+        dataRow.createCell(7).setCellValue("NOT_SPECIFIED");
+        dataRow.createCell(8).setCellValue(123456789);
+        dataRow.createCell(9).setCellValue("Company1");
+        dataRow.createCell(10).setCellValue("Jane Doe");
+        dataRow.createCell(11).setCellValue("+7 (925) 123-45-67");
+        dataRow.createCell(12).setCellValue("jane.doe@example.com");
+        dataRow.createCell(13).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file-with-errors", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
