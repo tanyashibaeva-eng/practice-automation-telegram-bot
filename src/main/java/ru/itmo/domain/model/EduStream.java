@@ -1,10 +1,12 @@
 package ru.itmo.domain.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 @Data
+@AllArgsConstructor
 public class EduStream {
     private long id;
     private String name;
