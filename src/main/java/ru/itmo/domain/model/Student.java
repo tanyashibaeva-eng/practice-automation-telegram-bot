@@ -1,11 +1,13 @@
 package ru.itmo.domain.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 
 @Data
+@AllArgsConstructor
 public class Student {
     private TelegramUser telegramUser;
     private EduStream eduStream;
@@ -24,4 +26,5 @@ public class Student {
     private String companyLeadEmail;
     private String companyLeadJobTitle;
     private String cellHexColor;
+    private boolean managedManually;
 }

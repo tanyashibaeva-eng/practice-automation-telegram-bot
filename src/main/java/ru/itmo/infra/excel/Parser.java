@@ -107,7 +107,7 @@ public class Parser {
                 var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
                 var leadEmail = parseEmail(row.getCell(12), errorsByRows, true);
                 var leadJobTitle = parseString(row.getCell(13), errorsByRows, true);
-                var cellHexColor = parseString(row.getCell(14), errorsByRows, false);
+                var cellHexColor = parseCellColor();
 
                 var studentDTO = new ExcelStudentDTO(
                         isu,
@@ -133,6 +133,11 @@ public class Parser {
         }
 
         return new StudentsWithErrors(students, errorsByRows);
+    }
+
+    private static String parseCellColor() {
+        // TODO: implement
+        return "FFFFFF";
     }
 
     private static String parseString(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
