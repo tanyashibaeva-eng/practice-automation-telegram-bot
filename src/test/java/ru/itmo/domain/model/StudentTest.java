@@ -171,7 +171,7 @@ class StudentTest {
     }
 
     @Test
-    void testValidStatusChange() {
+    void testInvalidStatusChange() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
                 "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
@@ -187,8 +187,28 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
+        assertEquals("сейчас ожидается действие от студента, переводить заявку в другой статус нельзя", errors.get(0));
+    }
+
+    @Test
+    void testValidStatusChange() {
+        Student student = new Student(
+                null, null, 12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_WAITING_APPROVAL,
+                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, 123456789, "Компания", "Руководитель",
+                "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false
+        );
+
+        ExcelStudentDTO dto = new ExcelStudentDTO(
+                12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_RETURNED,
+                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, 123456789, "Компания", "Руководитель",
+                "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
+        );
+
+        List<String> errors = student.updateOrGetErrors(dto);
         assertTrue(errors.isEmpty());
-        assertEquals(StudentStatus.COMPANY_INFO_WAITING_APPROVAL, student.getStatus());
+        assertEquals(StudentStatus.COMPANY_INFO_RETURNED, student.getStatus());
     }
 
     @Test
