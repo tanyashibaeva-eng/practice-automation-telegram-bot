@@ -31,8 +31,8 @@ class GeneratorTest {
     @Test
     void testGenerateExcelWithErrors() throws InternalException, IOException {
         var students = Arrays.asList(
-                new ExcelStudentDTO(1, "group1", "John Doe", null, "comment", "called", PracticePlace.ITMO_MARKINA, PracticeFormat.ONLINE, 12345, "Company1", "Lead1", "+7 123 456 78 90", "lead1@example.com", "Manager", "FFFFFF"),
-                new ExcelStudentDTO(2, "group2", "Jane Doe", null, "comment2", "not answering", PracticePlace.ITMO_UNIVERSITY, PracticeFormat.HYBRID, 67890, "Company2", "Lead2", "+7 987 654 32 10", "lead2@example.com", "Director", "FFFFFF")
+                new ExcelStudentDTO(1, "group1", "John Doe", null, "comment", "called", PracticePlace.ITMO_MARKINA, PracticeFormat.ONLINE, 12345, "Company1", "Lead1", "+7 123 456 78 90", "lead1@example.com", "Manager", "FFFFFF", 1),
+                new ExcelStudentDTO(2, "group2", "Jane Doe", null, "comment2", "not answering", PracticePlace.ITMO_UNIVERSITY, PracticeFormat.HYBRID, 67890, "Company2", "Lead2", "+7 987 654 32 10", "lead2@example.com", "Director", "FFFFFF", 2)
         );
 
         var errors = new HashMap<Integer, List<String>>();

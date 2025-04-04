@@ -135,7 +135,8 @@ public class Parser {
                         leadPhone,
                         leadEmail,
                         leadJobTitle,
-                        cellHexColor
+                        cellHexColor,
+                        row.getRowNum()
                 );
                 students.add(studentDTO);
             } catch (Exception e) {
