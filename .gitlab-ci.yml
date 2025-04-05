@@ -43,8 +43,7 @@ test:
     - build
   artifacts:
     paths:
-      - build/reports/jacoco/test/html/
-      - build/reports/jacoco/test/jacocoTestReport.xml
+      - build/reports/jacoco/*
     expire_in: 1 day
 
 coverage:
@@ -52,8 +51,7 @@ coverage:
   image: openjdk:19-jdk
   allow_failure: true
   script:
-    - apt-get update && apt-get install -y xargs
-    - ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+    - ./gradlew jacocoTestCoverageVerification
   dependencies:
     - test
 
