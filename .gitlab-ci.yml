@@ -43,15 +43,26 @@ test:
     - build
   artifacts:
     paths:
-      - build/reports/jacoco/*
+      - build/reports/jacoco/test/html/
+      - build/reports/jacoco/test/jacocoTestReport.xml
     expire_in: 1 day
 
 coverage:
   stage: test
   image: openjdk:19-jdk
+  services:
+    - name: postgres:latest
+      alias: postgres
+  variables:
+    POSTGRES_DB: testdb
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    PG_DSN: "jdbc:postgresql://postgres:5432/testdb?user=postgres&password=postgres"
+    BOT_TOKEN: "some_token"
   allow_failure: true
   script:
-    - ./gradlew jacocoTestCoverageVerification
+    - apt-get update && apt-get install -y xargs
+    - ./gradlew test jacocoTestReport jacocoTestCoverageVerification
   dependencies:
     - test
 
