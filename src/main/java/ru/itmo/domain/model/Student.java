@@ -85,7 +85,7 @@ public class Student {
     }
 
     private boolean isRusPhoneNumber(String phone) {
-        return phone.startsWith("+7") || phone.startsWith("8");
+        return phone.startsWith("+7") || phone.startsWith("8") || phone.startsWith("7");
     }
 
     private boolean isPracticeFormatValid(Integer companyINN, PracticeFormat practiceFormat) {

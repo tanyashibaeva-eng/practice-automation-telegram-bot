@@ -9,7 +9,6 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
@@ -18,28 +17,15 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Log
 public class Generator {
-    private static final String[] errorHeadersColumns = {
-            "ИСУ",
-            "Группа",
-            "ФИО",
-            "Статус",
-            "Комментарий",
-            "ИНН Компании",
-            "Компания",
-            "Руководитель",
-            "Телефон Руководителя",
-            "Почта Руководителя",
-            "Должность руководителя",
-            "Ошибки"
-    };
-
     private static final String[] headersColumns = {
             "ИСУ",
             "Группа",
@@ -57,54 +43,41 @@ public class Generator {
             "Должность Руководителя"
     };
 
-    public File generateExcelWithErrors(Map<String, StudentsWithErrors> groupToStudentsWithErrors) throws InternalException {
-        var workbook = new XSSFWorkbook();
-        var sortedGroups = groupToStudentsWithErrors.keySet().stream().sorted().toList();
+    public File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            var workbook = new XSSFWorkbook(fis);
 
-        for (var group : sortedGroups) {
-            var sheet = workbook.createSheet(group);
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                var studentsWithErrors = errorsByGroups.get(workbook.getSheetName(i));
+                var sheet = workbook.getSheetAt(i);
+                var lastColumnIndex = sheet.getRow(0).getPhysicalNumberOfCells();
 
-            var headerRow = sheet.createRow(0);
-            for (int i = 0; i < errorHeadersColumns.length; i++) {
-                var cell = headerRow.createCell(i);
-                cell.setCellValue(errorHeadersColumns[i]);
+                var headerRow = sheet.getRow(0);
+                if (headerRow == null) {
+                    headerRow = sheet.createRow(0);
+                }
+                var errorHeaderCell = headerRow.createCell(lastColumnIndex);
+                errorHeaderCell.setCellValue("Ошибки");
+
+                for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+                    var row = sheet.getRow(rowIndex);
+                    if (row != null) {
+                        List<String> errors = studentsWithErrors.getErrorsByRows().get(rowIndex);
+                        String errorMessages = (errors != null) ? String.join("; ", errors) : "";
+
+                        var errorCell = row.createCell(lastColumnIndex);
+                        errorCell.setCellValue(errorMessages);
+                    }
+                }
             }
 
-            var studentsWithErrors = groupToStudentsWithErrors.get(group);
-            var students = studentsWithErrors.getStudents();
-            var errorsByRows = studentsWithErrors.getErrorsByRows();
-
-            int rowNum = 1;
-            for (int i = 0; i < students.size(); i++) {
-                ExcelStudentDTO student = students.get(i);
-                var row = sheet.createRow(rowNum++);
-
-                row.createCell(0).setCellValue(student.getIsu() == null ? "" : student.getIsu() + "");
-                row.createCell(1).setCellValue(student.getStGroup() == null ? "" : student.getStGroup());
-                row.createCell(2).setCellValue(student.getFullName() == null ? "" : student.getFullName());
-                row.createCell(3).setCellValue(student.getStatus() == null ? "" : student.getStatus().toString());
-                row.createCell(4).setCellValue(student.getComments() == null ? "" : student.getComments());
-                row.createCell(5).setCellValue(student.getCompanyINN() == null ? "" : student.getCompanyINN() + "");
-                row.createCell(6).setCellValue(student.getCompanyName() == null ? "" : student.getCompanyName());
-                row.createCell(7).setCellValue(student.getCompanyLeadFullName() == null ? "" : student.getCompanyLeadFullName());
-                row.createCell(8).setCellValue(student.getCompanyLeadPhone() == null ? "" : student.getCompanyLeadPhone());
-                row.createCell(9).setCellValue(student.getCompanyLeadEmail() == null ? "" : student.getCompanyLeadEmail());
-                row.createCell(10).setCellValue(student.getCompanyLeadJobTitle() == null ? "" : student.getCompanyLeadJobTitle());
-
-                List<String> errors = errorsByRows.get(i + 1);
-                String errorMessages = (errors != null) ? String.join("; ", errors) : "";
-                row.createCell(11).setCellValue(errorMessages);
-            }
-        }
-
-        var file = new File("список студентов – ошибки.xlsx");
-        try (var fileOut = new FileOutputStream(file)) {
+            file = new File("список студентов – ошибки.xlsx");
+            var fileOut = new FileOutputStream(file);
             workbook.write(fileOut);
+            return file;
         } catch (IOException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+            throw new InternalException("Произошла ошибка при обработке Excel файла: " + e.getMessage(), e);
         }
-
-        return file;
     }
 
     public File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
@@ -143,7 +116,6 @@ public class Generator {
 
                 row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getUserName() : "");
                 addEnumValidation(sheet, 3, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
-
 
                 row.createCell(4).setCellValue(student.getComments() != null ? student.getComments() : "");
                 row.createCell(5).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
@@ -202,15 +174,6 @@ public class Generator {
         var validation = dvHelper.createValidation(constraint, addressList);
         validation.setSuppressDropDownArrow(true);
         sheet.addValidationData(validation);
-    }
-
-    private String[] getStudentStatusOptions() {
-        var statuses = StudentStatus.values();
-        var options = new String[statuses.length];
-        for (int i = 0; i < statuses.length; i++) {
-            options[i] = statuses[i].getUserName();
-        }
-        return options;
     }
 
     private String[] getPracticePlaceOptions() {

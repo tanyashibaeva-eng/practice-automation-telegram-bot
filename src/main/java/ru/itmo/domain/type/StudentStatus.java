@@ -3,6 +3,10 @@ package ru.itmo.domain.type;
 import lombok.AllArgsConstructor;
 import org.apache.poi.hssf.util.HSSFColor;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @AllArgsConstructor
 public enum StudentStatus {
     /* 0  */ NOT_REGISTERED("NOT_REGISTERED"),
@@ -21,6 +25,15 @@ public enum StudentStatus {
 
     public static StudentStatus valueOfIgnoreCase(String name) {
         return valueOf(name.trim().toUpperCase());
+    }
+
+    public static StudentStatus getByUserName(String text) {
+        for (StudentStatus status : StudentStatus.values()) {
+            if (status.getUserName().equals(text)) {
+                return status;
+            }
+        }
+        return null;
     }
 
     public String getUserName() {

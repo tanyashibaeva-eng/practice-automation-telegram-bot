@@ -60,11 +60,10 @@ public class ParserTest {
         dataRow.createCell(0).setCellValue(123456);
         dataRow.createCell(1).setCellValue("Group1");
         dataRow.createCell(2).setCellValue("John Doe");
-        dataRow.createCell(3).setCellValue("REGISTERED");
+        dataRow.createCell(3).setCellValue("Зарегистрирован");
         dataRow.createCell(4).setCellValue("No comment");
         dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("ITMO_MARKINA");
-        dataRow.createCell(7).setCellValue("NOT_SPECIFIED");
+        dataRow.createCell(6).setCellValue("Практика в ИТМО");
         dataRow.createCell(8).setCellValue(123456789);
         dataRow.createCell(9).setCellValue("Company1");
         dataRow.createCell(10).setCellValue("Jane Doe");
@@ -162,6 +161,124 @@ public class ParserTest {
         var errors = result.getErrorsByRows().get(1);
         assertTrue(errors.contains("значение в колонке \"ИСУ\" должно быть числом"));
     }
+
+    @Test
+    void testParseExcelFile_FileWithEmptyValues_ShouldReturnErrors() throws Exception {
+        var workbook = new XSSFWorkbook();
+        var sheet = workbook.createSheet("Sheet1");
+
+        var headerRow = sheet.createRow(0);
+        for (var i = 0; i < columns.length; i++) {
+            headerRow.createCell(i).setCellValue(columns[i]);
+        }
+
+        var dataRow = sheet.createRow(1);
+        dataRow.createCell(0).setCellValue("");
+        dataRow.createCell(1).setCellValue("Group1");
+        dataRow.createCell(2).setCellValue("John Doe");
+        dataRow.createCell(3).setCellValue("Зарегистрирован");
+        dataRow.createCell(4).setCellValue("No comment");
+        dataRow.createCell(5).setCellValue("didn't answer");
+        dataRow.createCell(6).setCellValue("Практика в ИТМО");
+        dataRow.createCell(8).setCellValue(123456789);
+        dataRow.createCell(9).setCellValue("Company1");
+        dataRow.createCell(10).setCellValue("Jane Doe");
+        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(12).setCellValue("jane.doe@example.com");
+        dataRow.createCell(13).setCellValue("Manager");
+
+        var testFile = File.createTempFile("test-file-with-empty-values", ".xlsx");
+        try (var fos = new FileOutputStream(testFile)) {
+            workbook.write(fos);
+        }
+
+        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        assertNotNull(mapResult);
+        var result = mapResult.get("gr1");
+
+        assertEquals(1, result.getErrorsByRows().size());
+        var errors = result.getErrorsByRows().get(1);
+        assertTrue(errors.contains("значение в колонке \"ИСУ\" должно быть числом"));
+    }
+
+    @Test
+    void testParseExcelFile_InvalidStatus_ShouldReturnError() throws Exception {
+        var workbook = new XSSFWorkbook();
+        var sheet = workbook.createSheet("Sheet1");
+
+        var headerRow = sheet.createRow(0);
+        for (var i = 0; i < columns.length; i++) {
+            headerRow.createCell(i).setCellValue(columns[i]);
+        }
+
+        var dataRow = sheet.createRow(1);
+        dataRow.createCell(0).setCellValue(123456);
+        dataRow.createCell(1).setCellValue("Group1");
+        dataRow.createCell(2).setCellValue("John Doe");
+        dataRow.createCell(3).setCellValue("InvalidStatus");
+        dataRow.createCell(4).setCellValue("No comment");
+        dataRow.createCell(5).setCellValue("didn't answer");
+        dataRow.createCell(6).setCellValue("Практика в ИТМО");
+        dataRow.createCell(8).setCellValue(123456789);
+        dataRow.createCell(9).setCellValue("Company1");
+        dataRow.createCell(10).setCellValue("Jane Doe");
+        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(12).setCellValue("jane.doe@example.com");
+        dataRow.createCell(13).setCellValue("Manager");
+
+        var testFile = File.createTempFile("test-file-invalid-status", ".xlsx");
+        try (var fos = new FileOutputStream(testFile)) {
+            workbook.write(fos);
+        }
+
+        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        assertNotNull(mapResult);
+        var result = mapResult.get("gr1");
+
+        assertEquals(1, result.getErrorsByRows().size());
+        var errors = result.getErrorsByRows().get(1);
+        assertTrue(errors.contains("значение в колонке \"Статус\" может быть одним из Не зарегистрирован, Зарегистрирован, Практика в ИТМО у Маркиной Т. А., Данные о компании на проверке, Данные о компании возвращены на доработку, Практика согласована, Данные о компании утверждены и ожидается заполнения заявки, Заявка на проверке, Заявка возвращена на доработку, Заявка согласована и ожидает подписания, Заявка подписана"));
+    }
+
+    @Test
+    void testParseExcelFile_InvalidPhone_ShouldReturnError() throws Exception {
+        var workbook = new XSSFWorkbook();
+        var sheet = workbook.createSheet("Sheet1");
+
+        var headerRow = sheet.createRow(0);
+        for (var i = 0; i < columns.length; i++) {
+            headerRow.createCell(i).setCellValue(columns[i]);
+        }
+
+        var dataRow = sheet.createRow(1);
+        dataRow.createCell(0).setCellValue(123456);
+        dataRow.createCell(1).setCellValue("Group1");
+        dataRow.createCell(2).setCellValue("John Doe");
+        dataRow.createCell(3).setCellValue("Зарегистрирован");
+        dataRow.createCell(4).setCellValue("No comment");
+        dataRow.createCell(5).setCellValue("didn't answer");
+        dataRow.createCell(6).setCellValue("Практика в ИТМО");
+        dataRow.createCell(8).setCellValue(123456789);
+        dataRow.createCell(9).setCellValue("Company1");
+        dataRow.createCell(10).setCellValue("Jane Doe");
+        dataRow.createCell(11).setCellValue("12345");
+        dataRow.createCell(12).setCellValue("jane.doe@example.com");
+        dataRow.createCell(13).setCellValue("Manager");
+
+        var testFile = File.createTempFile("test-file-invalid-phone", ".xlsx");
+        try (var fos = new FileOutputStream(testFile)) {
+            workbook.write(fos);
+        }
+
+        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        assertNotNull(mapResult);
+        var result = mapResult.get("gr1");
+
+        assertEquals(1, result.getErrorsByRows().size());
+        var errors = result.getErrorsByRows().get(1);
+        assertTrue(errors.contains("значение в колонке \"Телефон Руководителя\" должно быть номером телефона (+7 925 123 45 67)"));
+    }
+
 
     @AfterAll
     static void tearDown() throws IOException {

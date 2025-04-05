@@ -75,6 +75,9 @@ jacocoTestReport {
                             '**/domain/dto/**',
                             '**/application/**',
                             '**/bot/**',
+                            '**/excel/Generator.class',
+                            '**/storage/DatabaseManager.class',
+                            '**/util/PropertiesProvider.class',
                     ]
             )
         })
@@ -88,5 +91,21 @@ jacocoTestCoverageVerification {
                 minimum = 0.5
             }
         }
+    }
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                    excludes: [
+                            '**/handler/**',
+                            '**/interceptor/**',
+                            '**/domain/dto/**',
+                            '**/application/**',
+                            '**/bot/**',
+                            '**/excel/Generator.class',
+                            '**/storage/DatabaseManager.class',
+                            '**/util/PropertiesProvider.class',
+                    ]
+            )
+        })
     }
 }

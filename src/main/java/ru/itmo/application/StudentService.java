@@ -25,7 +25,7 @@ public class StudentService {
     private static final Generator excelGenerator = new Generator();
 
     public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
-        var groups = List.of("gr1"); // TODO: replace
+        var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
         var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
         var groupToStudentDTOsWithErrors = excelParser.parseExcelFile(file, groups);
 
@@ -35,13 +35,14 @@ public class StudentService {
             var errors = groupToStudentDTOsWithErrors.get(g).getErrorsByRows();
 
             if (!errors.isEmpty()) {
-                return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
+                return Optional.ofNullable(excelGenerator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
             }
 
             for (var d : dtos) {
                 studentInfoToStudents.put("%d-%s-%s".formatted(d.getIsu(), d.getFullName(), d.getStGroup()), d);
             }
         }
+
         var haveErrors = false;
         for (var s : students) {
             var key = "%s-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
@@ -50,15 +51,16 @@ public class StudentService {
                 var errors = s.updateOrGetErrors(d);
                 if (!errors.isEmpty()) {
                     haveErrors = true;
-                    groupToStudentDTOsWithErrors.get(s.getStGroup()).getErrorsByRows().put(d.getIsu(), errors);
+                    groupToStudentDTOsWithErrors.get(s.getStGroup()).getErrorsByRows().put(d.getRow(), errors);
                 }
             }
         }
+
         if (haveErrors) {
-            return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
+            return Optional.ofNullable(excelGenerator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
         }
 
-        StudentRepository.saveBatch(students);
+        StudentRepository.updateBatchByChatIdAndEduStreamId(students);
         return Optional.empty();
     }
 

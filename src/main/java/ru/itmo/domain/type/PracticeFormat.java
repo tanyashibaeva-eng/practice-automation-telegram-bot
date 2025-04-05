@@ -15,6 +15,15 @@ public enum PracticeFormat {
         return valueOf(name.trim().toUpperCase());
     }
 
+    public static PracticeFormat getByUserName(String text) {
+        for (PracticeFormat format : PracticeFormat.values()) {
+            if (format.getUserName().equals(text)) {
+                return format;
+            }
+        }
+        return NOT_SPECIFIED;
+    }
+
     public String getUserName() {
         return switch (this) {
             case NOT_SPECIFIED -> "";
