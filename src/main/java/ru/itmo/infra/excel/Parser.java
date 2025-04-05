@@ -39,17 +39,28 @@ public class Parser {
 
     private static final TextParser textParser = new TextParser();
 
-    public StudentsWithErrors parseExcelFile(File file) throws BadRequestException, InternalException {
+    private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
+
+    public HashMap<String, StudentsWithErrors> parseExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
-            var sheet = workbook.getSheetAt(0);
 
-            var headers = sheet.getRow(0);
-            checkTemplate(headers.cellIterator());
+            if (workbook.getNumberOfSheets() != groups.size()) {
+                throw invalidTemplateException;
+            }
 
-            var rowIterator = sheet.iterator();
-            if (rowIterator.hasNext()) rowIterator.next();
-            return parseStudents(rowIterator);
+            var groupToErrors = new HashMap<String, StudentsWithErrors>();
+            for (var sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
+                var sheet = workbook.getSheetAt(sheetIndex);
+                var headers = sheet.getRow(0);
+                checkTemplate(headers.cellIterator());
+
+                var rowIterator = sheet.iterator();
+                if (rowIterator.hasNext()) rowIterator.next();
+                groupToErrors.put(groups.get(sheetIndex), parseStudents(rowIterator));
+            }
+
+            return groupToErrors;
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         }
@@ -124,7 +135,8 @@ public class Parser {
                         leadPhone,
                         leadEmail,
                         leadJobTitle,
-                        cellHexColor
+                        cellHexColor,
+                        row.getRowNum()
                 );
                 students.add(studentDTO);
             } catch (Exception e) {
@@ -206,40 +218,40 @@ public class Parser {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null) {
-                return null;
+                return StudentStatus.NOT_REGISTERED;
             }
             return textParser.parseStatus(strVal);
         } catch (Exception e) {
             // TODO: сделать статусы
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return StudentStatus.NOT_REGISTERED;
     }
 
     private static PracticeFormat parsePracticeFormat(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
-                return null;
+                return PracticeFormat.NOT_SPECIFIED;
             return textParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
             // TODO: сделать форматы прохождения практики
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return PracticeFormat.NOT_SPECIFIED;
     }
 
     private static PracticePlace parsePracticePlace(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
-                return null;
+                return PracticePlace.NOT_SPECIFIED;
             return textParser.parsePracticePlace(strVal);
         } catch (Exception e) {
             // TODO: сделать места прохождения практики
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return PracticePlace.NOT_SPECIFIED;
     }
 
     private static void addErr(int row, String text, Map<Integer, List<String>> errorsByRows) {

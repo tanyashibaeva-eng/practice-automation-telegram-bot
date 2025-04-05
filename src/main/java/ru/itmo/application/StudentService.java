@@ -1,12 +1,19 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.Parser;
+import ru.itmo.infra.storage.Filter;
+import ru.itmo.infra.storage.StudentRepository;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @Log
 public class StudentService {
@@ -14,18 +21,41 @@ public class StudentService {
     private static final Parser excelParser = new Parser();
     private static final Generator excelGenerator = new Generator();
 
-    public File updateStudentsFromExcel(File file) throws InternalException, BadRequestException {
-        var studentDTOsWithErrors = excelParser.parseExcelFile(file);
-        if (!studentDTOsWithErrors.getErrorsByRows().isEmpty()) {
-            return excelGenerator.generateExcelWithErrors(studentDTOsWithErrors);
+    public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
+        var groups = List.of("gr1"); // TODO: replace
+        var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
+        var groupToStudentDTOsWithErrors = excelParser.parseExcelFile(file, groups);
+
+        var studentInfoToStudents = new HashMap<String, ExcelStudentDTO>();
+        for (var g : groups) {
+            var dtos = groupToStudentDTOsWithErrors.get(g).getStudents();
+            var errors = groupToStudentDTOsWithErrors.get(g).getErrorsByRows();
+
+            if (!errors.isEmpty()) {
+                return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
+            }
+
+            for (var d : dtos) {
+                studentInfoToStudents.put("%d-%s-%s".formatted(d.getIsu(), d.getFullName(), d.getStGroup()), d);
+            }
+        }
+        var haveErrors = false;
+        for (var s : students) {
+            var key = "%s-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
+            if (studentInfoToStudents.containsKey(key)) {
+                var d = studentInfoToStudents.get(key);
+                var errors = s.updateOrGetErrors(d);
+                if (!errors.isEmpty()) {
+                    haveErrors = true;
+                    groupToStudentDTOsWithErrors.get(s.getStGroup()).getErrorsByRows().put(d.getIsu(), errors);
+                }
+            }
+        }
+        if (haveErrors) {
+            return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
         }
 
-        var studentDTOs = studentDTOsWithErrors.getErrorsByRows();
-
-        // TODO: creates students with constructor and update in db
-
-        log.info("файл прошел валидацию!");
-
-        return null;
+        StudentRepository.saveBatch(students);
+        return Optional.empty();
     }
 }

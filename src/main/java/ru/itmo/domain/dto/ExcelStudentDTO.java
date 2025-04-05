@@ -24,4 +24,5 @@ public class ExcelStudentDTO {
     private String companyLeadEmail;
     private String companyLeadJobTitle;
     private String cellHexColor;
+    private Integer row;
 }
