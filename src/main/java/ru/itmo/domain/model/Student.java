@@ -1,18 +1,23 @@
 package ru.itmo.domain.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-@Getter
-@NoArgsConstructor
+@Data
 @AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class Student {
     private TelegramUser telegramUser;
     private EduStream eduStream;
