@@ -1,8 +1,6 @@
 package ru.itmo.domain.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
@@ -13,6 +11,8 @@ import java.util.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 public class Student {
     private TelegramUser telegramUser;
     private EduStream eduStream;
@@ -33,7 +33,7 @@ public class Student {
     private String cellHexColor;
     private boolean managedManually;
 
-    private static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
+    public static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
             StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
             StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
             StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
