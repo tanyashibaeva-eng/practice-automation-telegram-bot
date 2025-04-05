@@ -1,16 +1,19 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import org.checkerframework.checker.units.qual.A;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.Parser;
+import ru.itmo.infra.storage.EduStreamRepository;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -57,5 +60,20 @@ public class StudentService {
 
         StudentRepository.saveBatch(students);
         return Optional.empty();
+    }
+
+    public static File exportStudentsToExcel(long eduStreamId) throws InternalException {
+        var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
+        var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
+        var groupToStudents = new HashMap<String, List<Student>>();
+
+        for (var s : students) {
+            if (!groupToStudents.containsKey(s.getStGroup())) {
+                groupToStudents.put(s.getStGroup(), new ArrayList<>());
+            }
+            groupToStudents.get(s.getStGroup()).add(s);
+        }
+
+        return excelGenerator.generateExcel(groupToStudents, groups);
     }
 }

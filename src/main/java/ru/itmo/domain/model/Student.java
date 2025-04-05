@@ -39,7 +39,7 @@ public class Student {
             StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
             StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
             StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
-            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
+            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED, StudentStatus.PRACTICE_APPROVED)
     );
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
@@ -140,6 +140,22 @@ public class Student {
                     this.isApplicationInfoFieldsFilled();
             case PRACTICE_APPROVED -> true;
             default -> false;
+        };
+    }
+
+    public String[] getTransitionStatuses() {
+        return switch (this.status) {
+            case NOT_REGISTERED -> new String[]{StudentStatus.NOT_REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
+            case REGISTERED -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
+            case PRACTICE_IN_ITMO_MARKINA -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
+            case COMPANY_INFO_WAITING_APPROVAL -> new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName()};
+            case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
+            case APPLICATION_WAITING_SUBMISSION -> new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_WAITING_APPROVAL -> new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
+            case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_WAITING_SIGNING -> new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
+            case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getUserName()};
         };
     }
 }
