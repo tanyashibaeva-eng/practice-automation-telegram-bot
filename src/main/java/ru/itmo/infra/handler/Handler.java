@@ -1,12 +1,13 @@
 package ru.itmo.infra.handler;
 
+import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.itmo.application.TelegramUserService;
+import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
@@ -14,6 +15,7 @@ import ru.itmo.exception.UnknownUserException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
@@ -23,7 +25,7 @@ import static ru.itmo.exception.InvalidMessageException.ThrowMessageException;
 public class Handler {
 
     private static final TelegramClient telegramClient = PracticeAutomationBot.getTelegramClient();
-    private static final TelegramUserService telegramUserService = new TelegramUserService();
+    private static final ContextHolder contextHolder = new ContextHolder();
     private static final HashMap<String, Function<Message, String>> commands = new HashMap<>();
 
     static {
@@ -36,7 +38,7 @@ public class Handler {
     public static String handleMessage(Message message) throws Exception {
         Function<Message, String> nextFunc;
         try {
-            nextFunc = telegramUserService.getNextFunction(message.getChatId());
+            nextFunc = contextHolder.getNextFunction(message.getChatId());
         } catch (UnknownUserException e) {
             nextFunc = null;
         }
@@ -85,10 +87,18 @@ public class Handler {
     }
 
     public static void setNextCommandFunction(Long chatId, Function<Message, String> handler) {
-        telegramUserService.setNextFunction(chatId, handler);
+        contextHolder.setNextFunction(chatId, handler);
     }
 
     public static void endCommand(Long chatId) {
-        telegramUserService.removeChatID(chatId);
+        contextHolder.removeChatId(chatId);
+    }
+
+    public static long getStreamEduId(Long chatId) throws UnknownUserException {
+        return contextHolder.getEduStreamId(chatId);
+    }
+
+    public static void setStreamEduId(Long chatId, Long streamId) throws UnknownUserException {
+        contextHolder.setEduStreamId(chatId, streamId);
     }
 }
