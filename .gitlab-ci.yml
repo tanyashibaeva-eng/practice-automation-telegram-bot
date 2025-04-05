@@ -52,8 +52,7 @@ coverage:
   image: openjdk:19-jdk
   allow_failure: true
   script:
-    - apt-get update && apt-get install -y xargs
-    - ./gradlew test jacocoTestReport jacocoTestCoverageVerification
+    - ./gradlew jacocoTestCoverageVerification
   dependencies:
     - test
 
