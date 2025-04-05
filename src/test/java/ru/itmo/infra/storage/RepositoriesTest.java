@@ -117,7 +117,7 @@ public class RepositoriesTest {
                 TelegramUserRepository.save(telegramUser);
             StudentRepository.saveBatch(students);
         } catch (InternalException ex) {
-            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
     }
 

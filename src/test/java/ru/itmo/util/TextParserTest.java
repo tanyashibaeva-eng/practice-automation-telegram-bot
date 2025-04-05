@@ -1,11 +1,11 @@
 package ru.itmo.util;
 
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
-
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class TextParserTest {
 
