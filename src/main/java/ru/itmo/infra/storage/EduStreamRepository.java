@@ -54,6 +54,24 @@ public class EduStreamRepository {
         }
     }
 
+    public static List<String> findAllGroupsByStreamId(long eduStreamId) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.id = student.edu_stream_id WHERE edu_stream.id = ? GROUP BY student.st_group;"
+        )) {
+            statement.setLong(1, eduStreamId);
+            var rs = statement.executeQuery();
+            List<String> result = new ArrayList<>();
+
+            while (rs.next())
+                result.add(rs.getString("st_group"));
+
+            return result.stream().sorted().toList();
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static boolean existsById(long id) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE id = ?;"

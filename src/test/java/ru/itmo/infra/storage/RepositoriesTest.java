@@ -4,6 +4,7 @@
 //import org.junit.jupiter.api.Assertions;
 //import org.junit.jupiter.api.BeforeAll;
 //import org.junit.jupiter.api.Test;
+//import ru.itmo.domain.dto.ExcelStudentDTO;
 //import ru.itmo.domain.model.EduStream;
 //import ru.itmo.domain.model.Student;
 //import ru.itmo.domain.model.TelegramUser;
@@ -12,6 +13,8 @@
 //import ru.itmo.domain.type.StudentStatus;
 //import ru.itmo.exception.InternalException;
 //
+//import java.sql.Connection;
+//import java.sql.SQLException;
 //import java.time.LocalDate;
 //import java.util.List;
 //
@@ -54,10 +57,10 @@
 //                    "call status comments 1",
 //                    PracticePlace.NOT_SPECIFIED,
 //                    PracticeFormat.NOT_SPECIFIED,
-//                    111,
+//                    78111,
 //                    "company name 1",
 //                    "company lead full name 1",
-//                    "phone 1",
+//                    "+7 phone 1",
 //                    "email 1",
 //                    "manager 1",
 //                    "1",
@@ -74,10 +77,10 @@
 //                    "call status comments 2",
 //                    PracticePlace.ITMO_UNIVERSITY,
 //                    PracticeFormat.ONLINE,
-//                    222,
+//                    78222,
 //                    "company name 2",
 //                    "company lead full name 2",
-//                    "phone 2",
+//                    "+7 phone 2",
 //                    "email 2",
 //                    "manager 2",
 //                    "2",
@@ -92,12 +95,12 @@
 //                    StudentStatus.APPLICATION_RETURNED,
 //                    "comments 3",
 //                    "call status comments 3",
-//                    PracticePlace.ITMO_MARKINA,
+//                    PracticePlace.OTHER_COMPANY,
 //                    PracticeFormat.OFFLINE,
-//                    333,
+//                    78333,
 //                    "company name 3",
 //                    "company lead full name 3",
-//                    "phone 3",
+//                    "+7 phone 3",
 //                    "email 3",
 //                    "manager 3",
 //                    "3",
@@ -114,7 +117,7 @@
 //                TelegramUserRepository.save(telegramUser);
 //            StudentRepository.saveBatch(students);
 //        } catch (InternalException ex) {
-//            ex.printStackTrace();
+//            throw new RuntimeException(ex);
 //        }
 //    }
 //
@@ -164,22 +167,50 @@
 //    }
 //
 //    @Test
+//    void findAllGroupsByEduStreamIdTest_ok() throws InternalException {
+//        List<String> expected = List.of("G1", "G2");
+//        Assertions.assertEquals(expected, EduStreamRepository.findAllGroupsByStreamId(eduStream.getId()));
+//    }
+//
+//    @Test
 //    void updateTest_ok() throws InternalException {
-//        students.forEach(s -> s.setStGroup("G99"));
+//        List<ExcelStudentDTO> dtoList = students.stream().map(student -> new ExcelStudentDTO(
+//                student.getIsu(),
+//                "G99",
+//                student.getFullName(),
+//                student.getStatus(),
+//                student.getComments(),
+//                student.getCallStatusComments(),
+//                student.getPracticePlace(),
+//                student.getPracticeFormat(),
+//                student.getCompanyINN(),
+//                student.getCompanyName(),
+//                student.getCompanyLeadFullName(),
+//                student.getCompanyLeadPhone(),
+//                student.getCompanyLeadEmail(),
+//                student.getCompanyLeadJobTitle(),
+//                student.getCellHexColor(),
+//                0
+//        )).toList();
+//
+//        List<String> errors;
+//        for (var i = 0; i < dtoList.size(); i++) {
+//            errors = students.get(i).updateOrGetErrors(dtoList.get(i));
+//            Assertions.assertTrue(errors.isEmpty());
+//        }
+//
 //        StudentRepository.updateBatchByChatIdAndEduStreamId(students);
 //        Assertions.assertEquals(students, StudentRepository.findAll());
 //    }
 //
 //    @AfterAll
-//    static void teardown() {
-//        try {
-//            EduStreamRepository.deleteById(eduStream.getId());
-//            for (var telegramUser : telegramUsers)
-//                TelegramUserRepository.deleteByChatId(telegramUser.getChatId());
-//            for (var student : students)
-//                StudentRepository.deleteByChatIdAndEduStreamId(student.getTelegramUser().getChatId(), student.getEduStream().getId());
-//        } catch (InternalException ex) {
-//            ex.printStackTrace();
+//    static void teardown() throws SQLException {
+//        Connection connection = DatabaseManager.getConnection();
+//
+//        try (var statement = connection.prepareStatement(
+//                "TRUNCATE TABLE student, tg_user, edu_stream RESTART IDENTITY;"
+//        )) {
+//            statement.executeUpdate();
 //        }
 //    }
 //}
