@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -75,9 +77,10 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var result = parser.parseExcelFile(testFile);
+        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        assertNotNull(mapResult);
+        var result = mapResult.get("gr1");
 
-        assertNotNull(result);
         assertEquals(1, result.getStudents().size());
         assertEquals(0, result.getErrorsByRows().size());
 
@@ -114,7 +117,7 @@ public class ParserTest {
         }
 
         var exception = assertThrows(BadRequestException.class, () -> {
-            parser.parseExcelFile(testFile);
+            parser.parseExcelFile(testFile, List.of("gr1"));
         });
 
         assertEquals("Неверный шаблон загружаемого файла", exception.getMessage());
@@ -151,8 +154,9 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var result = parser.parseExcelFile(testFile);
-        assertNotNull(result);
+        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        assertNotNull(mapResult);
+        var result = mapResult.get("gr1");
 
         assertEquals(1, result.getErrorsByRows().size());
         var errors = result.getErrorsByRows().get(1);
