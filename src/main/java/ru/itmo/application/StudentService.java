@@ -13,6 +13,7 @@ import ru.itmo.infra.storage.StudentRepository;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 @Log
 public class StudentService {
@@ -20,7 +21,7 @@ public class StudentService {
     private static final Parser excelParser = new Parser();
     private static final Generator excelGenerator = new Generator();
 
-    public static File updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
+    public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
         var groups = List.of("gr1"); // TODO: replace
         var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
         var groupToStudentDTOsWithErrors = excelParser.parseExcelFile(file, groups);
@@ -31,7 +32,7 @@ public class StudentService {
             var errors = groupToStudentDTOsWithErrors.get(g).getErrorsByRows();
 
             if (!errors.isEmpty()) {
-                return excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors);
+                return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
             }
 
             for (var d : dtos) {
@@ -51,10 +52,10 @@ public class StudentService {
             }
         }
         if (haveErrors) {
-            return excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors);
+            return Optional.ofNullable(excelGenerator.generateExcelWithErrors(groupToStudentDTOsWithErrors));
         }
 
         StudentRepository.saveBatch(students);
-        return null;
+        return Optional.empty();
     }
 }

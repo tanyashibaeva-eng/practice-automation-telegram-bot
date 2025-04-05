@@ -9,36 +9,36 @@ public class UploadStudentsExcelFile {
 
     @SneakyThrows
     public static String start(Message message) {
-        var chatID = message.getChatId();
-        Handler.setNextCommandFunction(chatID, UploadStudentsExcelFile::upload);
+        var chatId = message.getChatId();
+        Handler.setNextCommandFunction(chatId, UploadStudentsExcelFile::upload);
         return "Хорошо давайте загрузим файл! Кидайте его!";
     }
 
     @SneakyThrows
     public static String upload(Message message) {
-        var chatID = message.getChatId();
+        var chatId= message.getChatId();
         var file = Handler.getFileFromMessage(message);
-        var eduStreamId = Handler.getStreamEduId(chatID);
+        var eduStreamId = Handler.getStreamEduId(chatId);
 
         StudentService studentService = new StudentService();
         var res = studentService.updateStudentsFromExcel(file, eduStreamId);
         System.out.println(res);
 
-        Handler.setNextCommandFunction(chatID, UploadStudentsExcelFile::feedback);
+        Handler.setNextCommandFunction(chatId, UploadStudentsExcelFile::feedback);
         return "Файл был загружен, вам понравилось?";
     }
 
     @SneakyThrows
     public static String feedback(Message message) {
-        var chatID = message.getChatId();
+        var chatId = message.getChatId();
         var command = Handler.getTextFromMessage(message);
 
         if (command.equals("Да")) {
-            Handler.endCommand(chatID);
+            Handler.endCommand(chatId);
             return "Очень рад!";
         }
         if (command.equals("Нет")) {
-            Handler.endCommand(chatID);
+            Handler.endCommand(chatId);
             return "Простите, я буду стараться лучше!(";
         }
 

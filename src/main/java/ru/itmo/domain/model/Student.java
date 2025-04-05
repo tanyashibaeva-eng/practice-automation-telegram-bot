@@ -7,7 +7,6 @@ import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
-import ru.itmo.infra.storage.TelegramUserRepository;
 
 import java.util.*;
 
@@ -34,12 +33,12 @@ public class Student {
     private String cellHexColor;
     private boolean managedManually;
 
-    private static final Map<StudentStatus, Set<StudentStatus>> statusMap = Map.of(
+    private static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
             StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
             StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
-            StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, StudentStatus.PRACTICE_APPROVED),
+            StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
             StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
-            StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.APPLICATION_WAITING_SUBMISSION, StudentStatus.APPLICATION_RETURNED),
+            StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
             StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
     );
 
@@ -53,7 +52,7 @@ public class Student {
         }
 
         if (!this.managedManually && dto.getCompanyLeadPhone() != null) {
-            if (!isValidPhoneNumber(dto.getCompanyLeadPhone())) {
+            if (!isRusPhoneNumber(dto.getCompanyLeadPhone())) {
                 errors.add("номер телефона должен начинаться с +7 или 8.");
             }
         }
@@ -64,7 +63,7 @@ public class Student {
         this.cellHexColor = dto.getCellHexColor();
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();
-        if (!this.managedManually && (status == dto.getStatus() || (statusMap.containsKey(status) && statusMap.get(status).contains(dto.getStatus())))) {
+        if (!this.managedManually && (status == dto.getStatus() || (PossibleAdminStatusChangesMap.containsKey(status) && PossibleAdminStatusChangesMap.get(status).contains(dto.getStatus())))) {
             this.status = dto.getStatus();
             this.practicePlace = dto.getPracticePlace();
             this.practiceFormat = dto.getPracticeFormat();
@@ -85,7 +84,7 @@ public class Student {
         return errors;
     }
 
-    private boolean isValidPhoneNumber(String phone) {
+    private boolean isRusPhoneNumber(String phone) {
         return phone.startsWith("+7") || phone.startsWith("8");
     }
 
@@ -107,23 +106,25 @@ public class Student {
     }
 
     private boolean isITMOMarkinaFieldsFilled() {
-        return this.isBaseRequiredFieldsFilled() && this.practiceFormat != null;
+        return this.isBaseRequiredFieldsFilled() && this.practicePlace == PracticePlace.ITMO_MARKINA;
     }
 
     private boolean isCompanyInfoFieldsFilled() {
-        if (this.practicePlace == null) {
+        if (this.practicePlace == null || this.practicePlace == PracticePlace.NOT_SPECIFIED) {
             return false;
         }
         if (this.practicePlace == PracticePlace.ITMO_MARKINA) {
             return false;
         }
         if (this.practicePlace == PracticePlace.ITMO_UNIVERSITY) {
-            return this.isBaseRequiredFieldsFilled() && this.practicePlace != null && this.companyLeadFullName != null;
+            return this.isBaseRequiredFieldsFilled() && this.practiceFormat != PracticeFormat.NOT_SPECIFIED && this.companyLeadFullName != null;
         }
-        return this.isBaseRequiredFieldsFilled() && this.practiceFormat != null && this.companyINN != null;
+        return this.isBaseRequiredFieldsFilled() && this.practiceFormat != null &&
+                this.practiceFormat != PracticeFormat.NOT_SPECIFIED &&
+                this.companyINN != null && this.companyName != null;
     }
 
-    private boolean isApplicationsInfoFieldsFilled() {
+    private boolean isApplicationInfoFieldsFilled() {
         return this.isCompanyInfoFieldsFilled() && this.companyLeadFullName != null &&
                 this.companyLeadPhone != null && this.companyLeadEmail != null && this.companyLeadJobTitle != null;
     }
@@ -136,7 +137,7 @@ public class Student {
             case COMPANY_INFO_WAITING_APPROVAL, COMPANY_INFO_RETURNED, APPLICATION_WAITING_SUBMISSION ->
                     this.isCompanyInfoFieldsFilled();
             case APPLICATION_WAITING_APPROVAL, APPLICATION_RETURNED, APPLICATION_WAITING_SIGNING ->
-                    this.isApplicationsInfoFieldsFilled();
+                    this.isApplicationInfoFieldsFilled();
             case PRACTICE_APPROVED -> true;
             default -> false;
         };

@@ -218,40 +218,40 @@ public class Parser {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null) {
-                return null;
+                return StudentStatus.NOT_REGISTERED;
             }
             return textParser.parseStatus(strVal);
         } catch (Exception e) {
             // TODO: сделать статусы
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return StudentStatus.NOT_REGISTERED;
     }
 
     private static PracticeFormat parsePracticeFormat(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
-                return null;
+                return PracticeFormat.NOT_SPECIFIED;
             return textParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
             // TODO: сделать форматы прохождения практики
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return PracticeFormat.NOT_SPECIFIED;
     }
 
     private static PracticePlace parsePracticePlace(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
-                return null;
+                return PracticePlace.NOT_SPECIFIED;
             return textParser.parsePracticePlace(strVal);
         } catch (Exception e) {
             // TODO: сделать места прохождения практики
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
-        return null;
+        return PracticePlace.NOT_SPECIFIED;
     }
 
     private static void addErr(int row, String text, Map<Integer, List<String>> errorsByRows) {
