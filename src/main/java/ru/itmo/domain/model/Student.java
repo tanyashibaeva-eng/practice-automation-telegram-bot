@@ -74,11 +74,11 @@ public class Student {
             this.companyLeadEmail = dto.getCompanyLeadEmail();
             this.companyLeadJobTitle = dto.getCompanyLeadJobTitle();
         } else {
-            errors.add("сейчас ожидается действие от студента, переводить заявку в другой статус нельзя");
+            errors.add("переход из статуса \"%s\" в статус \"%s\" невозможен".formatted(this.getStatus().getUserName(), dto.getStatus().getUserName()));
         }
 
         if (!this.managedManually && !this.isRequiredFieldsForCurrentStatusFilled()) {
-            errors.add("не все поля для нового статуса заполнены");
+            errors.add("не все поля для статуса \"%s\" заполнены".formatted(status.getUserName()));
         }
 
         return errors;

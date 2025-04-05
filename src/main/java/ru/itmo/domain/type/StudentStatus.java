@@ -22,4 +22,19 @@ public enum StudentStatus {
         return valueOf(name.trim().toUpperCase());
     }
 
+    public String getUserName() {
+        return switch (this) {
+            case NOT_REGISTERED -> "Не зарегистрирован";
+            case REGISTERED -> "Зарегистрирован";
+            case PRACTICE_IN_ITMO_MARKINA -> "Практика в ИТМО у Маркиной Т. А.";
+            case COMPANY_INFO_WAITING_APPROVAL -> "Данные о компании на проверке";
+            case COMPANY_INFO_RETURNED -> "Данные о компании возвращены на доработку";
+            case APPLICATION_WAITING_SUBMISSION -> "Данные о компании утверждены, ожидание заполнения заявки";
+            case PRACTICE_APPROVED -> "Практика согласована";
+            case APPLICATION_WAITING_APPROVAL -> "Заявка на проверке";
+            case APPLICATION_RETURNED -> "Заявка возвращена на доработку";
+            case APPLICATION_WAITING_SIGNING -> "Заявка согласована, ожидает подписания";
+            case APPLICATION_SIGNED -> "Заявка подписана";
+        };
+    }
 }

@@ -14,4 +14,13 @@ public enum PracticeFormat {
     public static PracticeFormat valueOfIgnoreCase(String name) {
         return valueOf(name.trim().toUpperCase());
     }
+
+    public String getUserName() {
+        return switch (this) {
+            case NOT_SPECIFIED -> "";
+            case OFFLINE -> "Очный";
+            case HYBRID -> "Гибридный";
+            case ONLINE -> "Удаленный";
+        };
+    }
 }

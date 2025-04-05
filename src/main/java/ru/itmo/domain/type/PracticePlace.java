@@ -14,4 +14,13 @@ public enum PracticePlace {
     public static PracticePlace valueOfIgnoreCase(String name) {
         return valueOf(name.trim().toUpperCase());
     }
+
+    public String getUserName() {
+        return switch (this) {
+            case NOT_SPECIFIED -> "";
+            case ITMO_MARKINA -> "Практика в ИТМО";
+            case ITMO_UNIVERSITY -> "Практика в лаборатории ИТМО";
+            case OTHER_COMPANY -> "Практика в сторонней компании";
+        };
+    }
 }
