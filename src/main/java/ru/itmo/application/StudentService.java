@@ -66,15 +66,15 @@ public class StudentService {
 
     public static Optional<File> createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
         var parsedStudents = Parser.parseCreateExcelFile(file);
-        var studentsToCreate = new ArrayList<CreateStudentDTO>();
+        var studentsToCreate = new ArrayList<Student>();
         for (var s : parsedStudents) {
             if (!s.getErrors().isEmpty()) {
                 return Optional.of(Generator.generateExcelCreateWithErrors(file, parsedStudents));
             }
-            studentsToCreate.add(new CreateStudentDTO(eduStreamName, s.getGroup(), s.getIsu(), s.getFullName()));
+            studentsToCreate.add(new Student(s, eduStreamName));
         }
 
-        StudentRepository.saveBatch(null);
+        StudentRepository.saveBatch(studentsToCreate);
 
         return Optional.empty();
     }

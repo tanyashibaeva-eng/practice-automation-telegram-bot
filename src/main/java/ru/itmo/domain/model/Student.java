@@ -2,6 +2,7 @@ package ru.itmo.domain.model;
 
 import lombok.*;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
@@ -44,6 +45,13 @@ public class Student {
             StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
             StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
     );
+
+    public Student(ExcelStudentInfoDTO s, String eduStreamName) {
+        this.eduStream = EduStream.builder().name(eduStreamName).build();
+        this.isu = s.getIsu();
+        this.stGroup = eduStreamName;
+        this.fullName = eduStreamName;
+    }
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
         var errors = new ArrayList<String>();
