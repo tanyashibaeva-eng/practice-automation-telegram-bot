@@ -2,7 +2,6 @@ package ru.itmo.interceptor;
 
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;

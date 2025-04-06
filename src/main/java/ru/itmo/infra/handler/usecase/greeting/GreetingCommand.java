@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
@@ -14,11 +15,12 @@ import ru.itmo.infra.handler.usecase.Command;
 public class GreetingCommand implements Command {
     @Override
     public MessageToUser execute(MessageDTO message) {
+        ContextHolder.endCommand(message.getChatId());
         return MessageToUser.builder().text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!").keyboardMarkup(getMarkupKeyboardForStart()).build();
     }
 
     @Override
-    public boolean isTerminal() {
+    public boolean isNextCallNeeded() {
         return false;
     }
 

@@ -15,6 +15,7 @@ import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
@@ -25,13 +26,11 @@ import java.util.List;
 import java.util.Map;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
-import static ru.itmo.exception.InvalidMessageException.ThrowMessageException;
 
 @Log
 public class Handler {
 
     private static final TelegramClient telegramClient = PracticeAutomationBot.getTelegramClient();
-    private static final ContextHolder contextHolder = new ContextHolder();
     private static final List<Command> commands = new ArrayList<>();
     private static final Map<String, Command> commandsMap = new HashMap<>();
 
@@ -40,6 +39,7 @@ public class Handler {
         commands.add(new GreetingCommand());
         commands.add(new UploadExcelStartCommand());
         commands.add(new ExportExcelExportCommand());
+        commands.add(new StudentRegistrationStartCommand());
 //        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
 //        commands.put("/registration", StudentRegistration::startRegistration);
 
@@ -55,7 +55,7 @@ public class Handler {
         var nextFunc = getNextCommandFunction(message.getChatId());
 
         if (nextFunc != null) {
-            return nextFunc.execute(message);
+            return executeCommand(nextFunc, message);
         }
 
         var commandText = message.getText();
@@ -64,20 +64,32 @@ public class Handler {
         }
 
         var command = commandsMap.get(commandText);
-        var response = command.execute(message);
-        if (command.isTerminal() && !command.getName().equals("/start")) {
-            PracticeAutomationBot.sendToUser(response, message.getChatId());
-            return new GreetingCommand().execute(message);
-        }
-        return response;
+        return executeCommand(command, message);
     }
 
     private static Command getNextCommandFunction(long chatId) {
         try {
-            return contextHolder.getNextCommand(chatId);
+            return ContextHolder.getNextCommand(chatId);
         } catch (UnknownUserException e) {
             return null;
         }
+    }
+
+    private static MessageToUser executeCommand(Command command, MessageDTO message) {
+        var response = command.execute(message);
+
+        var nextCommand = getNextCommandFunction(message.getChatId());
+        if (nextCommand == null && !command.getName().equals("/start")) {
+            nextCommand = new GreetingCommand();
+            ContextHolder.setNextCommand(message.getChatId(), nextCommand);
+        }
+
+        if (command.isNextCallNeeded() && nextCommand != null && !command.getName().equals(nextCommand.getName())) {
+            PracticeAutomationBot.sendToUser(response, message.getChatId());
+            return nextCommand.execute(message);
+        }
+
+        return response;
     }
 
     public static MessageToUser handleCallback(MessageDTO message, String callbackDataString) throws Exception {
@@ -86,13 +98,6 @@ public class Handler {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
         return commandsMap.get(callbackData.getCommand()).execute(message);
-    }
-
-    public static String getTextFromMessage(MessageDTO message) throws InvalidMessageException {
-        if (!message.hasText()) {
-            ThrowMessageException();
-        }
-        return message.getText();
     }
 
     public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, IOException, InvalidMessageException {
@@ -118,27 +123,11 @@ public class Handler {
         return telegramClient.downloadFile(tgFile).toPath().toFile();
     }
 
-    public static void setNextCommandFunction(Long chatId, Command command) {
-        contextHolder.setNextCommand(chatId, command);
-    }
-
-    public static void endCommand(Long chatId) {
-        contextHolder.removeChatId(chatId);
-    }
-
     public static void mapKeyToFunc(Long chatId, String key, String value) throws UnknownUserException {
         switch (key) {
             case "eduStreamName":
-                setEduStreamName(chatId, value);
+                ContextHolder.setEduStreamName(chatId, value);
             default:
         }
-    }
-
-    public static String getEduStreamName(Long chatId) throws UnknownUserException {
-        return contextHolder.getEduStreamName(chatId);
-    }
-
-    public static void setEduStreamName(Long chatId, String streamId) throws UnknownUserException {
-        contextHolder.setEduStreamName(chatId, streamId);
     }
 }

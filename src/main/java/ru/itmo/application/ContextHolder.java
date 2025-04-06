@@ -12,25 +12,25 @@ import java.util.concurrent.ConcurrentMap;
 public class ContextHolder {
     private static final ConcurrentMap<Long, Map<ContextHolderType, Object>> contextMap = new ConcurrentHashMap<>();
 
-    public void removeChatId(Long chatId) {
+    public static void endCommand(Long chatId) {
         contextMap.remove(chatId);
     }
 
-    public Command getNextCommand(long chatId) throws UnknownUserException {
+    public static Command getNextCommand(long chatId) throws UnknownUserException {
         if (contextMap.containsKey(chatId)) {
             return (Command) contextMap.get(chatId).get(ContextHolderType.COMMAND);
         }
         throw new UnknownUserException(chatId);
     }
 
-    public void setNextCommand(Long chatId, Command command) {
+    public static void setNextCommand(Long chatId, Command command) {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
         contextMap.get(chatId).put(ContextHolderType.COMMAND, command);
     }
 
-    public String getEduStreamName(long chatId) throws UnknownUserException {
+    public static String getEduStreamName(long chatId) throws UnknownUserException {
         try {
             if (contextMap.containsKey(chatId)) {
                 return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
@@ -39,17 +39,34 @@ public class ContextHolder {
         throw new UnknownUserException(chatId);
     }
 
-    public void setEduStreamName(Long chatId, String streamName) throws UnknownUserException {
+    public static void setEduStreamName(Long chatId, String streamName) {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
         contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_ID, streamName);
+    }
+
+    public static Object getCommandData(long chatId) throws UnknownUserException {
+        try {
+            if (contextMap.containsKey(chatId)) {
+                return contextMap.get(chatId).get(ContextHolderType.COMMAND_DATA);
+            }
+        } catch (Exception ignored) {}
+        throw new UnknownUserException(chatId);
+    }
+
+    public static void setCommandData(Long chatId, Object commandData) {
+        if (!contextMap.containsKey(chatId)) {
+            contextMap.put(chatId, new HashMap<>());
+        }
+        contextMap.get(chatId).put(ContextHolderType.COMMAND_DATA, commandData);
     }
 }
 
 @AllArgsConstructor
 enum ContextHolderType {
     COMMAND,
+    COMMAND_DATA,
     EDU_STREAM_ID,
 }
 

@@ -26,7 +26,7 @@ public class UploadExcelUploadCommand implements Command {
     }
 
     @Override
-    public boolean isTerminal() {
+    public boolean isNextCallNeeded() {
         return true;
     }
 

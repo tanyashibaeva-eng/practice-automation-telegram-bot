@@ -8,7 +8,8 @@ import ru.itmo.domain.type.StudentStatus;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StudentTest {
     @Test
