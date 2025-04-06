@@ -1,20 +1,15 @@
 package ru.itmo.domain.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import lombok.*;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-@Data
+@Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode
@@ -38,13 +33,13 @@ public class Student {
     private String cellHexColor;
     private boolean managedManually;
 
-    private static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
+    public static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
             StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
             StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
             StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
             StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
             StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
-            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
+            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED, StudentStatus.PRACTICE_APPROVED)
     );
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
@@ -79,18 +74,18 @@ public class Student {
             this.companyLeadEmail = dto.getCompanyLeadEmail();
             this.companyLeadJobTitle = dto.getCompanyLeadJobTitle();
         } else {
-            errors.add("сейчас ожидается действие от студента, переводить заявку в другой статус нельзя");
+            errors.add("переход из статуса \"%s\" в статус \"%s\" невозможен".formatted(this.getStatus().getUserName(), dto.getStatus().getUserName()));
         }
 
         if (!this.managedManually && !this.isRequiredFieldsForCurrentStatusFilled()) {
-            errors.add("не все поля для нового статуса заполнены");
+            errors.add("не все поля для статуса \"%s\" заполнены".formatted(status.getUserName()));
         }
 
         return errors;
     }
 
     private boolean isRusPhoneNumber(String phone) {
-        return phone.startsWith("+7") || phone.startsWith("8");
+        return phone.startsWith("+7") || phone.startsWith("8") || phone.startsWith("7");
     }
 
     private boolean isPracticeFormatValid(Integer companyINN, PracticeFormat practiceFormat) {
@@ -145,6 +140,22 @@ public class Student {
                     this.isApplicationInfoFieldsFilled();
             case PRACTICE_APPROVED -> true;
             default -> false;
+        };
+    }
+
+    public String[] getTransitionStatuses() {
+        return switch (this.status) {
+            case NOT_REGISTERED -> new String[]{StudentStatus.NOT_REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
+            case REGISTERED -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
+            case PRACTICE_IN_ITMO_MARKINA -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
+            case COMPANY_INFO_WAITING_APPROVAL -> new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName()};
+            case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
+            case APPLICATION_WAITING_SUBMISSION -> new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_WAITING_APPROVAL -> new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
+            case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_WAITING_SIGNING -> new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
+            case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
+            case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getUserName()};
         };
     }
 }

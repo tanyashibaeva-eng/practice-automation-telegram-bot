@@ -1,6 +1,5 @@
 package ru.itmo.infra.handler;
 
-import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -8,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.application.ContextHolder;
+import ru.itmo.bot.MessageToUser;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
@@ -15,7 +15,6 @@ import ru.itmo.exception.UnknownUserException;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
@@ -26,18 +25,19 @@ public class Handler {
 
     private static final TelegramClient telegramClient = PracticeAutomationBot.getTelegramClient();
     private static final ContextHolder contextHolder = new ContextHolder();
-    private static final HashMap<String, Function<Message, String>> commands = new HashMap<>();
+    private static final HashMap<String, Function<Message, MessageToUser>> commands = new HashMap<>();
 
     static {
         commands.put("/start", GreetingCommand::greetingAdminCommand);
         commands.put(null, GreetingCommand::greetingAdminCommand);
         commands.put("/upload", UploadStudentsExcelFile::start);
+        commands.put("/export", ExportStudentsExcelFile::start);
         commands.put("/registration", StudentRegistration::startRegistration);
 
     }
 
-    public static String handleMessage(Message message) throws Exception {
-        Function<Message, String> nextFunc;
+    public static MessageToUser handleMessage(Message message) throws Exception {
+        Function<Message, MessageToUser> nextFunc;
         try {
             nextFunc = contextHolder.getNextFunction(message.getChatId());
         } catch (UnknownUserException e) {
@@ -51,7 +51,7 @@ public class Handler {
 
         var command = message.getText();
         if (!commands.containsKey(command)) {
-            return "Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи";
+            return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи").build();
         }
 
         return commands.get(command).apply(message);
@@ -87,7 +87,7 @@ public class Handler {
         return telegramClient.downloadFile(tgFile).toPath().toFile();
     }
 
-    public static void setNextCommandFunction(Long chatId, Function<Message, String> handler) {
+    public static void setNextCommandFunction(Long chatId, Function<Message, MessageToUser> handler) {
         contextHolder.setNextFunction(chatId, handler);
     }
 
