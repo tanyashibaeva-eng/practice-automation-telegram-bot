@@ -1,13 +1,14 @@
 package ru.itmo.infra.handler;
 
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import ru.itmo.bot.MessageToUser;
 
 public class GreetingCommand {
-    public static String greetingAdminCommand(Message message) {
-        return "Привет, ты на стартовой странице, тут будут кнопочки для навигации!";
+    public static MessageToUser greetingAdminCommand(Message message) {
+        return  MessageToUser.builder().text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!").build();
     }
 
-    public static String end(Message message) {
-        return "";
+    public static MessageToUser end(Message message) {
+        return  MessageToUser.builder().text("").build();
     }
 }

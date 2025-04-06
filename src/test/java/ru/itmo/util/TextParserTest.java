@@ -70,8 +70,8 @@ public class TextParserTest {
 
     @Test
     public void testParseStatus_ValidStatus() throws BadRequestException {
-        assertEquals(StudentStatus.APPLICATION_RETURNED, textParser.parseStatus("application_returned"));
-        assertEquals(StudentStatus.REGISTERED, textParser.parseStatus("registered"));
+        assertEquals(StudentStatus.APPLICATION_RETURNED, textParser.parseStatus("Заявка возвращена на доработку"));
+        assertEquals(StudentStatus.REGISTERED, textParser.parseStatus("Зарегистрирован"));
     }
 
     @Test

@@ -6,6 +6,8 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: practice_bot
     restart: unless-stopped
+    ports:
+      - "5555:5432"
     networks:
       - practice-bot-network
 
