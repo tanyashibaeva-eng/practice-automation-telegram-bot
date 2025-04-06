@@ -39,8 +39,6 @@ public class Parser {
             "Должность Руководителя"
     };
 
-    private static final TextParser textParser = new TextParser();
-
     private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
 
     public static HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
@@ -255,7 +253,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parseDoubleToInt(strVal);
+            return TextParser.parseDoubleToInt(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -268,7 +266,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parsePhone(strVal);
+            return TextParser.parsePhone(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть номером телефона (+7 925 123 45 67)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -281,7 +279,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parseEmail(strVal);
+            return TextParser.parseEmail(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть электронной почтой (ivanov@yandex.ru)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -294,7 +292,7 @@ public class Parser {
             if (strVal == null) {
                 return StudentStatus.NOT_REGISTERED;
             }
-            return textParser.parseStatus(strVal);
+            return TextParser.parseStatus(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getStatusEnumNames()), errorsByRows);
         }
@@ -306,7 +304,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
                 return PracticeFormat.NOT_SPECIFIED;
-            return textParser.parsePracticeFormat(strVal);
+            return TextParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticeFormatEnumNames()), errorsByRows);
         }
@@ -318,7 +316,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
                 return PracticePlace.NOT_SPECIFIED;
-            return textParser.parsePracticePlace(strVal);
+            return TextParser.parsePracticePlace(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticePlaceEnumNames()), errorsByRows);
         }

@@ -1,10 +1,7 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
-import org.checkerframework.checker.units.qual.C;
-import ru.itmo.domain.dto.CreateStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
-import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
