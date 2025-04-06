@@ -46,6 +46,9 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
     implementation 'org.apache.poi:poi-ooxml:3.9'
+
+    implementation 'org.telegram:telegrambots:5.5.0'
+
 }
 
 test {

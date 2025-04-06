@@ -1,11 +1,6 @@
 package ru.itmo.domain.type;
 
 import lombok.AllArgsConstructor;
-import org.apache.poi.hssf.util.HSSFColor;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public enum StudentStatus {

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
 import java.io.File;
 
@@ -14,4 +15,5 @@ import java.io.File;
 public class MessageToUser {
     String text;
     File document;
+    ReplyKeyboard keyboardMarkup;
 }
