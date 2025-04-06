@@ -9,6 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
@@ -43,7 +44,7 @@ public class Generator {
             "Должность Руководителя"
     };
 
-    public File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
+    public static File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
@@ -80,7 +81,42 @@ public class Generator {
         }
     }
 
-    public File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
+    public static File generateExcelCreateWithErrors(File file, List<ExcelStudentInfoDTO> students) throws InternalException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            var workbook = new XSSFWorkbook(fis);
+
+            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+                var sheet = workbook.getSheetAt(i);
+                var lastColumnIndex = sheet.getRow(4).getPhysicalNumberOfCells();
+
+                var headerRow = sheet.getRow(4);
+                if (headerRow == null) {
+                    headerRow = sheet.createRow(4);
+                }
+                var errorHeaderCell = headerRow.createCell(lastColumnIndex);
+                errorHeaderCell.setCellValue("Ошибки");
+
+                for (var s : students) {
+                    if (s.getErrors().isEmpty()) {
+                        continue;
+                    }
+                    var row = sheet.getRow(s.getRow());
+                    var errors = String.join("; ", s.getErrors());
+                    var errorCell = row.createCell(lastColumnIndex);
+                    errorCell.setCellValue(errors);
+                }
+            }
+
+            file = new File("группа студентов – ошибки.xlsx");
+            var fileOut = new FileOutputStream(file);
+            workbook.write(fileOut);
+            return file;
+        } catch (IOException e) {
+            throw new InternalException("Произошла ошибка при обработке Excel файла: " + e.getMessage(), e);
+        }
+    }
+
+    public static File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
         var workbook = new XSSFWorkbook();
 
         var practicePlaceOptions = getPracticePlaceOptions();
@@ -151,7 +187,7 @@ public class Generator {
         return file;
     }
 
-    private CellStyle createColoredCellStyle(Workbook workbook, String hexColor) {
+    private static CellStyle createColoredCellStyle(Workbook workbook, String hexColor) {
         var style = workbook.createCellStyle();
         if (hexColor != null && !hexColor.isEmpty()) {
             String colorStr = hexColor.startsWith("#") ? hexColor.substring(1) : hexColor;
@@ -167,7 +203,7 @@ public class Generator {
         return style;
     }
 
-    private void addEnumValidation(Sheet sheet, int colIndex, String[] options, int startRow, int endRow) {
+    private static void addEnumValidation(Sheet sheet, int colIndex, String[] options, int startRow, int endRow) {
         var dvHelper = sheet.getDataValidationHelper();
         var constraint = dvHelper.createExplicitListConstraint(options);
         var addressList = new CellRangeAddressList(startRow, endRow, colIndex, colIndex);
@@ -176,7 +212,7 @@ public class Generator {
         sheet.addValidationData(validation);
     }
 
-    private String[] getPracticePlaceOptions() {
+    private static String[] getPracticePlaceOptions() {
         var values = PracticePlace.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -185,7 +221,7 @@ public class Generator {
         return options;
     }
 
-    private String[] getPracticeFormatOptions() {
+    private static String[] getPracticeFormatOptions() {
         var values = PracticeFormat.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
@@ -194,7 +230,7 @@ public class Generator {
         return options;
     }
 
-    private void applyConditionalFormatting(XSSFSheet sheet, int numberOfRows) {
+    private static void applyConditionalFormatting(XSSFSheet sheet, int numberOfRows) {
         for (StudentStatus status : StudentStatus.values()) {
             var rule = sheet.getSheetConditionalFormatting().createConditionalFormattingRule(ComparisonOperator.EQUAL, "\"%s\"".formatted(status.getDisplayName()));
             var pattern = rule.createPatternFormatting();

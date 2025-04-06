@@ -43,7 +43,7 @@ public class Parser {
 
     private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
 
-    public HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
+    public static HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
@@ -158,7 +158,7 @@ public class Parser {
         return new StudentsWithErrors(students, errorsByRows);
     }
 
-    public List<ExcelStudentInfoDTO> parseCreateExcelFile(File file) throws BadRequestException, InternalException {
+    public static List<ExcelStudentInfoDTO> parseCreateExcelFile(File file) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
@@ -167,6 +167,8 @@ public class Parser {
             var group = Arrays.asList(groupInfo.split(" ")).get(2);
 
             var rowIterator = sheet.iterator();
+            if (rowIterator.hasNext()) rowIterator.next();
+            if (rowIterator.hasNext()) rowIterator.next();
             if (rowIterator.hasNext()) rowIterator.next();
             if (rowIterator.hasNext()) rowIterator.next();
             if (rowIterator.hasNext()) rowIterator.next();

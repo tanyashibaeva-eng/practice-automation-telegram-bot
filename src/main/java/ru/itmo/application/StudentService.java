@@ -1,7 +1,10 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import org.checkerframework.checker.units.qual.C;
+import ru.itmo.domain.dto.CreateStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
@@ -21,13 +24,10 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    private static final Parser excelParser = new Parser();
-    private static final Generator excelGenerator = new Generator();
-
     public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
         var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
         var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
-        var groupToStudentDTOsWithErrors = excelParser.parseUpdateExcelFile(file, groups);
+        var groupToStudentDTOsWithErrors = Parser.parseUpdateExcelFile(file, groups);
 
         var studentInfoToStudents = new HashMap<String, ExcelStudentDTO>();
         for (var g : groups) {
@@ -35,7 +35,7 @@ public class StudentService {
             var errors = groupToStudentDTOsWithErrors.get(g).getErrorsByRows();
 
             if (!errors.isEmpty()) {
-                return Optional.ofNullable(excelGenerator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
+                return Optional.of(Generator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
             }
 
             for (var d : dtos) {
@@ -57,15 +57,26 @@ public class StudentService {
         }
 
         if (haveErrors) {
-            return Optional.ofNullable(excelGenerator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
+            return Optional.of(Generator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
         }
 
         StudentRepository.updateBatchByChatIdAndEduStreamId(students);
         return Optional.empty();
     }
 
-    public static Optional<File> createStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
+    public static Optional<File> createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+        var parsedStudents = Parser.parseCreateExcelFile(file);
+        var studentsToCreate = new ArrayList<CreateStudentDTO>();
+        for (var s : parsedStudents) {
+            if (!s.getErrors().isEmpty()) {
+                return Optional.of(Generator.generateExcelCreateWithErrors(file, parsedStudents));
+            }
+            studentsToCreate.add(new CreateStudentDTO(eduStreamName, s.getGroup(), s.getIsu(), s.getFullName()));
+        }
 
+        // TODO: add students
+
+        return Optional.empty();
     }
 
     public static File exportStudentsToExcel(long eduStreamId) throws InternalException {
@@ -80,7 +91,7 @@ public class StudentService {
             groupToStudents.get(s.getStGroup()).add(s);
         }
 
-        return excelGenerator.generateExcel(groupToStudents, groups);
+        return Generator.generateExcel(groupToStudents, groups);
     }
 
     public static void registerStudent(StudentRegistrationArgs args) {
