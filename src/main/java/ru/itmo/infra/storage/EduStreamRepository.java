@@ -17,17 +17,15 @@ public class EduStreamRepository {
 
     private static final Connection connection = DatabaseManager.getConnection();
 
-    public static long save(EduStream eduStream) throws InternalException {
+    public static void save(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "INSERT INTO edu_stream (name, year, date_from, date_to) VALUES (?, ?, ?, ?) RETURNING id;"
+                "INSERT INTO edu_stream (name, year, date_from, date_to) VALUES (?, ?, ?, ?);"
         )) {
             statement.setString(1, eduStream.getName());
             statement.setInt(2, eduStream.getYear());
             statement.setDate(3, Date.valueOf(eduStream.getDateFrom()));
             statement.setDate(4, Date.valueOf(eduStream.getDateTo()));
-            ResultSet rs = statement.executeQuery();
-            rs.next();
-            return rs.getLong("id");
+            statement.executeUpdate();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -54,11 +52,29 @@ public class EduStreamRepository {
         }
     }
 
-    public static List<String> findAllGroupsByStreamId(long eduStreamId) throws InternalException {
+    public static List<String> findAllNames() throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.id = student.edu_stream_id WHERE edu_stream.id = ? GROUP BY student.st_group;"
+                "SELECT name FROM edu_stream ORDER BY date_from DESC;"
         )) {
-            statement.setLong(1, eduStreamId);
+            var rs = statement.executeQuery();
+            List<String> result = new ArrayList<>();
+
+            while (rs.next()) {
+                result.add(rs.getString("name"));
+            }
+
+            return result;
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<String> findAllGroupsByStreamName(String eduStreamName) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.id = student.edu_stream_id WHERE edu_stream.name = ? GROUP BY student.st_group;"
+        )) {
+            statement.setString(1, eduStreamName);
             var rs = statement.executeQuery();
             List<String> result = new ArrayList<>();
 
@@ -66,19 +82,6 @@ public class EduStreamRepository {
                 result.add(rs.getString("st_group"));
 
             return result.stream().sorted().toList();
-
-        } catch (SQLException ex) {
-            throw handleAndWrapSQLException(ex);
-        }
-    }
-
-    public static boolean existsById(long id) throws InternalException {
-        try (var statement = connection.prepareStatement(
-                "SELECT * FROM edu_stream WHERE id = ?;"
-        )) {
-            statement.setLong(1, id);
-            var rs = statement.executeQuery();
-            return rs.next();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -98,19 +101,6 @@ public class EduStreamRepository {
         }
     }
 
-    public static Optional<EduStream> findById(long id) throws InternalException {
-        try (var statement = connection.prepareStatement(
-                "SELECT * FROM edu_stream WHERE id = ?;"
-        )) {
-            statement.setLong(1, id);
-            var rs = statement.executeQuery();
-            return mapToEduStreamOptional(rs);
-
-        } catch (SQLException ex) {
-            throw handleAndWrapSQLException(ex);
-        }
-    }
-
     public static Optional<EduStream> findByName(String name) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE name = ?;"
@@ -118,18 +108,6 @@ public class EduStreamRepository {
             statement.setString(1, name);
             var rs = statement.executeQuery();
             return mapToEduStreamOptional(rs);
-
-        } catch (SQLException ex) {
-            throw handleAndWrapSQLException(ex);
-        }
-    }
-
-    public static boolean deleteById(long id) throws InternalException {
-        try (var statement = connection.prepareStatement(
-                "DELETE FROM edu_stream WHERE id = ?;"
-        )) {
-            statement.setLong(1, id);
-            return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -148,30 +126,15 @@ public class EduStreamRepository {
         }
     }
 
-    public static boolean updateById(EduStream eduStream) throws InternalException {
+    public static boolean updateByName(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "UPDATE edu_stream SET name = ?, year = ?, date_from = ?, date_to = ? WHERE id = ?;"
+                "UPDATE edu_stream SET name = ?, year = ?, date_from = ?, date_to = ? WHERE name = ?;"
         )) {
             statement.setString(1, eduStream.getName());
             statement.setInt(2, eduStream.getYear());
             statement.setDate(3, Date.valueOf(eduStream.getDateFrom()));
             statement.setDate(4, Date.valueOf(eduStream.getDateTo()));
-            statement.setLong(5, eduStream.getId());
-            return 1 == statement.executeUpdate();
-
-        } catch (SQLException ex) {
-            throw handleAndWrapSQLException(ex);
-        }
-    }
-
-    public static boolean updateByName(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
-                "UPDATE edu_stream SET year = ?, date_from = ?, date_to = ? WHERE name = ?;"
-        )) {
-            statement.setInt(1, eduStream.getYear());
-            statement.setDate(2, Date.valueOf(eduStream.getDateFrom()));
-            statement.setDate(3, Date.valueOf(eduStream.getDateTo()));
-            statement.setString(4, eduStream.getName());
+            statement.setString(5, eduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -188,7 +151,6 @@ public class EduStreamRepository {
     private static EduStream mapToEduStream(ResultSet rs) throws SQLException {
         if (rs.next()) {
             return new EduStream(
-                    rs.getLong("id"),
                     rs.getString("name"),
                     rs.getInt("year"),
                     rs.getDate("date_from").toLocalDate(),

@@ -46,16 +46,15 @@ CREATE TABLE IF NOT EXISTS tg_user (
 );
 
 CREATE TABLE IF NOT EXISTS edu_stream (
-    id                      bigint              PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name                    text                UNIQUE NOT NULL,
+    name                    text                PRIMARY KEY,
     year                    smallint            NOT NULL,
     date_from               date                NOT NULL,
     date_to                 date                NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS student (
-    chat_id                 bigint              NOT NULL REFERENCES tg_user(chat_id) ON DELETE CASCADE,
-    edu_stream_id           bigint              NOT NULL REFERENCES edu_stream(id) ON DELETE CASCADE,
+    chat_id                 bigint              REFERENCES tg_user(chat_id) ON DELETE CASCADE DEFAULT NULL,
+    edu_stream_name         text                NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE,
     isu                     int                 NOT NULL,
     st_group                varchar(8)          NOT NULL,
     fullname                text                NOT NULL,
@@ -71,6 +70,7 @@ CREATE TABLE IF NOT EXISTS student (
     company_lead_email      text,
     company_lead_job_title  text,
     cell_hex_color          varchar(32)         NOT NULL DEFAULT 'FFFFFF',
-    managed_manually        boolean             NOT NULL DEFAULT false,
-    primary key (chat_id, edu_stream_id)
+    managed_manually        boolean             NOT NULL DEFAULT false
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;

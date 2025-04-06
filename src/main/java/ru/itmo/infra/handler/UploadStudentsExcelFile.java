@@ -1,7 +1,6 @@
 package ru.itmo.infra.handler;
 
 import lombok.SneakyThrows;
-import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageToUser;
@@ -22,7 +21,7 @@ public class UploadStudentsExcelFile {
         var file = Handler.getFileFromMessage(message);
 //        var eduStreamId = Handler.getStreamEduId(chatId);
 
-        var res = StudentService.updateStudentsFromExcel(file, 1);
+        var res = StudentService.updateStudentsFromExcel(file, "stream 1");
         if (res.isEmpty()) {
             Handler.setNextCommandFunction(chatId, UploadStudentsExcelFile::feedback);
             return MessageToUser.builder().text("Файл был загружен, вам понравилось?").build();
