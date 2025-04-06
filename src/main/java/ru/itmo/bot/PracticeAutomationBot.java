@@ -13,8 +13,6 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.interceptor.Interceptor;
 import ru.itmo.util.PropertiesProvider;
 
-import java.io.File;
-
 @Log
 public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsumer {
 
@@ -24,24 +22,42 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
 
     @Override
     public void consume(Update update) {
+        MessageToUser response = null;
+        long chatId = 0;
+
+        if (update.hasCallbackQuery()) {
+            String callbackDataString = update.getCallbackQuery().getData();
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).build();
+            response = Interceptor.processCallback(messageDTO, callbackDataString);
+        }
         if (update.hasMessage()) {
             Message message = update.getMessage();
-            long chatId = message.getChatId();
-            MessageToUser response = Interceptor.processMessage(message);
-            if (response.getDocument() == null) {
-                sendMessage(response.getText(), chatId);
-            } else {
-                sendDocument(response.getDocument(), response.getText(), chatId);
-            }
+            chatId = message.getChatId();
+            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).text(message.getText()).document(message.getDocument()).build();
+            response = Interceptor.processMessage(messageDTO);
+        }
+
+        sendToUser(response, chatId);
+    }
+
+    public static void sendToUser(MessageToUser response, long chatId) {
+        if (response == null) {
+            return;
+        }
+        if (response.getDocument() == null) {
+            sendMessage(response, chatId);
+        } else {
+            sendDocument(response, chatId);
         }
     }
 
-    // TODO: подумать над тем как прокидывать сюда кнопки/несколько сообщений
-    private static void sendMessage(String message, long chatId) {
+    private static void sendMessage(MessageToUser message, long chatId) {
         SendMessage sendMessage = SendMessage
                 .builder()
                 .chatId(chatId)
-                .text(message)
+                .text(message.getText())
+                .replyMarkup(message.getKeyboardMarkup())
                 .build();
 
         try {
@@ -51,11 +67,12 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         }
     }
 
-    private static void sendDocument(File file, String caption, long chatId) {
+    private static void sendDocument(MessageToUser message, long chatId) {
         SendDocument sendDocument = SendDocument.builder()
                 .chatId(chatId)
-                .document(new InputFile(file))
-                .caption(caption)
+                .document(new InputFile(message.getDocument()))
+                .caption(message.getText())
+                .replyMarkup(message.getKeyboardMarkup())
                 .build();
         try {
             telegramClient.execute(sendDocument);
