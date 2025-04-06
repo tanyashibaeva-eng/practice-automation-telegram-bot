@@ -38,10 +38,13 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             response = Interceptor.processMessage(messageDTO);
         }
 
+        sendToUser(response, chatId);
+    }
+
+    public static void sendToUser(MessageToUser response, long chatId) {
         if (response == null) {
             return;
         }
-
         if (response.getDocument() == null) {
             sendMessage(response, chatId);
         } else {
@@ -49,7 +52,6 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         }
     }
 
-    // TODO: подумать над тем как прокидывать сюда кнопки/несколько сообщений
     private static void sendMessage(MessageToUser message, long chatId) {
         SendMessage sendMessage = SendMessage
                 .builder()

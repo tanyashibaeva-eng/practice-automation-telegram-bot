@@ -3,7 +3,6 @@ package ru.itmo.infra.handler;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.objects.Document;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.application.ContextHolder;
@@ -13,11 +12,17 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
+import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
+import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
+import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.function.Function;
+import java.util.List;
+import java.util.Map;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
 import static ru.itmo.exception.InvalidMessageException.ThrowMessageException;
@@ -27,37 +32,52 @@ public class Handler {
 
     private static final TelegramClient telegramClient = PracticeAutomationBot.getTelegramClient();
     private static final ContextHolder contextHolder = new ContextHolder();
-    private static final HashMap<String, Function<MessageDTO, MessageToUser>> commands = new HashMap<>();
+    private static final List<Command> commands = new ArrayList<>();
+    private static final Map<String, Command> commandsMap = new HashMap<>();
 
     static {
-        commands.put("/start", GreetingCommand::greetingAdminCommand);
-        commands.put(null, GreetingCommand::greetingAdminCommand);
-        commands.put("/upload", UploadStudentsExcelFile::start);
-        commands.put("/export", ExportStudentsExcelFile::start);
-        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
+        commands.add(new GreetingCommand());
+        commands.add(new GreetingCommand());
+        commands.add(new UploadExcelStartCommand());
+        commands.add(new ExportExcelExportCommand());
+//        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
 //        commands.put("/registration", StudentRegistration::startRegistration);
 
+        for (Command command : commands) {
+            if (command.getName().isEmpty()) {
+                continue;
+            }
+            commandsMap.put(command.getName(), command);
+        }
     }
 
     public static MessageToUser handleMessage(MessageDTO message) throws Exception {
-        Function<MessageDTO, MessageToUser> nextFunc;
-        try {
-            nextFunc = contextHolder.getNextFunction(message.getChatId());
-        } catch (UnknownUserException e) {
-            nextFunc = null;
-        }
-
+        var nextFunc = getNextCommandFunction(message.getChatId());
 
         if (nextFunc != null) {
-            return nextFunc.apply(message);
+            return nextFunc.execute(message);
         }
 
-        var command = message.getText();
-        if (!commands.containsKey(command)) {
+        var commandText = message.getText();
+        if (!commandsMap.containsKey(commandText)) {
             return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи").build();
         }
 
-        return commands.get(command).apply(message);
+        var command = commandsMap.get(commandText);
+        var response = command.execute(message);
+        if (command.isTerminal() && !command.getName().equals("/start")) {
+            PracticeAutomationBot.sendToUser(response, message.getChatId());
+            return new GreetingCommand().execute(message);
+        }
+        return response;
+    }
+
+    private static Command getNextCommandFunction(long chatId) {
+        try {
+            return contextHolder.getNextCommand(chatId);
+        } catch (UnknownUserException e) {
+            return null;
+        }
     }
 
     public static MessageToUser handleCallback(MessageDTO message, String callbackDataString) throws Exception {
@@ -65,7 +85,7 @@ public class Handler {
         if (callbackData.getKey() != null) {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
-        return commands.get(callbackData.getCommand()).apply(message);
+        return commandsMap.get(callbackData.getCommand()).execute(message);
     }
 
     public static String getTextFromMessage(MessageDTO message) throws InvalidMessageException {
@@ -98,8 +118,8 @@ public class Handler {
         return telegramClient.downloadFile(tgFile).toPath().toFile();
     }
 
-    public static void setNextCommandFunction(Long chatId, Function<MessageDTO, MessageToUser> handler) {
-        contextHolder.setNextFunction(chatId, handler);
+    public static void setNextCommandFunction(Long chatId, Command command) {
+        contextHolder.setNextCommand(chatId, command);
     }
 
     public static void endCommand(Long chatId) {

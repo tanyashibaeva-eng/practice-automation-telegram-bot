@@ -1,16 +1,13 @@
 package ru.itmo.application;
 
 import lombok.AllArgsConstructor;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
-import ru.itmo.bot.MessageDTO;
-import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.UnknownUserException;
+import ru.itmo.infra.handler.usecase.Command;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 public class ContextHolder {
     private static final ConcurrentMap<Long, Map<ContextHolderType, Object>> contextMap = new ConcurrentHashMap<>();
@@ -19,18 +16,18 @@ public class ContextHolder {
         contextMap.remove(chatId);
     }
 
-    public Function<MessageDTO, MessageToUser> getNextFunction(long chatId) throws UnknownUserException {
+    public Command getNextCommand(long chatId) throws UnknownUserException {
         if (contextMap.containsKey(chatId)) {
-            return (Function<MessageDTO, MessageToUser>) contextMap.get(chatId).get(ContextHolderType.FUNCTION);
+            return (Command) contextMap.get(chatId).get(ContextHolderType.COMMAND);
         }
         throw new UnknownUserException(chatId);
     }
 
-    public void setNextFunction(Long chatId, Function<MessageDTO, MessageToUser> handler) {
+    public void setNextCommand(Long chatId, Command command) {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
-        contextMap.get(chatId).put(ContextHolderType.FUNCTION, handler);
+        contextMap.get(chatId).put(ContextHolderType.COMMAND, command);
     }
 
     public String getEduStreamName(long chatId) throws UnknownUserException {
@@ -52,7 +49,7 @@ public class ContextHolder {
 
 @AllArgsConstructor
 enum ContextHolderType {
-    FUNCTION,
+    COMMAND,
     EDU_STREAM_ID,
 }
 

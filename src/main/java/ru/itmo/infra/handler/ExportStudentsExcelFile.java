@@ -9,12 +9,4 @@ import ru.itmo.exception.InvalidMessageException;
 
 public class ExportStudentsExcelFile {
 
-    @SneakyThrows
-    public static MessageToUser start(MessageDTO message) {
-        var chatId = message.getChatId();
-        var eduId = 1;
-        var file = StudentService.exportStudentsToExcel(eduId);
-        Handler.endCommand(chatId);
-        return  MessageToUser.builder().text("Хорошо вот он!").document(file).build();
-    }
 }
