@@ -63,12 +63,12 @@ CREATE TABLE IF NOT EXISTS student (
     call_status_comments    text                NOT NULL DEFAULT '',
     practice_place          st_practice_place   NOT NULL DEFAULT 'NOT_SPECIFIED',
     practice_format         st_practice_format  NOT NULL DEFAULT 'NOT_SPECIFIED',
-    company_inn             int,
-    company_name            text,
-    company_lead_fullname   text,
-    company_lead_phone      text,
-    company_lead_email      text,
-    company_lead_job_title  text,
+    company_inn             int                 DEFAULT NULL,
+    company_name            text                DEFAULT NULL,
+    company_lead_fullname   text                DEFAULT NULL,
+    company_lead_phone      text                DEFAULT NULL,
+    company_lead_email      text                DEFAULT NULL,
+    company_lead_job_title  text                DEFAULT NULL,
     cell_hex_color          varchar(32)         NOT NULL DEFAULT 'FFFFFF',
     managed_manually        boolean             NOT NULL DEFAULT false
 );
