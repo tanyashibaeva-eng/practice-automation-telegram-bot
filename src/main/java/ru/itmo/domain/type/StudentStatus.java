@@ -1,11 +1,6 @@
 package ru.itmo.domain.type;
 
 import lombok.AllArgsConstructor;
-import org.apache.poi.hssf.util.HSSFColor;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public enum StudentStatus {
@@ -29,14 +24,14 @@ public enum StudentStatus {
 
     public static StudentStatus getByUserName(String text) {
         for (StudentStatus status : StudentStatus.values()) {
-            if (status.getUserName().equals(text)) {
+            if (status.getDisplayName().equals(text)) {
                 return status;
             }
         }
         return null;
     }
 
-    public String getUserName() {
+    public String getDisplayName() {
         return switch (this) {
             case NOT_REGISTERED -> "Не зарегистрирован";
             case REGISTERED -> "Зарегистрирован";
@@ -44,7 +39,7 @@ public enum StudentStatus {
             case COMPANY_INFO_WAITING_APPROVAL -> "Данные о компании на проверке";
             case COMPANY_INFO_RETURNED -> "Данные о компании возвращены на доработку";
             case APPLICATION_WAITING_SUBMISSION -> "Данные о компании утверждены и ожидается заполнения заявки";
-            case PRACTICE_APPROVED -> "Практика согласована";
+            case PRACTICE_APPROVED -> "Практика в ИТМО";
             case APPLICATION_WAITING_APPROVAL -> "Заявка на проверке";
             case APPLICATION_RETURNED -> "Заявка возвращена на доработку";
             case APPLICATION_WAITING_SIGNING -> "Заявка согласована и ожидает подписания";

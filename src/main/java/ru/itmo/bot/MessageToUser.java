@@ -15,3 +15,4 @@ public class MessageToUser {
     String text;
     File document;
 }
+

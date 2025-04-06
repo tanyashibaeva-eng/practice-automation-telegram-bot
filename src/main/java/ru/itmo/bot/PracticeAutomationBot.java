@@ -27,7 +27,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         if (update.hasMessage()) {
             Message message = update.getMessage();
             long chatId = message.getChatId();
-            MessageToUser response = Interceptor.intercept(message);
+            MessageToUser response = Interceptor.processMessage(message);
             if (response.getDocument() == null) {
                 sendMessage(response.getText(), chatId);
             } else {

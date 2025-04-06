@@ -1,7 +1,6 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
-import org.checkerframework.checker.units.qual.A;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
@@ -27,7 +26,7 @@ public class StudentService {
     public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
         var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
         var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
-        var groupToStudentDTOsWithErrors = excelParser.parseExcelFile(file, groups);
+        var groupToStudentDTOsWithErrors = excelParser.parseUpdateExcelFile(file, groups);
 
         var studentInfoToStudents = new HashMap<String, ExcelStudentDTO>();
         for (var g : groups) {
@@ -62,6 +61,10 @@ public class StudentService {
 
         StudentRepository.updateBatchByChatIdAndEduStreamId(students);
         return Optional.empty();
+    }
+
+    public static Optional<File> createStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
+
     }
 
     public static File exportStudentsToExcel(long eduStreamId) throws InternalException {

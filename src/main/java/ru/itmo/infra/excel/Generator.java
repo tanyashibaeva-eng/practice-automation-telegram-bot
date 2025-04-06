@@ -114,13 +114,13 @@ public class Generator {
                 cellFullName.setCellValue(student.getFullName());
                 cellFullName.setCellStyle(createColoredCellStyle(workbook, student.getCellHexColor()));
 
-                row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getUserName() : "");
+                row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getDisplayName() : "");
                 addEnumValidation(sheet, 3, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
 
                 row.createCell(4).setCellValue(student.getComments() != null ? student.getComments() : "");
                 row.createCell(5).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
-                row.createCell(6).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getUserName() : "");
-                row.createCell(7).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getUserName() : "");
+                row.createCell(6).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
+                row.createCell(7).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
                 row.createCell(8).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
                 row.createCell(9).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
                 row.createCell(10).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
@@ -180,7 +180,7 @@ public class Generator {
         var values = PracticePlace.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            options[i] = values[i].getUserName();
+            options[i] = values[i].getDisplayName();
         }
         return options;
     }
@@ -189,14 +189,14 @@ public class Generator {
         var values = PracticeFormat.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            options[i] = values[i].getUserName();
+            options[i] = values[i].getDisplayName();
         }
         return options;
     }
 
     private void applyConditionalFormatting(XSSFSheet sheet, int numberOfRows) {
         for (StudentStatus status : StudentStatus.values()) {
-            var rule = sheet.getSheetConditionalFormatting().createConditionalFormattingRule(ComparisonOperator.EQUAL, "\"%s\"".formatted(status.getUserName()));
+            var rule = sheet.getSheetConditionalFormatting().createConditionalFormattingRule(ComparisonOperator.EQUAL, "\"%s\"".formatted(status.getDisplayName()));
             var pattern = rule.createPatternFormatting();
             pattern.setFillBackgroundColor(HSSFColor.BLUE.index);
             pattern.setFillBackgroundColor(status.getColorForStatus());

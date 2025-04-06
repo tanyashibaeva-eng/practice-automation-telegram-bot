@@ -14,7 +14,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -46,7 +45,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_ValidFile_ShouldReturnStudentsWithErrors() throws Exception {
+    void testParseUpdateExcelFile_ValidFile_ShouldReturnStudentsWithErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -76,7 +75,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -101,7 +100,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_InvalidTemplate_ShouldThrowBadRequestException() {
+    void testParseUpdateExcelFile_InvalidTemplate_ShouldThrowBadRequestException() {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -116,14 +115,14 @@ public class ParserTest {
         }
 
         var exception = assertThrows(BadRequestException.class, () -> {
-            parser.parseExcelFile(testFile, List.of("gr1"));
+            parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         });
 
         assertEquals("Неверный шаблон загружаемого файла", exception.getMessage());
     }
 
     @Test
-    void testParseExcelFile_MissingRequiredColumn_ShouldReturnErrors() throws Exception {
+    void testParseUpdateExcelFile_MissingRequiredColumn_ShouldReturnErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -153,7 +152,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -163,7 +162,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_FileWithEmptyValues_ShouldReturnErrors() throws Exception {
+    void testParseUpdateExcelFile_FileWithEmptyValues_ShouldReturnErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -192,7 +191,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -202,7 +201,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_InvalidStatus_ShouldReturnError() throws Exception {
+    void testParseUpdateExcelFile_InvalidStatus_ShouldReturnError() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -231,7 +230,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -241,7 +240,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_InvalidPhone_ShouldReturnError() throws Exception {
+    void testParseUpdateExcelFile_InvalidPhone_ShouldReturnError() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -270,7 +269,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 

@@ -15,7 +15,7 @@ import java.io.IOException;
 @Log
 public class Interceptor {
     @SneakyThrows
-    public static MessageToUser intercept(Message message) {
+    public static MessageToUser processMessage(Message message) {
         try {
             return Handler.handleMessage(message);
         } catch (InvalidMessageException | BadRequestException e) {

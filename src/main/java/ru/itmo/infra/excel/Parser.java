@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
@@ -42,7 +43,7 @@ public class Parser {
 
     private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
 
-    public HashMap<String, StudentsWithErrors> parseExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
+    public HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
@@ -54,23 +55,23 @@ public class Parser {
             for (var sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                 var sheet = workbook.getSheetAt(sheetIndex);
                 var headers = sheet.getRow(0);
-                checkTemplate(headers.cellIterator());
+                checkUpdateTemplate(headers.cellIterator());
 
                 var rowIterator = sheet.iterator();
                 if (rowIterator.hasNext()) rowIterator.next();
-                groupToErrors.put(groups.get(sheetIndex), parseStudents(rowIterator));
+                groupToErrors.put(groups.get(sheetIndex), parseUpdateStudents(rowIterator));
             }
 
             return groupToErrors;
-        } catch (IOException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         } catch (NullPointerException e) {
             log.severe(e.getMessage());
             throw new BadRequestException("Неверный шаблон загружаемого файла (файл пустой)");
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         }
     }
 
-    private static void checkTemplate(Iterator<Cell> headersIterator) throws BadRequestException {
+    private static void checkUpdateTemplate(Iterator<Cell> headersIterator) throws BadRequestException {
         var invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
         try {
             var columnCount = 0;
@@ -93,7 +94,7 @@ public class Parser {
         }
     }
 
-    private static StudentsWithErrors parseStudents(Iterator<Row> rowIterator) throws InternalException {
+    private static StudentsWithErrors parseUpdateStudents(Iterator<Row> rowIterator) throws InternalException {
         var students = new ArrayList<ExcelStudentDTO>();
         var errorsByRows = new HashMap<Integer, List<String>>();
 
@@ -155,6 +156,67 @@ public class Parser {
         }
 
         return new StudentsWithErrors(students, errorsByRows);
+    }
+
+    public List<ExcelStudentInfoDTO> parseCreateExcelFile(File file) throws BadRequestException, InternalException {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            var workbook = new XSSFWorkbook(fis);
+
+            var sheet = workbook.getSheetAt(0);
+            var groupInfo = sheet.getRow(1).getCell(0).getStringCellValue();
+            var group = Arrays.asList(groupInfo.split(" ")).get(2);
+
+            var rowIterator = sheet.iterator();
+            if (rowIterator.hasNext()) rowIterator.next();
+            if (rowIterator.hasNext()) rowIterator.next();
+            if (rowIterator.hasNext()) rowIterator.next();
+
+            return parseCreateStudents(rowIterator, group);
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+        } catch (NullPointerException e) {
+            throw new BadRequestException("Неверный шаблон файла (" + e.getMessage() + ")");
+        }
+    }
+
+    private static List<ExcelStudentInfoDTO> parseCreateStudents(Iterator<Row> rowIterator, String group) throws InternalException {
+        var students = new ArrayList<ExcelStudentInfoDTO>();
+        var errorsByRows = new HashMap<Integer, List<String>>();
+
+        while (rowIterator.hasNext()) {
+            var row = rowIterator.next();
+            if (row == null) continue;
+
+            var count = 0;
+            for (int i : new int[]{1, 2}) {
+                if (row.getCell(i) == null) {
+                    count++;
+                    addErr(row.getRowNum(), "Поле \"%s\" должно быть заполнено".formatted(i == 1 ? "ИСУ" : "ФИО"), errorsByRows);
+                }
+            }
+            if (count == 2) {
+                errorsByRows.remove(row.getRowNum());
+                continue;
+            }
+
+            try {
+                var isu = parseInt(row.getCell(1), errorsByRows, false);
+                var fullName = parseString(row.getCell(2), errorsByRows, false);
+
+                var studentDTO = new ExcelStudentInfoDTO(
+                        group,
+                        isu,
+                        fullName,
+                        row.getRowNum(),
+                        errorsByRows.get(row.getRowNum())
+                );
+                students.add(studentDTO);
+            } catch (Exception e) {
+                throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+            }
+        }
+
+        return students;
     }
 
     private static String parseCellColor() {
@@ -269,14 +331,14 @@ public class Parser {
     }
 
     private static String getStatusEnumNames() {
-        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getDisplayName).collect(Collectors.joining(", "));
     }
 
     private static String getPracticeFormatEnumNames() {
-        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getDisplayName).collect(Collectors.joining(", "));
     }
 
     private static String getPracticePlaceEnumNames() {
-        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getDisplayName).collect(Collectors.joining(", "));
     }
 }

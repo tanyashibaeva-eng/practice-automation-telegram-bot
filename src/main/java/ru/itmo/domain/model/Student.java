@@ -33,13 +33,13 @@ public class Student {
     private String cellHexColor;
     private boolean managedManually;
 
-    public static final Map<StudentStatus, Set<StudentStatus>> PossibleAdminStatusChangesMap = Map.of(
+    private static final Map<StudentStatus, Set<StudentStatus>> possibleAdminStatusChangesMap = Map.of(
             StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
             StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
             StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
             StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
             StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
-            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED, StudentStatus.PRACTICE_APPROVED)
+            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
     );
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
@@ -63,7 +63,7 @@ public class Student {
         this.cellHexColor = dto.getCellHexColor();
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();
-        if (!this.managedManually && (status == dto.getStatus() || (PossibleAdminStatusChangesMap.containsKey(status) && PossibleAdminStatusChangesMap.get(status).contains(dto.getStatus())))) {
+        if (!this.managedManually && (status == dto.getStatus() || (possibleAdminStatusChangesMap.containsKey(status) && possibleAdminStatusChangesMap.get(status).contains(dto.getStatus())))) {
             this.status = dto.getStatus();
             this.practicePlace = dto.getPracticePlace();
             this.practiceFormat = dto.getPracticeFormat();
@@ -74,11 +74,11 @@ public class Student {
             this.companyLeadEmail = dto.getCompanyLeadEmail();
             this.companyLeadJobTitle = dto.getCompanyLeadJobTitle();
         } else {
-            errors.add("переход из статуса \"%s\" в статус \"%s\" невозможен".formatted(this.getStatus().getUserName(), dto.getStatus().getUserName()));
+            errors.add("переход из статуса \"%s\" в статус \"%s\" невозможен".formatted(this.getStatus().getDisplayName(), dto.getStatus().getDisplayName()));
         }
 
         if (!this.managedManually && !this.isRequiredFieldsForCurrentStatusFilled()) {
-            errors.add("не все поля для статуса \"%s\" заполнены".formatted(status.getUserName()));
+            errors.add("не все поля для статуса \"%s\" заполнены".formatted(status.getDisplayName()));
         }
 
         return errors;
@@ -145,17 +145,17 @@ public class Student {
 
     public String[] getTransitionStatuses() {
         return switch (this.status) {
-            case NOT_REGISTERED -> new String[]{StudentStatus.NOT_REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
-            case REGISTERED -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.REGISTERED.getUserName()};
-            case PRACTICE_IN_ITMO_MARKINA -> new String[]{StudentStatus.REGISTERED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
-            case COMPANY_INFO_WAITING_APPROVAL -> new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName()};
-            case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
-            case APPLICATION_WAITING_SUBMISSION -> new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
-            case APPLICATION_WAITING_APPROVAL -> new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName(), StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.COMPANY_INFO_RETURNED.getUserName()};
-            case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getUserName()};
-            case APPLICATION_WAITING_SIGNING -> new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getUserName(), StudentStatus.APPLICATION_RETURNED.getUserName()};
-            case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getUserName(), StudentStatus.PRACTICE_APPROVED.getUserName()};
-            case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getUserName()};
+            case NOT_REGISTERED -> new String[]{StudentStatus.NOT_REGISTERED.getDisplayName()};
+            case REGISTERED -> new String[]{StudentStatus.REGISTERED.getDisplayName()};
+            case PRACTICE_IN_ITMO_MARKINA -> new String[]{StudentStatus.PRACTICE_IN_ITMO_MARKINA.getDisplayName(), StudentStatus.REGISTERED.getDisplayName()};
+            case COMPANY_INFO_WAITING_APPROVAL -> new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName()};
+            case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_SUBMISSION -> new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_APPROVAL -> new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
+            case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_SIGNING -> new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+            case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getDisplayName()};
+            case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getDisplayName()};
         };
     }
 }
