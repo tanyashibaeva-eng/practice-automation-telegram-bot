@@ -21,11 +21,10 @@ import java.util.List;
 public class RepositoriesTest {
 
     private static final EduStream eduStream = new EduStream(
-            1,
-            "stream",
+            "stream 1",
             2025,
-            LocalDate.of(2024, 1, 1),
-            LocalDate.of(2025, 1, 1));
+            LocalDate.of(2020, 1, 1),
+            LocalDate.of(2021, 1, 1));
 
     private static final List<TelegramUser> telegramUsers = List.of(
             new TelegramUser(
@@ -111,8 +110,7 @@ public class RepositoriesTest {
     @BeforeAll
     static void setup() {
         try {
-            long id = EduStreamRepository.save(eduStream);
-            eduStream.setId(id);
+            EduStreamRepository.save(eduStream);
             for (var telegramUser : telegramUsers)
                 TelegramUserRepository.save(telegramUser);
             StudentRepository.saveBatch(students);
@@ -131,7 +129,7 @@ public class RepositoriesTest {
     @Test
     void filterTest_ok() throws InternalException {
         Filter filter = Filter.builder()
-                .eduStreamId(eduStream.getId() + 1)
+                .eduStreamName("NONEXISTENT")
                 .build();
 
         List<Student> studentsRes = StudentRepository.findAll(filter);
@@ -139,7 +137,7 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamId(eduStream.getId())
+                .eduStreamName(eduStream.getName())
                 .stGroups(List.of("G1", "G2"))
                 .build();
 
@@ -148,7 +146,7 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamId(eduStream.getId())
+                .eduStreamName(eduStream.getName())
                 .stGroups(List.of("G1"))
                 .stStatuses(List.of(StudentStatus.APPLICATION_RETURNED))
                 .build();
@@ -193,8 +191,20 @@ public class RepositoriesTest {
             Assertions.assertTrue(errors.isEmpty());
         }
 
-        StudentRepository.updateBatchByChatIdAndEduStreamId(students);
+        StudentRepository.updateBatchByChatIdAndEduStreamName(students);
         Assertions.assertEquals(students, StudentRepository.findAll());
+    }
+
+    @Test
+    void findAllEduStreamNamesTest_ok() throws InternalException {
+        EduStream es = new EduStream(
+                "stream 2",
+                2023,
+                LocalDate.of(2023, 1, 1),
+                LocalDate.of(2024, 1, 1));
+        EduStreamRepository.save(es);
+
+        Assertions.assertEquals(List.of("stream 2", "stream 1"), EduStreamRepository.findAllNames());
     }
 
     @AfterAll

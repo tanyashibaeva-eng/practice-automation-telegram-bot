@@ -8,7 +8,6 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class EduStream {
-    private long id;
     private String name;
     private int year;
     private LocalDate dateFrom;
