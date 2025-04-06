@@ -2,6 +2,7 @@ package ru.itmo.application;
 
 import lombok.AllArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.UnknownUserException;
 
 import java.util.HashMap;
@@ -17,14 +18,14 @@ public class ContextHolder {
         contextMap.remove(chatId);
     }
 
-    public Function<Message, String> getNextFunction(long chatId) throws UnknownUserException {
+    public Function<Message, MessageToUser> getNextFunction(long chatId) throws UnknownUserException {
         if (contextMap.containsKey(chatId)) {
-            return (Function<Message, String>) contextMap.get(chatId).get(ContextHolderType.FUNCTION);
+            return (Function<Message, MessageToUser>) contextMap.get(chatId).get(ContextHolderType.FUNCTION);
         }
         throw new UnknownUserException(chatId);
     }
 
-    public void setNextFunction(Long chatId, Function<Message, String> handler) {
+    public void setNextFunction(Long chatId, Function<Message, MessageToUser> handler) {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
@@ -32,9 +33,11 @@ public class ContextHolder {
     }
 
     public long getEduStreamId(long chatId) throws UnknownUserException {
-        if (contextMap.containsKey(chatId)) {
-            return (long) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
-        }
+        try {
+            if (contextMap.containsKey(chatId)) {
+                return (long) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
+            }
+        } catch (Exception ignored) {}
         throw new UnknownUserException(chatId);
     }
 

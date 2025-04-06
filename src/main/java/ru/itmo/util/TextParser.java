@@ -49,33 +49,24 @@ public class TextParser {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей статус.");
         }
-        try {
-            // TODO: переделать на удобочитаемый формат
-            return StudentStatus.valueOfIgnoreCase(text);
-        } catch (IllegalArgumentException e) {
+        var enumVal = StudentStatus.getByUserName(text);
+        if (enumVal == null) {
             throw new BadRequestException("неверный статус");
         }
+        return enumVal;
     }
 
     public PracticeFormat parsePracticeFormat(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей формат прохождения практики.");
         }
-        try {
-            return PracticeFormat.valueOfIgnoreCase(text);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("неверный формат прохождения практики");
-        }
+        return PracticeFormat.getByUserName(text);
     }
 
     public PracticePlace parsePracticePlace(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей место прохождения практики.");
         }
-        try {
-            return PracticePlace.valueOfIgnoreCase(text);
-        } catch (IllegalArgumentException e) {
-            throw new BadRequestException("неверное место прохождения практики");
-        }
+        return PracticePlace.getByUserName(text);
     }
 }
