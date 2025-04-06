@@ -7,6 +7,8 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.application.ContextHolder;
+import ru.itmo.bot.CallbackData;
+import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
@@ -25,19 +27,20 @@ public class Handler {
 
     private static final TelegramClient telegramClient = PracticeAutomationBot.getTelegramClient();
     private static final ContextHolder contextHolder = new ContextHolder();
-    private static final HashMap<String, Function<Message, MessageToUser>> commands = new HashMap<>();
+    private static final HashMap<String, Function<MessageDTO, MessageToUser>> commands = new HashMap<>();
 
     static {
         commands.put("/start", GreetingCommand::greetingAdminCommand);
         commands.put(null, GreetingCommand::greetingAdminCommand);
         commands.put("/upload", UploadStudentsExcelFile::start);
         commands.put("/export", ExportStudentsExcelFile::start);
-        commands.put("/registration", StudentRegistration::startRegistration);
+        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
+//        commands.put("/registration", StudentRegistration::startRegistration);
 
     }
 
-    public static MessageToUser handleMessage(Message message) throws Exception {
-        Function<Message, MessageToUser> nextFunc;
+    public static MessageToUser handleMessage(MessageDTO message) throws Exception {
+        Function<MessageDTO, MessageToUser> nextFunc;
         try {
             nextFunc = contextHolder.getNextFunction(message.getChatId());
         } catch (UnknownUserException e) {
@@ -57,14 +60,22 @@ public class Handler {
         return commands.get(command).apply(message);
     }
 
-    public static String getTextFromMessage(Message message) throws InvalidMessageException {
+    public static MessageToUser handleCallback(MessageDTO message, String callbackDataString) throws Exception {
+        var callbackData = new CallbackData(callbackDataString);
+        if (callbackData.getKey() != null) {
+            mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
+        }
+        return commands.get(callbackData.getCommand()).apply(message);
+    }
+
+    public static String getTextFromMessage(MessageDTO message) throws InvalidMessageException {
         if (!message.hasText()) {
             ThrowMessageException();
         }
         return message.getText();
     }
 
-    public static File getFileFromMessage(Message message) throws TelegramApiException, IOException, InvalidMessageException {
+    public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, IOException, InvalidMessageException {
         if (!message.hasDocument()) {
             ThrowDocumentException();
         }
@@ -87,7 +98,7 @@ public class Handler {
         return telegramClient.downloadFile(tgFile).toPath().toFile();
     }
 
-    public static void setNextCommandFunction(Long chatId, Function<Message, MessageToUser> handler) {
+    public static void setNextCommandFunction(Long chatId, Function<MessageDTO, MessageToUser> handler) {
         contextHolder.setNextFunction(chatId, handler);
     }
 
@@ -95,11 +106,19 @@ public class Handler {
         contextHolder.removeChatId(chatId);
     }
 
-    public static long getStreamEduId(Long chatId) throws UnknownUserException {
-        return contextHolder.getEduStreamId(chatId);
+    public static void mapKeyToFunc(Long chatId, String key, String value) throws UnknownUserException {
+        switch (key) {
+            case "eduStreamName":
+                setEduStreamName(chatId, value);
+            default:
+        }
     }
 
-    public static void setStreamEduId(Long chatId, Long streamId) throws UnknownUserException {
-        contextHolder.setEduStreamId(chatId, streamId);
+    public static String getEduStreamName(Long chatId) throws UnknownUserException {
+        return contextHolder.getEduStreamName(chatId);
+    }
+
+    public static void setEduStreamName(Long chatId, String streamId) throws UnknownUserException {
+        contextHolder.setEduStreamName(chatId, streamId);
     }
 }

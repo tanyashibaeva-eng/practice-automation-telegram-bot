@@ -2,6 +2,7 @@ package ru.itmo.application;
 
 import lombok.AllArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
+import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.UnknownUserException;
 
@@ -18,34 +19,34 @@ public class ContextHolder {
         contextMap.remove(chatId);
     }
 
-    public Function<Message, MessageToUser> getNextFunction(long chatId) throws UnknownUserException {
+    public Function<MessageDTO, MessageToUser> getNextFunction(long chatId) throws UnknownUserException {
         if (contextMap.containsKey(chatId)) {
-            return (Function<Message, MessageToUser>) contextMap.get(chatId).get(ContextHolderType.FUNCTION);
+            return (Function<MessageDTO, MessageToUser>) contextMap.get(chatId).get(ContextHolderType.FUNCTION);
         }
         throw new UnknownUserException(chatId);
     }
 
-    public void setNextFunction(Long chatId, Function<Message, MessageToUser> handler) {
+    public void setNextFunction(Long chatId, Function<MessageDTO, MessageToUser> handler) {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
         contextMap.get(chatId).put(ContextHolderType.FUNCTION, handler);
     }
 
-    public long getEduStreamId(long chatId) throws UnknownUserException {
+    public String getEduStreamName(long chatId) throws UnknownUserException {
         try {
             if (contextMap.containsKey(chatId)) {
-                return (long) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
+                return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
             }
         } catch (Exception ignored) {}
         throw new UnknownUserException(chatId);
     }
 
-    public void setEduStreamId(Long chatId, long streamId) throws UnknownUserException {
+    public void setEduStreamName(Long chatId, String streamName) throws UnknownUserException {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
-        contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_ID, streamId);
+        contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_ID, streamName);
     }
 }
 
