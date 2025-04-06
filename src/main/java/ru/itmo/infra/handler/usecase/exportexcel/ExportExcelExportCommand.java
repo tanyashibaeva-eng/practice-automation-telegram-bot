@@ -12,8 +12,8 @@ public class ExportExcelExportCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var eduId = 1;
-        var file = StudentService.exportStudentsToExcel(eduId);
+        var eduStreamName = "1";
+        var file = StudentService.exportStudentsToExcel("1");
         ContextHolder.endCommand(chatId);
         var text = message.getText();
         return MessageToUser.builder().text("Сгенерированная выгрузка:").document(file).build();

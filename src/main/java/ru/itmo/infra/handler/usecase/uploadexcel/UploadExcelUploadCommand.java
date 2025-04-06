@@ -15,7 +15,7 @@ public class UploadExcelUploadCommand implements Command {
         var file = Handler.getFileFromMessage(message);
 //        var eduStreamId = Handler.getStreamEduId(chatId);
 
-        var res = StudentService.updateStudentsFromExcel(file, 1);
+        var res = StudentService.updateStudentsFromExcel(file, "1");
         if (res.isEmpty()) {
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
