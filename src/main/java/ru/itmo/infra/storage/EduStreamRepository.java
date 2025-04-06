@@ -72,7 +72,7 @@ public class EduStreamRepository {
 
     public static List<String> findAllGroupsByStreamName(String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.id = student.edu_stream_id WHERE edu_stream.name = ? GROUP BY student.st_group;"
+                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.name = student.edu_stream_name WHERE edu_stream.name = ? GROUP BY student.st_group;"
         )) {
             statement.setString(1, eduStreamName);
             var rs = statement.executeQuery();

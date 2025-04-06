@@ -51,7 +51,12 @@ public class StudentRepository {
                 statement.setString(7, student.getCallStatusComments());
                 statement.setObject(8, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(9, student.getPracticeFormat(), Types.OTHER);
-                statement.setInt(10, student.getCompanyINN());
+
+                Integer companyINN = student.getCompanyINN();
+                if (companyINN == null) {
+                    statement.setNull(10, Types.INTEGER);
+                } else statement.setInt(10, student.getCompanyINN());
+
                 statement.setString(11, student.getCompanyName());
                 statement.setString(12, student.getCompanyLeadFullName());
                 statement.setString(13, student.getCompanyLeadPhone());
@@ -65,6 +70,25 @@ public class StudentRepository {
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static void updateChatIdTransactional(Student student, Connection transactionConnection) throws SQLException {
+        try (var statement = transactionConnection.prepareStatement("""
+                UPDATE student
+                SET chat_id = ?, status = 'REGISTERED'
+                WHERE edu_stream_name = ?
+                    AND isu = ?
+                    AND st_group = ?
+                    AND fullname = ?;
+                """
+        )) {
+            statement.setLong(1, student.getTelegramUser().getChatId());
+            statement.setString(2, student.getEduStream().getName());
+            statement.setInt(3, student.getIsu());
+            statement.setString(4, student.getStGroup());
+            statement.setString(5, student.getFullName());
+            statement.executeUpdate();
         }
     }
 
@@ -142,12 +166,12 @@ public class StudentRepository {
         return query + stringJoiner + ";";
     }
 
-    public static boolean existsByChatIdAndEduStreamId(long chatId, long eduStreamId) throws InternalException {
+    public static boolean existsByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_id = ?;"
+                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setLong(1, eduStreamId);
+            statement.setString(2, eduStreamName);
             var rs = statement.executeQuery();
             return rs.next();
 
@@ -156,12 +180,12 @@ public class StudentRepository {
         }
     }
 
-    public static Optional<Student> findByChatIdAndEduStreamId(long chatId, long eduStreamId) throws InternalException {
+    public static Optional<Student> findByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_id = ?;"
+                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setLong(2, eduStreamId);
+            statement.setString(2, eduStreamName);
             var rs = statement.executeQuery();
             return mapToStudentOptional(rs);
 
@@ -214,7 +238,12 @@ public class StudentRepository {
                 statement.setString(6, student.getCallStatusComments());
                 statement.setObject(7, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
-                statement.setInt(9, student.getCompanyINN());
+
+                Integer companyINN = student.getCompanyINN();
+                if (companyINN == null) {
+                    statement.setNull(9, Types.INTEGER);
+                } else statement.setInt(9, student.getCompanyINN());
+
                 statement.setString(10, student.getCompanyName());
                 statement.setString(11, student.getCompanyLeadFullName());
                 statement.setString(12, student.getCompanyLeadPhone());

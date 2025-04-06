@@ -1,9 +1,7 @@
 package ru.itmo.infra.storage;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import ru.itmo.application.TelegramUserService;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -18,6 +16,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RepositoriesTest {
 
     private static final EduStream eduStream = new EduStream(
@@ -44,14 +43,14 @@ public class RepositoriesTest {
                     "username 3")
     );
 
-    private static final List<Student> students = List.of(
+    private static List<Student> students = List.of(
             new Student(
-                    telegramUsers.get(0),
+                    null,
                     eduStream,
                     1,
                     "G1",
                     "name 1",
-                    StudentStatus.REGISTERED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 1",
                     "call status comments 1",
                     PracticePlace.NOT_SPECIFIED,
@@ -66,12 +65,12 @@ public class RepositoriesTest {
                     false
             ),
             new Student(
-                    telegramUsers.get(1),
+                    null,
                     eduStream,
                     2,
                     "G1",
                     "name 2",
-                    StudentStatus.APPLICATION_RETURNED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 2",
                     "call status comments 2",
                     PracticePlace.ITMO_UNIVERSITY,
@@ -86,12 +85,12 @@ public class RepositoriesTest {
                     false
             ),
             new Student(
-                    telegramUsers.get(2),
+                    null,
                     eduStream,
                     3,
                     "G2",
                     "name 3",
-                    StudentStatus.APPLICATION_RETURNED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 3",
                     "call status comments 3",
                     PracticePlace.OTHER_COMPANY,
@@ -111,23 +110,41 @@ public class RepositoriesTest {
     static void setup() {
         try {
             EduStreamRepository.save(eduStream);
-            for (var telegramUser : telegramUsers)
-                TelegramUserRepository.save(telegramUser);
             StudentRepository.saveBatch(students);
         } catch (InternalException ex) {
             throw new RuntimeException(ex);
         }
     }
 
+    @Order(1)
     @Test
-    void findAllTest_ok() throws InternalException {
+    void findAllEduStreamAndStudentsBeforeRegistrationTest_ok() throws InternalException {
         Assertions.assertEquals(List.of(eduStream), EduStreamRepository.findAll());
-        Assertions.assertEquals(telegramUsers, TelegramUserRepository.findAll());
         Assertions.assertEquals(students, StudentRepository.findAll());
     }
 
+    @Order(2)
+    @Test
+    void registerUsersTest_ok() throws InternalException {
+        Assertions.assertDoesNotThrow(() -> {
+            for (int i = 0; i < students.size(); i++) {
+                TelegramUserService.registerUser(
+                        telegramUsers.get(i),
+                        students.get(i)
+                );
+            }
+        });
+
+        List<Long> expectedChatIds = telegramUsers.stream().map(TelegramUser::getChatId).toList();
+
+        Assertions.assertEquals(expectedChatIds, StudentRepository.findAll().stream().map(student -> student.getTelegramUser().getChatId()).toList());
+    }
+
+    @Order(3)
     @Test
     void filterTest_ok() throws InternalException {
+        students = StudentRepository.findAll();
+
         Filter filter = Filter.builder()
                 .eduStreamName("NONEXISTENT")
                 .build();
@@ -148,22 +165,23 @@ public class RepositoriesTest {
         filter = Filter.builder()
                 .eduStreamName(eduStream.getName())
                 .stGroups(List.of("G1"))
-                .stStatuses(List.of(StudentStatus.APPLICATION_RETURNED))
+                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);
-        Assertions.assertEquals(List.of(students.get(1)), studentsRes);
+        Assertions.assertEquals(List.of(students.get(0), students.get(1)), studentsRes);
 
 
         filter = Filter.builder()
-                .stGroups(List.of("G1"))
-                .stStatuses(List.of(StudentStatus.APPLICATION_RETURNED))
+                .stGroups(List.of("G2"))
+                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);
-        Assertions.assertEquals(List.of(students.get(1)), studentsRes);
+        Assertions.assertEquals(List.of(students.get(2)), studentsRes);
     }
 
+    @Order(4)
     @Test
     void updateTest_ok() throws InternalException {
         List<ExcelStudentDTO> dtoList = students.stream().map(student -> new ExcelStudentDTO(
@@ -195,6 +213,7 @@ public class RepositoriesTest {
         Assertions.assertEquals(students, StudentRepository.findAll());
     }
 
+    @Order(5)
     @Test
     void findAllEduStreamNamesTest_ok() throws InternalException {
         EduStream es = new EduStream(

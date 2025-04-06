@@ -15,6 +15,7 @@ import java.util.*;
 @ToString
 @EqualsAndHashCode
 public class Student {
+    @Setter
     private TelegramUser telegramUser;
     private EduStream eduStream;
     private int isu;
