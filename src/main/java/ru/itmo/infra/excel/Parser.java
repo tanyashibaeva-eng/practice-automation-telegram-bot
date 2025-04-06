@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Log
 public class Parser {
@@ -63,6 +64,9 @@ public class Parser {
             return groupToErrors;
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+        } catch (NullPointerException e) {
+            log.severe(e.getMessage());
+            throw new BadRequestException("Неверный шаблон загружаемого файла (файл пустой)");
         }
     }
 
@@ -97,10 +101,16 @@ public class Parser {
             var row = rowIterator.next();
             if (row == null) continue;
 
-            for (int i : new int[]{0, 1, 2, 3, 6, 7}) {
+            var count = 0;
+            for (int i : new int[]{0, 1, 2, 3}) {
                 if (row.getCell(i) == null) {
+                    count++;
                     addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i + 1]), errorsByRows);
                 }
+            }
+            if (count == 4) {
+                errorsByRows.remove(row.getRowNum());
+                continue;
             }
 
             try {
@@ -222,8 +232,7 @@ public class Parser {
             }
             return textParser.parseStatus(strVal);
         } catch (Exception e) {
-            // TODO: сделать статусы
-            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getStatusEnumNames()), errorsByRows);
         }
         return StudentStatus.NOT_REGISTERED;
     }
@@ -235,8 +244,7 @@ public class Parser {
                 return PracticeFormat.NOT_SPECIFIED;
             return textParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
-            // TODO: сделать форматы прохождения практики
-            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticeFormatEnumNames()), errorsByRows);
         }
         return PracticeFormat.NOT_SPECIFIED;
     }
@@ -248,8 +256,7 @@ public class Parser {
                 return PracticePlace.NOT_SPECIFIED;
             return textParser.parsePracticePlace(strVal);
         } catch (Exception e) {
-            // TODO: сделать места прохождения практики
-            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из [A, B, C]".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticePlaceEnumNames()), errorsByRows);
         }
         return PracticePlace.NOT_SPECIFIED;
     }
@@ -259,5 +266,17 @@ public class Parser {
             errorsByRows.put(row, new ArrayList<>());
         }
         errorsByRows.get(row).add(text);
+    }
+
+    private static String getStatusEnumNames() {
+        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getUserName).collect(Collectors.joining(", "));
+    }
+
+    private static String getPracticeFormatEnumNames() {
+        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getUserName).collect(Collectors.joining(", "));
+    }
+
+    private static String getPracticePlaceEnumNames() {
+        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getUserName).collect(Collectors.joining(", "));
     }
 }

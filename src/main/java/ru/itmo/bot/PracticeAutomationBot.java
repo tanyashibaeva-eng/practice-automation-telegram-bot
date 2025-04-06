@@ -3,13 +3,17 @@ package ru.itmo.bot;
 import lombok.Getter;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
+import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.interceptor.Interceptor;
 import ru.itmo.util.PropertiesProvider;
+
+import java.io.File;
 
 @Log
 public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsumer {
@@ -23,8 +27,12 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         if (update.hasMessage()) {
             Message message = update.getMessage();
             long chatId = message.getChatId();
-            String response = Interceptor.intercept(message);
-            sendMessage(response, chatId);
+            MessageToUser response = Interceptor.intercept(message);
+            if (response.getDocument() == null) {
+                sendMessage(response.getText(), chatId);
+            } else {
+                sendDocument(response.getDocument(), response.getText(), chatId);
+            }
         }
     }
 
@@ -40,6 +48,19 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             telegramClient.execute(sendMessage);
         } catch (TelegramApiException ex) {
             log.severe("Не удалось отправить сообщение: " + ex.getMessage());
+        }
+    }
+
+    private static void sendDocument(File file, String caption, long chatId) {
+        SendDocument sendDocument = SendDocument.builder()
+                .chatId(chatId)
+                .document(new InputFile(file))
+                .caption(caption)
+                .build();
+        try {
+            telegramClient.execute(sendDocument);
+        } catch (TelegramApiException ex) {
+            log.severe("Не удалось отправить документ: " + ex.getMessage());
         }
     }
 }
