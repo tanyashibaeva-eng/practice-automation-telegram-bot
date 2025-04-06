@@ -32,6 +32,7 @@ public class Handler {
         commands.put("/start", GreetingCommand::greetingAdminCommand);
         commands.put(null, GreetingCommand::greetingAdminCommand);
         commands.put("/upload", UploadStudentsExcelFile::start);
+        commands.put("/registration", StudentRegistration::startRegistration);
 
     }
 
