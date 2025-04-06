@@ -9,12 +9,12 @@ import java.util.List;
 @Data
 @Builder
 public class Filter {
-    private Long eduStreamId;
+    private String eduStreamName;
     private List<String> stGroups;
     private List<StudentStatus> stStatuses;
 
     public boolean isEmpty() {
-        return (eduStreamId == null
+        return (eduStreamName == null
                 && (stGroups == null || stGroups.isEmpty())
                 && (stStatuses == null || stStatuses.isEmpty()));
     }

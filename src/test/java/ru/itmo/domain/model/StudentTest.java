@@ -91,7 +91,7 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
-        assertTrue(errors.contains("сейчас ожидается действие от студента, переводить заявку в другой статус нельзя"));
+        assertTrue(errors.contains("переход из статуса \"Зарегистрирован\" в статус \"Данные о компании на проверке\" невозможен"));
     }
 
     @Test
@@ -107,7 +107,7 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
-        assertTrue(errors.contains("не все поля для нового статуса заполнены"));
+        assertTrue(errors.contains("не все поля для статуса \"Зарегистрирован\" заполнены"));
     }
 
     @Test
@@ -167,7 +167,7 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
-        assertTrue(errors.contains("не все поля для нового статуса заполнены"));
+        assertTrue(errors.contains("не все поля для статуса \"Зарегистрирован\" заполнены"));
     }
 
     @Test
@@ -187,7 +187,7 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
-        assertEquals("сейчас ожидается действие от студента, переводить заявку в другой статус нельзя", errors.get(0));
+        assertEquals("переход из статуса \"Практика в ИТМО у Маркиной Т. А.\" в статус \"Данные о компании на проверке\" невозможен", errors.get(0));
     }
 
     @Test
@@ -247,7 +247,7 @@ class StudentTest {
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
-        assertTrue(errors.contains("не все поля для нового статуса заполнены"));
+        assertTrue(errors.contains("не все поля для статуса \"Практика в ИТМО у Маркиной Т. А.\" заполнены"));
     }
 
     @Test
