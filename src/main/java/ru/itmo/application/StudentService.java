@@ -1,8 +1,8 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
-import org.checkerframework.checker.units.qual.A;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
@@ -77,5 +77,9 @@ public class StudentService {
         }
 
         return excelGenerator.generateExcel(groupToStudents, groups);
+    }
+
+    public static void registerStudent(StudentRegistrationArgs args) {
+        return;
     }
 }
