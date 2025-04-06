@@ -8,7 +8,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public class CreateStudentDTO {
     String eduStreamName;
-    String group;
+    String stGroup;
     int isu;
     String fullName;
 }

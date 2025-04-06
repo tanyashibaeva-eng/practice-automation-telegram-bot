@@ -24,9 +24,9 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    public static Optional<File> updateStudentsFromExcel(File file, long eduStreamId) throws InternalException, BadRequestException {
-        var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
-        var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
+    public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStreamName);
+        var students = StudentRepository.findAll(Filter.builder().eduStreamName(eduStreamName).build());
         var groupToStudentDTOsWithErrors = Parser.parseUpdateExcelFile(file, groups);
 
         var studentInfoToStudents = new HashMap<String, ExcelStudentDTO>();
@@ -60,7 +60,7 @@ public class StudentService {
             return Optional.of(Generator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
         }
 
-        StudentRepository.updateBatchByChatIdAndEduStreamId(students);
+        StudentRepository.updateBatchByChatIdAndEduStreamName(students);
         return Optional.empty();
     }
 
@@ -74,14 +74,14 @@ public class StudentService {
             studentsToCreate.add(new CreateStudentDTO(eduStreamName, s.getGroup(), s.getIsu(), s.getFullName()));
         }
 
-        // TODO: add students
+        StudentRepository.saveBatch(null);
 
         return Optional.empty();
     }
 
-    public static File exportStudentsToExcel(long eduStreamId) throws InternalException {
-        var groups = EduStreamRepository.findAllGroupsByStreamId(eduStreamId);
-        var students = StudentRepository.findAll(Filter.builder().eduStreamId(eduStreamId).build());
+    public static File exportStudentsToExcel(String eduStreamName) throws InternalException {
+        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStreamName);
+        var students = StudentRepository.findAll(Filter.builder().eduStreamName(eduStreamName).build());
         var groupToStudents = new HashMap<String, List<Student>>();
 
         for (var s : students) {
