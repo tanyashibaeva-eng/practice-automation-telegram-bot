@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS tg_user (
 );
 
 CREATE TABLE IF NOT EXISTS edu_stream (
-    name                    text                PRIMARY KEY,
+    name                    text                PRIMARY KEY CHECK (name <> ''),
     year                    smallint            NOT NULL,
     date_from               date                NOT NULL,
     date_to                 date                NOT NULL
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS edu_stream (
 
 CREATE TABLE IF NOT EXISTS student (
     chat_id                 bigint              REFERENCES tg_user(chat_id) ON DELETE CASCADE DEFAULT NULL,
-    edu_stream_name         text                NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE,
+    edu_stream_name         text                NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE ON UPDATE CASCADE,
     isu                     int                 NOT NULL,
     st_group                varchar(8)          NOT NULL,
     fullname                text                NOT NULL,

@@ -2,6 +2,7 @@ package ru.itmo.infra.storage;
 
 import lombok.extern.java.Log;
 import ru.itmo.domain.model.EduStream;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 
 import java.sql.Connection;
@@ -70,11 +71,15 @@ public class EduStreamRepository {
         }
     }
 
-    public static List<String> findAllGroupsByStreamName(String eduStreamName) throws InternalException {
-        try (var statement = connection.prepareStatement(
-                "SELECT student.st_group FROM edu_stream LEFT JOIN student ON edu_stream.name = student.edu_stream_name WHERE edu_stream.name = ? GROUP BY student.st_group;"
+    public static List<String> findAllGroupsByStreamName(EduStream eduStream) throws InternalException {
+        try (var statement = connection.prepareStatement("""
+                    SELECT student.st_group
+                    FROM edu_stream LEFT JOIN student ON edu_stream.name = student.edu_stream_name
+                    WHERE edu_stream.name = ?
+                    GROUP BY student.st_group;
+                """
         )) {
-            statement.setString(1, eduStreamName);
+            statement.setString(1, eduStream.getName());
             var rs = statement.executeQuery();
             List<String> result = new ArrayList<>();
 
@@ -88,11 +93,11 @@ public class EduStreamRepository {
         }
     }
 
-    public static boolean existsByName(String name) throws InternalException {
+    public static boolean existsByName(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE name = ?;"
         )) {
-            statement.setString(1, name);
+            statement.setString(1, eduStream.getName());
             var rs = statement.executeQuery();
             return rs.next();
 
@@ -101,11 +106,11 @@ public class EduStreamRepository {
         }
     }
 
-    public static Optional<EduStream> findByName(String name) throws InternalException {
+    public static Optional<EduStream> findByName(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE name = ?;"
         )) {
-            statement.setString(1, name);
+            statement.setString(1, eduStream.getName());
             var rs = statement.executeQuery();
             return mapToEduStreamOptional(rs);
 
@@ -114,11 +119,11 @@ public class EduStreamRepository {
         }
     }
 
-    public static boolean deleteByName(String name) throws InternalException {
+    public static boolean deleteByName(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "DELETE FROM edu_stream WHERE name = ?;"
         )) {
-            statement.setString(1, name);
+            statement.setString(1, eduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -126,15 +131,15 @@ public class EduStreamRepository {
         }
     }
 
-    public static boolean updateByName(EduStream eduStream) throws InternalException {
+    public static boolean updateByName(EduStream oldEduStream, EduStream newEduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "UPDATE edu_stream SET name = ?, year = ?, date_from = ?, date_to = ? WHERE name = ?;"
         )) {
-            statement.setString(1, eduStream.getName());
-            statement.setInt(2, eduStream.getYear());
-            statement.setDate(3, Date.valueOf(eduStream.getDateFrom()));
-            statement.setDate(4, Date.valueOf(eduStream.getDateTo()));
-            statement.setString(5, eduStream.getName());
+            statement.setString(1, newEduStream.getName());
+            statement.setInt(2, newEduStream.getYear());
+            statement.setDate(3, Date.valueOf(newEduStream.getDateFrom()));
+            statement.setDate(4, Date.valueOf(newEduStream.getDateTo()));
+            statement.setString(5, oldEduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -142,20 +147,25 @@ public class EduStreamRepository {
         }
     }
 
-    private static Optional<EduStream> mapToEduStreamOptional(ResultSet rs) throws SQLException {
+    private static Optional<EduStream> mapToEduStreamOptional(ResultSet rs) throws SQLException, InternalException {
         EduStream eduStream = mapToEduStream(rs);
         if (eduStream == null) return Optional.empty();
         return Optional.of(eduStream);
     }
 
-    private static EduStream mapToEduStream(ResultSet rs) throws SQLException {
+    private static EduStream mapToEduStream(ResultSet rs) throws SQLException, InternalException {
         if (rs.next()) {
-            return new EduStream(
-                    rs.getString("name"),
-                    rs.getInt("year"),
-                    rs.getDate("date_from").toLocalDate(),
-                    rs.getDate("date_to").toLocalDate()
-            );
+            try {
+                return new EduStream(
+                        rs.getString("name"),
+                        rs.getInt("year"),
+                        rs.getDate("date_from").toLocalDate(),
+                        rs.getDate("date_to").toLocalDate()
+                );
+            } catch (BadRequestException ex) {
+                log.severe("Нарушена консистентность данных. Попытка смаппить EduStream.\nОшибка: " + ex.getMessage());
+                throw new InternalException("Ошибка чтения данных из базы: нарушена консистентность данных учебных потоков");
+            }
         }
         return null;
     }

@@ -13,22 +13,6 @@ import ru.itmo.infra.handler.usecase.Command;
 
 @NoArgsConstructor
 public class GreetingCommand implements Command {
-    @Override
-    public MessageToUser execute(MessageDTO message) {
-        ContextHolder.endCommand(message.getChatId());
-        return MessageToUser.builder().text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!").keyboardMarkup(getMarkupKeyboardForStart()).build();
-    }
-
-    @Override
-    public boolean isNextCallNeeded() {
-        return false;
-    }
-
-    @Override
-    public String getName() {
-        return "/start";
-    }
-
     private static ReplyKeyboard getMarkupKeyboardForStart() {
         return InlineKeyboardMarkup.builder()
                 .keyboardRow(
@@ -44,5 +28,21 @@ public class GreetingCommand implements Command {
                                                         .toString()
                                         ).build()
                         )).build();
+    }
+
+    @Override
+    public MessageToUser execute(MessageDTO message) {
+        ContextHolder.endCommand(message.getChatId());
+        return MessageToUser.builder().text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!").keyboardMarkup(getMarkupKeyboardForStart()).build();
+    }
+
+    @Override
+    public boolean isNextCallNeeded() {
+        return false;
+    }
+
+    @Override
+    public String getName() {
+        return "/start";
     }
 }

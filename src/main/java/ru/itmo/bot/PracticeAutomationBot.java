@@ -20,27 +20,6 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     @Getter
     private static final TelegramClient telegramClient = new OkHttpTelegramClient(PropertiesProvider.getToken());
 
-    @Override
-    public void consume(Update update) {
-        MessageToUser response = null;
-        long chatId = 0;
-
-        if (update.hasCallbackQuery()) {
-            String callbackDataString = update.getCallbackQuery().getData();
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).build();
-            response = Interceptor.processCallback(messageDTO, callbackDataString);
-        }
-        if (update.hasMessage()) {
-            Message message = update.getMessage();
-            chatId = message.getChatId();
-            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).text(message.getText()).document(message.getDocument()).build();
-            response = Interceptor.processMessage(messageDTO);
-        }
-
-        sendToUser(response, chatId);
-    }
-
     public static void sendToUser(MessageToUser response, long chatId) {
         if (response == null) {
             return;
@@ -79,5 +58,28 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         } catch (TelegramApiException ex) {
             log.severe("Не удалось отправить документ: " + ex.getMessage());
         }
+    }
+
+    @Override
+    public void consume(Update update) {
+        MessageToUser response = null;
+        long chatId = 0;
+
+        log.info(update.getMessage().getChat().getUserName());
+
+        if (update.hasCallbackQuery()) {
+            String callbackDataString = update.getCallbackQuery().getData();
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).build();
+            response = Interceptor.processCallback(messageDTO, callbackDataString);
+        }
+        if (update.hasMessage()) {
+            Message message = update.getMessage();
+            chatId = message.getChatId();
+            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).text(message.getText()).document(message.getDocument()).build();
+            response = Interceptor.processMessage(messageDTO);
+        }
+
+        sendToUser(response, chatId);
     }
 }

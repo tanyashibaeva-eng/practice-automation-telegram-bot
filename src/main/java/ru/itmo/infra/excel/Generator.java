@@ -9,7 +9,6 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;

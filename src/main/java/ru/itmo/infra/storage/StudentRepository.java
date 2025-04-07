@@ -1,10 +1,12 @@
 package ru.itmo.infra.storage;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 
 import java.sql.Connection;
@@ -112,9 +114,9 @@ public class StudentRepository {
         String query = "SELECT * FROM student WHERE ";
         StringJoiner stringJoiner = new StringJoiner(" AND ");
 
-        String eduStreamName = filter.getEduStreamName();
-        if (eduStreamName != null)
-            stringJoiner.add("edu_stream_name = '%s'".formatted(eduStreamName));
+        EduStream eduStream = filter.getEduStream();
+        if (eduStream != null)
+            stringJoiner.add("edu_stream_name = '%s'".formatted(eduStream.getName()));
 
         List<String> stGroups = filter.getStGroups();
         if (stGroups != null && !stGroups.isEmpty()) {
@@ -135,12 +137,12 @@ public class StudentRepository {
         return query + stringJoiner + ";";
     }
 
-    public static boolean existsByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
+    public static boolean existsByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setString(2, eduStreamName);
+            statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
             return rs.next();
 
@@ -149,12 +151,12 @@ public class StudentRepository {
         }
     }
 
-    public static Optional<Student> findByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
+    public static Optional<Student> findByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setString(2, eduStreamName);
+            statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
             return mapToStudentOptional(rs);
 
@@ -163,12 +165,26 @@ public class StudentRepository {
         }
     }
 
-    public static boolean deleteByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
+    public static Optional<Student> findByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT * FROM student WHERE isu = ? AND edu_stream_name = ?;"
+        )) {
+            statement.setInt(1, isu);
+            statement.setString(2, eduStream.getName());
+            var rs = statement.executeQuery();
+            return mapToStudentOptional(rs);
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean deleteByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "DELETE FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setString(2, eduStreamName);
+            statement.setString(2, eduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -242,13 +258,22 @@ public class StudentRepository {
         if (rs.next()) {
             long chatId = rs.getLong("chat_id");
 
+            EduStream eduStream;
+
+            try {
+                eduStream = new EduStream(rs.getString("edu_stream_name"));
+                eduStream = EduStreamRepository.findByName(eduStream).orElseThrow(
+                        () -> new InternalException("Ошибка чтения данных из базы: нарушена консистентность соотношения студентов и учебных потоков"));
+            } catch (BadRequestException ex) {
+                throw new InternalException("Ошибка чтения данных из базы: нарушена консистентность соотношения студентов и учебных потоков");
+            }
+
             return new Student(
                     (chatId == 0)
                             ? null
                             : TelegramUserRepository.findByChatId(rs.getLong("chat_id"))
-                            .orElseThrow(() -> new InternalException("Пользователь с таким chatId не найден")),
-                    EduStreamRepository.findByName(rs.getString("edu_stream_name"))
-                            .orElseThrow(() -> new InternalException("Поток с таким именем не найден")),
+                            .orElseThrow(() -> new InternalException("Ошибка чтения данных из базы: нарушена консистентность соотношения студентов и телеграм-пользователей")),
+                    eduStream,
                     rs.getInt("isu"),
                     rs.getString("st_group"),
                     rs.getString("fullname"),
