@@ -10,7 +10,9 @@ import ru.itmo.bot.MessageToUser;
 
 public interface Command {
     MessageToUser execute(MessageDTO message);
+
     boolean isNextCallNeeded();
+
     String getName();
 
     default ReplyKeyboard getReturnToStartMarkup() {

@@ -19,13 +19,13 @@ public class Interceptor {
         try {
             return Handler.handleMessage(message);
         } catch (InvalidMessageException | BadRequestException e) {
-            return  MessageToUser.builder().text(e.getMessage()).build();
+            return MessageToUser.builder().text(e.getMessage()).build();
         } catch (InternalException e) {
             log.severe(e.getCause().getMessage());
-            return  MessageToUser.builder().text("Что-то пошло не так").build();
+            return MessageToUser.builder().text("Что-то пошло не так").build();
         } catch (TelegramApiException | IOException ex) {
             log.severe(ex.getMessage());
-            return  MessageToUser.builder().text("Что-то пошло не так").build();
+            return MessageToUser.builder().text("Что-то пошло не так").build();
         }
     }
 
@@ -34,13 +34,13 @@ public class Interceptor {
         try {
             return Handler.handleCallback(message, callbackData);
         } catch (InvalidMessageException | BadRequestException e) {
-            return  MessageToUser.builder().text(e.getMessage()).build();
+            return MessageToUser.builder().text(e.getMessage()).build();
         } catch (InternalException e) {
             log.severe(e.getCause().getMessage());
-            return  MessageToUser.builder().text("Что-то пошло не так").build();
+            return MessageToUser.builder().text("Что-то пошло не так").build();
         } catch (TelegramApiException | IOException ex) {
             log.severe(ex.getMessage());
-            return  MessageToUser.builder().text("Что-то пошло не так").build();
+            return MessageToUser.builder().text("Что-то пошло не так").build();
         }
     }
 }

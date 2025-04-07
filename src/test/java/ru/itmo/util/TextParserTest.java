@@ -13,76 +13,76 @@ public class TextParserTest {
 
     @Test
     public void testParseInt_ValidInput() throws BadRequestException {
-        assertEquals(123, textParser.parseInt(" 123 "));
+        assertEquals(123, TextParser.parseInt(" 123 "));
     }
 
     @Test
     public void testParseInt_InvalidInput() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parseInt("abc");
+            TextParser.parseInt("abc");
         });
         assertEquals("должно быть числом", exception.getMessage());
     }
 
     @Test
     public void testParsePhone_ValidPhone() throws BadRequestException {
-        assertEquals("+1234567890", textParser.parsePhone("+1234567890"));
-        assertEquals("1234567890", textParser.parsePhone("1234567890"));
-        assertEquals("+7 925 123 45 67", textParser.parsePhone("+7 925 123 45 67"));
-        assertEquals("8 925 123 45 67", textParser.parsePhone("8 925 123 45 67"));
+        assertEquals("+1234567890", TextParser.parsePhone("+1234567890"));
+        assertEquals("1234567890", TextParser.parsePhone("1234567890"));
+        assertEquals("+7 925 123 45 67", TextParser.parsePhone("+7 925 123 45 67"));
+        assertEquals("8 925 123 45 67", TextParser.parsePhone("8 925 123 45 67"));
     }
 
     @Test
     public void testParsePhone_InvalidPhone() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parsePhone("12345");
+            TextParser.parsePhone("12345");
         });
         assertEquals("неверный формат номера телефона", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parsePhone("+7 (925) 123 45 67");
+            TextParser.parsePhone("+7 (925) 123 45 67");
         });
         assertEquals("неверный формат номера телефона", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parsePhone("   ");
+            TextParser.parsePhone("   ");
         });
         assertEquals("должно быть строкой, представляющей номер телефона.", exception.getMessage());
     }
 
     @Test
     public void testParseEmail_ValidEmail() throws BadRequestException {
-        assertEquals("example@example.com", textParser.parseEmail("example@example.com"));
+        assertEquals("example@example.com", TextParser.parseEmail("example@example.com"));
     }
 
     @Test
     public void testParseEmail_InvalidEmail() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parseEmail("example@com");
+            TextParser.parseEmail("example@com");
         });
         assertEquals("неверный формат email", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parseEmail("   ");
+            TextParser.parseEmail("   ");
         });
         assertEquals("должно быть строкой, представляющей email.", exception.getMessage());
     }
 
     @Test
     public void testParseStatus_ValidStatus() throws BadRequestException {
-        assertEquals(StudentStatus.APPLICATION_RETURNED, textParser.parseStatus("Заявка возвращена на доработку"));
-        assertEquals(StudentStatus.REGISTERED, textParser.parseStatus("Зарегистрирован"));
+        assertEquals(StudentStatus.APPLICATION_RETURNED, TextParser.parseStatus("Заявка возвращена на доработку"));
+        assertEquals(StudentStatus.REGISTERED, TextParser.parseStatus("Зарегистрирован"));
     }
 
     @Test
     public void testParseStatus_InvalidStatus() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parseStatus("unknown_status");
+            TextParser.parseStatus("unknown_status");
         });
         assertEquals("неверный статус", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            textParser.parseStatus("   ");
+            TextParser.parseStatus("   ");
         });
         assertEquals("должно быть строкой, представляющей статус.", exception.getMessage());
     }

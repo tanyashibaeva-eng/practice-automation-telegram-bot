@@ -9,6 +9,7 @@ import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 
 import java.sql.Connection;
@@ -20,11 +21,19 @@ import java.util.List;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RepositoriesTest {
 
-    private static final EduStream eduStream = new EduStream(
-            "stream 1",
-            2025,
-            LocalDate.of(2020, 1, 1),
-            LocalDate.of(2021, 1, 1));
+    private static final EduStream eduStream;
+
+    static {
+        try {
+            eduStream = new EduStream(
+                    "stream 1",
+                    2025,
+                    LocalDate.of(2020, 1, 1),
+                    LocalDate.of(2021, 1, 1));
+        } catch (BadRequestException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
     private static final List<TelegramUser> telegramUsers = List.of(
             new TelegramUser(
@@ -112,10 +121,8 @@ public class RepositoriesTest {
         try {
             EduStreamRepository.save(eduStream);
             RepositoriesTest.saveBatch(students);
-        } catch (InternalException ex) {
+        } catch (InternalException | SQLException ex) {
             throw new RuntimeException(ex);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -145,11 +152,11 @@ public class RepositoriesTest {
 
     @Order(3)
     @Test
-    void filterTest_ok() throws InternalException {
+    void filterTest_ok() throws InternalException, BadRequestException {
         students = StudentRepository.findAll();
 
         Filter filter = Filter.builder()
-                .eduStreamName("NONEXISTENT")
+                .eduStream(new EduStream("NONEXISTENT"))
                 .build();
 
         List<Student> studentsRes = StudentRepository.findAll(filter);
@@ -157,7 +164,7 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamName(eduStream.getName())
+                .eduStream(eduStream)
                 .stGroups(List.of("G1", "G2"))
                 .build();
 
@@ -166,7 +173,7 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamName(eduStream.getName())
+                .eduStream(eduStream)
                 .stGroups(List.of("G1"))
                 .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
                 .build();
@@ -185,6 +192,15 @@ public class RepositoriesTest {
     }
 
     @Order(4)
+    @Test
+    void findStudentByIsuAndStreamNameTest_ok() throws InternalException {
+        Student st = students.get(0);
+        Assertions.assertEquals(st, StudentRepository.findByIsuAndEduStreamName(st.getIsu(), st.getEduStream()).get());
+
+        Assertions.assertFalse(StudentRepository.findByIsuAndEduStreamName(-123, st.getEduStream()).isPresent());
+    }
+
+    @Order(5)
     @Test
     void updateTest_ok() throws InternalException {
         List<ExcelStudentDTO> dtoList = students.stream().map(student -> new ExcelStudentDTO(
@@ -216,9 +232,9 @@ public class RepositoriesTest {
         Assertions.assertEquals(students, StudentRepository.findAll());
     }
 
-    @Order(5)
+    @Order(6)
     @Test
-    void findAllEduStreamNamesTest_ok() throws InternalException {
+    void findAllEduStreamNamesTest_ok() throws InternalException, BadRequestException {
         EduStream es = new EduStream(
                 "stream 2",
                 2023,
@@ -291,8 +307,6 @@ public class RepositoriesTest {
             }
             statement.executeBatch();
 
-        } catch (SQLException ex) {
-            throw ex;
         }
     }
 
