@@ -20,8 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ParserTest {
 
-    private Parser parser;
-
     private static final String[] columns = {
             "ИСУ",
             "Группа",
@@ -38,6 +36,19 @@ public class ParserTest {
             "Почта Руководителя",
             "Должность Руководителя"
     };
+    private Parser parser;
+
+    @AfterAll
+    static void tearDown() throws IOException {
+        var filePath = Paths.get("./test-file-with-errors.xlsx");
+        Files.deleteIfExists(filePath);
+
+        filePath = Paths.get("./invalid-template.xlsx");
+        Files.deleteIfExists(filePath);
+
+        filePath = Paths.get("./test-file.xlsx");
+        Files.deleteIfExists(filePath);
+    }
 
     @BeforeEach
     void setUp() {
@@ -75,7 +86,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+        var mapResult = Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -115,7 +126,7 @@ public class ParserTest {
         }
 
         var exception = assertThrows(BadRequestException.class, () -> {
-            parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+            Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         });
 
         assertEquals("Неверный шаблон загружаемого файла", exception.getMessage());
@@ -152,7 +163,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+        var mapResult = Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -191,7 +202,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+        var mapResult = Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -230,7 +241,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+        var mapResult = Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -269,25 +280,12 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
+        var mapResult = Parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
         assertEquals(1, result.getErrorsByRows().size());
         var errors = result.getErrorsByRows().get(1);
         assertTrue(errors.contains("значение в колонке \"Телефон Руководителя\" должно быть номером телефона (+7 925 123 45 67)"));
-    }
-
-
-    @AfterAll
-    static void tearDown() throws IOException {
-        var filePath = Paths.get("./test-file-with-errors.xlsx");
-        Files.deleteIfExists(filePath);
-
-        filePath = Paths.get("./invalid-template.xlsx");
-        Files.deleteIfExists(filePath);
-
-        filePath = Paths.get("./test-file.xlsx");
-        Files.deleteIfExists(filePath);
     }
 }

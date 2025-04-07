@@ -18,6 +18,14 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode
 public class Student {
+    private static final Map<StudentStatus, Set<StudentStatus>> possibleAdminStatusChangesMap = Map.of(
+            StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
+            StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
+            StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
+            StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
+            StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
+            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
+    );
     @Setter
     private TelegramUser telegramUser;
     private EduStream eduStream;
@@ -38,17 +46,8 @@ public class Student {
     private String cellHexColor;
     private boolean managedManually;
 
-    private static final Map<StudentStatus, Set<StudentStatus>> possibleAdminStatusChangesMap = Map.of(
-            StudentStatus.REGISTERED, Set.of(StudentStatus.PRACTICE_IN_ITMO_MARKINA),
-            StudentStatus.PRACTICE_IN_ITMO_MARKINA, Set.of(StudentStatus.REGISTERED),
-            StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
-            StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
-            StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
-            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
-    );
-
-    public Student(ExcelStudentInfoDTO s, String eduStreamName) {
-        this.eduStream = EduStream.builder().name(eduStreamName).build();
+    public Student(ExcelStudentInfoDTO s, EduStream eduStream) {
+        this.eduStream = eduStream;
         this.isu = s.getIsu();
         this.stGroup = s.getGroup();
         this.fullName = s.getFullName();
@@ -160,13 +159,18 @@ public class Student {
         return switch (this.status) {
             case NOT_REGISTERED -> new String[]{StudentStatus.NOT_REGISTERED.getDisplayName()};
             case REGISTERED -> new String[]{StudentStatus.REGISTERED.getDisplayName()};
-            case PRACTICE_IN_ITMO_MARKINA -> new String[]{StudentStatus.PRACTICE_IN_ITMO_MARKINA.getDisplayName(), StudentStatus.REGISTERED.getDisplayName()};
-            case COMPANY_INFO_WAITING_APPROVAL -> new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName()};
+            case PRACTICE_IN_ITMO_MARKINA ->
+                    new String[]{StudentStatus.PRACTICE_IN_ITMO_MARKINA.getDisplayName(), StudentStatus.REGISTERED.getDisplayName()};
+            case COMPANY_INFO_WAITING_APPROVAL ->
+                    new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName()};
             case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
-            case APPLICATION_WAITING_SUBMISSION -> new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
-            case APPLICATION_WAITING_APPROVAL -> new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_SUBMISSION ->
+                    new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_APPROVAL ->
+                    new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
             case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getDisplayName()};
-            case APPLICATION_WAITING_SIGNING -> new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+            case APPLICATION_WAITING_SIGNING ->
+                    new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
             case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getDisplayName()};
             case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getDisplayName()};
         };

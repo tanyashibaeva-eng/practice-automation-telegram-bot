@@ -3,6 +3,7 @@ package ru.itmo.application;
 import lombok.extern.java.Log;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
+import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
@@ -14,15 +15,21 @@ import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
 
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @Log
 public class StudentService {
 
-    public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
-        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStreamName);
-        var students = StudentRepository.findAll(Filter.builder().eduStreamName(eduStreamName).build());
+    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+        return StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
+    }
+
+    public static Optional<File> updateStudentsFromExcel(File file, EduStream eduStream) throws InternalException, BadRequestException {
+        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
+        var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
         var groupToStudentDTOsWithErrors = Parser.parseUpdateExcelFile(file, groups);
 
         if (students.isEmpty()) {
@@ -43,20 +50,20 @@ public class StudentService {
             }
         }
 
-        var haveErrors = false;
+        var hasErrors = false;
         for (var s : students) {
             var key = "%s-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
             if (studentInfoToStudents.containsKey(key)) {
                 var d = studentInfoToStudents.get(key);
                 var errors = s.updateOrGetErrors(d);
                 if (!errors.isEmpty()) {
-                    haveErrors = true;
+                    hasErrors = true;
                     groupToStudentDTOsWithErrors.get(s.getStGroup()).getErrorsByRows().put(d.getRow(), errors);
                 }
             }
         }
 
-        if (haveErrors) {
+        if (hasErrors) {
             return Optional.of(Generator.generateExcelWithErrors(file, groupToStudentDTOsWithErrors));
         }
 
@@ -64,7 +71,7 @@ public class StudentService {
         return Optional.empty();
     }
 
-    public static String createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+    public static String createStudentsFromExcel(File file, EduStream eduStream) throws InternalException {
         var parsedStudents = ParserIsuXls.parseISUXls(file);
         var studentsToCreate = new ArrayList<Student>();
         var errors = new StringBuilder();
@@ -72,7 +79,7 @@ public class StudentService {
             if (!s.getErrors().isEmpty()) {
                 errors.append("Строка: ").append(s.getRow()).append(" , Ошибки: ").append(String.join(", ", s.getErrors())).append("\n");
             }
-            studentsToCreate.add(new Student(s, eduStreamName));
+            studentsToCreate.add(new Student(s, eduStream));
         }
 
         if (!errors.isEmpty()) {
@@ -83,9 +90,9 @@ public class StudentService {
         return "";
     }
 
-    public static File exportStudentsToExcel(String eduStreamName) throws InternalException {
-        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStreamName);
-        var students = StudentRepository.findAll(Filter.builder().eduStreamName(eduStreamName).build());
+    public static File exportStudentsToExcel(EduStream eduStream) throws InternalException {
+        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
+        var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
         var groupToStudents = new HashMap<String, List<Student>>();
 
         for (var s : students) {
@@ -99,6 +106,5 @@ public class StudentService {
     }
 
     public static void registerStudent(StudentRegistrationArgs args) {
-        return;
     }
 }

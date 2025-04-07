@@ -9,6 +9,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+@AllArgsConstructor
+enum ContextHolderType {
+    COMMAND,
+    COMMAND_DATA,
+    EDU_STREAM_NAME,
+}
+
 public class ContextHolder {
     private static final ConcurrentMap<Long, Map<ContextHolderType, Object>> contextMap = new ConcurrentHashMap<>();
 
@@ -35,7 +42,8 @@ public class ContextHolder {
             if (contextMap.containsKey(chatId)) {
                 return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_NAME);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new UnknownUserException(chatId);
     }
 
@@ -51,7 +59,8 @@ public class ContextHolder {
             if (contextMap.containsKey(chatId)) {
                 return contextMap.get(chatId).get(ContextHolderType.COMMAND_DATA);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new UnknownUserException(chatId);
     }
 
@@ -61,12 +70,5 @@ public class ContextHolder {
         }
         contextMap.get(chatId).put(ContextHolderType.COMMAND_DATA, commandData);
     }
-}
-
-@AllArgsConstructor
-enum ContextHolderType {
-    COMMAND,
-    COMMAND_DATA,
-    EDU_STREAM_NAME,
 }
 
