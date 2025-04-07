@@ -6,7 +6,7 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
 public class TextParser {
-    public int parseInt(String text) throws BadRequestException {
+    public static int parseInt(String text) throws BadRequestException {
         try {
             return Integer.parseInt(text.trim());
         } catch (NumberFormatException e) {
@@ -14,7 +14,7 @@ public class TextParser {
         }
     }
 
-    public int parseDoubleToInt(String text) throws BadRequestException {
+    public static int parseDoubleToInt(String text) throws BadRequestException {
         try {
             return (int) Double.parseDouble(text.trim());
         } catch (NumberFormatException e) {
@@ -22,7 +22,7 @@ public class TextParser {
         }
     }
 
-    public String parsePhone(String text) throws BadRequestException {
+    public static String parsePhone(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей номер телефона.");
         }
@@ -34,7 +34,7 @@ public class TextParser {
         return text.trim();
     }
 
-    public String parseEmail(String text) throws BadRequestException {
+    public static String parseEmail(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей email.");
         }
@@ -45,7 +45,7 @@ public class TextParser {
         return text.trim();
     }
 
-    public StudentStatus parseStatus(String text) throws BadRequestException {
+    public static StudentStatus parseStatus(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей статус.");
         }
@@ -56,14 +56,14 @@ public class TextParser {
         return enumVal;
     }
 
-    public PracticeFormat parsePracticeFormat(String text) throws BadRequestException {
+    public static PracticeFormat parsePracticeFormat(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей формат прохождения практики.");
         }
         return PracticeFormat.getByUserName(text);
     }
 
-    public PracticePlace parsePracticePlace(String text) throws BadRequestException {
+    public static PracticePlace parsePracticePlace(String text) throws BadRequestException {
         if (text == null || text.trim().isEmpty()) {
             throw new BadRequestException("должно быть строкой, представляющей место прохождения практики.");
         }

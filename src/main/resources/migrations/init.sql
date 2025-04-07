@@ -46,16 +46,15 @@ CREATE TABLE IF NOT EXISTS tg_user (
 );
 
 CREATE TABLE IF NOT EXISTS edu_stream (
-    id                      bigint              PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    name                    text                UNIQUE NOT NULL,
+    name                    text                PRIMARY KEY,
     year                    smallint            NOT NULL,
     date_from               date                NOT NULL,
     date_to                 date                NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS student (
-    chat_id                 bigint              NOT NULL REFERENCES tg_user(chat_id) ON DELETE CASCADE,
-    edu_stream_id           bigint              NOT NULL REFERENCES edu_stream(id) ON DELETE CASCADE,
+    chat_id                 bigint              REFERENCES tg_user(chat_id) ON DELETE CASCADE DEFAULT NULL,
+    edu_stream_name         text                NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE,
     isu                     int                 NOT NULL,
     st_group                varchar(8)          NOT NULL,
     fullname                text                NOT NULL,
@@ -64,13 +63,14 @@ CREATE TABLE IF NOT EXISTS student (
     call_status_comments    text                NOT NULL DEFAULT '',
     practice_place          st_practice_place   NOT NULL DEFAULT 'NOT_SPECIFIED',
     practice_format         st_practice_format  NOT NULL DEFAULT 'NOT_SPECIFIED',
-    company_inn             int,
-    company_name            text,
-    company_lead_fullname   text,
-    company_lead_phone      text,
-    company_lead_email      text,
-    company_lead_job_title  text,
+    company_inn             int                 DEFAULT NULL,
+    company_name            text                DEFAULT NULL,
+    company_lead_fullname   text                DEFAULT NULL,
+    company_lead_phone      text                DEFAULT NULL,
+    company_lead_email      text                DEFAULT NULL,
+    company_lead_job_title  text                DEFAULT NULL,
     cell_hex_color          varchar(32)         NOT NULL DEFAULT 'FFFFFF',
-    managed_manually        boolean             NOT NULL DEFAULT false,
-    primary key (chat_id, edu_stream_id)
+    managed_manually        boolean             NOT NULL DEFAULT false
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;

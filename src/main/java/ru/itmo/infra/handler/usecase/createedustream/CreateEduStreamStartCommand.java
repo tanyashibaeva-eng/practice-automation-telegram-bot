@@ -1,15 +1,15 @@
-package ru.itmo.infra.handler.usecase.uploadexcel;
+package ru.itmo.infra.handler.usecase.createedustream;
 
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class UploadExcelStartCommand implements Command {
+public class CreateEduStreamStartCommand implements Command {
     @Override
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        ContextHolder.setNextCommand(chatId, new UploadExcelUploadCommand());
+        ContextHolder.setNextCommand(chatId, new CreateEduStreamUploadCommand());
         return MessageToUser.builder().text("Хорошо давайте загрузим файл! Кидайте его!").build();
     }
 
@@ -20,6 +20,6 @@ public class UploadExcelStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "/upload";
+        return "/create";
     }
 }

@@ -11,10 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 
 @Log
 public class StudentRepository {
@@ -24,52 +21,43 @@ public class StudentRepository {
     public static void saveBatch(List<Student> students) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     INSERT INTO student (
-                        chat_id,
-                        edu_stream_id,
+                        edu_stream_name,
                         isu,
                         st_group,
-                        fullname,
-                        status,
-                        comments,
-                        call_status_comments,
-                        practice_place,
-                        practice_format,
-                        company_inn,
-                        company_name,
-                        company_lead_fullname,
-                        company_lead_phone,
-                        company_lead_email,
-                        company_lead_job_title,
-                        cell_hex_color,
-                        managed_manually
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        fullname
+                    ) VALUES (?, ?, ?, ?);
                 """
         )) {
             for (var student : students) {
-                statement.setLong(1, student.getTelegramUser().getChatId());
-                statement.setLong(2, student.getEduStream().getId());
-                statement.setInt(3, student.getIsu());
-                statement.setString(4, student.getStGroup());
-                statement.setString(5, student.getFullName());
-                statement.setObject(6, student.getStatus(), Types.OTHER);
-                statement.setString(7, student.getComments());
-                statement.setString(8, student.getCallStatusComments());
-                statement.setObject(9, student.getPracticePlace(), Types.OTHER);
-                statement.setObject(10, student.getPracticeFormat(), Types.OTHER);
-                statement.setInt(11, student.getCompanyINN());
-                statement.setString(12, student.getCompanyName());
-                statement.setString(13, student.getCompanyLeadFullName());
-                statement.setString(14, student.getCompanyLeadPhone());
-                statement.setString(15, student.getCompanyLeadEmail());
-                statement.setString(16, student.getCompanyLeadJobTitle());
-                statement.setString(17, student.getCellHexColor());
-                statement.setBoolean(18, student.isManagedManually());
+                statement.setString(1, student.getEduStream().getName());
+                statement.setInt(2, student.getIsu());
+                statement.setString(3, student.getStGroup());
+                statement.setString(4, student.getFullName());
                 statement.addBatch();
             }
             statement.executeBatch();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static void updateChatIdTransactional(Student student, Connection transactionConnection) throws SQLException {
+        try (var statement = transactionConnection.prepareStatement("""
+                UPDATE student
+                SET chat_id = ?, status = 'REGISTERED'
+                WHERE edu_stream_name = ?
+                    AND isu = ?
+                    AND st_group = ?
+                    AND fullname = ?;
+                """
+        )) {
+            statement.setLong(1, student.getTelegramUser().getChatId());
+            statement.setString(2, student.getEduStream().getName());
+            statement.setInt(3, student.getIsu());
+            statement.setString(4, student.getStGroup());
+            statement.setString(5, student.getFullName());
+            statement.executeUpdate();
         }
     }
 
@@ -111,6 +99,8 @@ public class StudentRepository {
                 student = mapToStudent(rs);
             }
 
+            result.sort(Comparator.comparing(Student::getFullName));
+
             return result;
 
         } catch (SQLException ex) {
@@ -122,9 +112,9 @@ public class StudentRepository {
         String query = "SELECT * FROM student WHERE ";
         StringJoiner stringJoiner = new StringJoiner(" AND ");
 
-        Long eduStreamId = filter.getEduStreamId();
-        if (eduStreamId != null)
-            stringJoiner.add("edu_stream_id = %d".formatted(eduStreamId));
+        String eduStreamName = filter.getEduStreamName();
+        if (eduStreamName != null)
+            stringJoiner.add("edu_stream_name = '%s'".formatted(eduStreamName));
 
         List<String> stGroups = filter.getStGroups();
         if (stGroups != null && !stGroups.isEmpty()) {
@@ -145,12 +135,12 @@ public class StudentRepository {
         return query + stringJoiner + ";";
     }
 
-    public static boolean existsByChatIdAndEduStreamId(long chatId, long eduStreamId) throws InternalException {
+    public static boolean existsByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_id = ?;"
+                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setLong(1, eduStreamId);
+            statement.setString(2, eduStreamName);
             var rs = statement.executeQuery();
             return rs.next();
 
@@ -159,12 +149,12 @@ public class StudentRepository {
         }
     }
 
-    public static Optional<Student> findByChatIdAndEduStreamId(long chatId, long eduStreamId) throws InternalException {
+    public static Optional<Student> findByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_id = ?;"
+                "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setLong(2, eduStreamId);
+            statement.setString(2, eduStreamName);
             var rs = statement.executeQuery();
             return mapToStudentOptional(rs);
 
@@ -173,12 +163,12 @@ public class StudentRepository {
         }
     }
 
-    public static boolean deleteByChatIdAndEduStreamId(long chatId, long eduStreamId) throws InternalException {
+    public static boolean deleteByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "DELETE FROM student WHERE chat_id = ? AND edu_stream_id = ?;"
+                "DELETE FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setLong(2, eduStreamId);
+            statement.setString(2, eduStreamName);
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -186,7 +176,7 @@ public class StudentRepository {
         }
     }
 
-    public static int[] updateBatchByChatIdAndEduStreamId(List<Student> students) throws InternalException {
+    public static int[] updateBatchByChatIdAndEduStreamName(List<Student> students) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     UPDATE student SET
                         isu = ?,
@@ -205,7 +195,7 @@ public class StudentRepository {
                         company_lead_job_title = ?,
                         cell_hex_color = ?,
                         managed_manually = ?
-                    WHERE chat_id = ? AND edu_stream_id = ?;
+                    WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
             for (var student : students) {
@@ -217,7 +207,12 @@ public class StudentRepository {
                 statement.setString(6, student.getCallStatusComments());
                 statement.setObject(7, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
-                statement.setInt(9, student.getCompanyINN());
+
+                Integer companyINN = student.getCompanyINN();
+                if (companyINN == null) {
+                    statement.setNull(9, Types.INTEGER);
+                } else statement.setInt(9, student.getCompanyINN());
+
                 statement.setString(10, student.getCompanyName());
                 statement.setString(11, student.getCompanyLeadFullName());
                 statement.setString(12, student.getCompanyLeadPhone());
@@ -226,7 +221,7 @@ public class StudentRepository {
                 statement.setString(15, student.getCellHexColor());
                 statement.setBoolean(16, student.isManagedManually());
                 statement.setLong(17, student.getTelegramUser().getChatId());
-                statement.setLong(18, student.getEduStream().getId());
+                statement.setString(18, student.getEduStream().getName());
                 statement.addBatch();
             }
 
@@ -245,11 +240,15 @@ public class StudentRepository {
 
     private static Student mapToStudent(ResultSet rs) throws SQLException, InternalException {
         if (rs.next()) {
+            long chatId = rs.getLong("chat_id");
+
             return new Student(
-                    TelegramUserRepository.findByChatId(rs.getLong("chat_id"))
-                            .orElseThrow(() -> new InternalException("Студент с таким chatId не зарегистрирован")),
-                    EduStreamRepository.findById(rs.getLong("edu_stream_id"))
-                            .orElseThrow(() -> new InternalException("Поток с таким id не найден")),
+                    (chatId == 0)
+                            ? null
+                            : TelegramUserRepository.findByChatId(rs.getLong("chat_id"))
+                            .orElseThrow(() -> new InternalException("Пользователь с таким chatId не найден")),
+                    EduStreamRepository.findByName(rs.getString("edu_stream_name"))
+                            .orElseThrow(() -> new InternalException("Поток с таким именем не найден")),
                     rs.getInt("isu"),
                     rs.getString("st_group"),
                     rs.getString("fullname"),
@@ -258,7 +257,7 @@ public class StudentRepository {
                     rs.getString("call_status_comments"),
                     PracticePlace.valueOfIgnoreCase(rs.getString("practice_place")),
                     PracticeFormat.valueOfIgnoreCase(rs.getString("practice_format")),
-                    rs.getInt("company_inn"),
+                    rs.getInt("company_inn") == 0 ? null : rs.getInt("company_inn"),
                     rs.getString("company_name"),
                     rs.getString("company_lead_fullname"),
                     rs.getString("company_lead_phone"),

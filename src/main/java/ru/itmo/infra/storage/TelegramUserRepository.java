@@ -31,6 +31,18 @@ public class TelegramUserRepository {
         }
     }
 
+    public static void saveTransactional(TelegramUser telegramUser, Connection transactionConnection) throws SQLException {
+        try (var statement = transactionConnection.prepareStatement(
+                "INSERT INTO tg_user (chat_id, is_admin, is_banned, username) VALUES (?, ?, ?, ?)"
+        )) {
+            statement.setLong(1, telegramUser.getChatId());
+            statement.setBoolean(2, telegramUser.isAdmin());
+            statement.setBoolean(3, telegramUser.isBanned());
+            statement.setString(4, telegramUser.getUsername());
+            statement.executeUpdate();
+        }
+    }
+
     public static List<TelegramUser> findAll() throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user;"
