@@ -20,12 +20,7 @@ public class DatabaseManager {
     private static final Connection connection;
 
     static {
-        try {
-            connection = DriverManager.getConnection(PropertiesProvider.getDsn());
-        } catch (SQLException ex) {
-            log.severe(ex.getMessage());
-            throw new RuntimeException(ex);
-        }
+        connection = initializeConnection();
 
         String sql = loadScript();
         try (var statement = connection.createStatement()) {
@@ -33,6 +28,15 @@ public class DatabaseManager {
         } catch (SQLException ex) {
             log.severe(ex.getMessage());
             throw new RuntimeException();
+        }
+    }
+
+    public static Connection initializeConnection() {
+        try {
+            return DriverManager.getConnection(PropertiesProvider.getDsn());
+        } catch (SQLException ex) {
+            log.severe(ex.getMessage());
+            throw new RuntimeException(ex);
         }
     }
 
@@ -44,5 +48,4 @@ public class DatabaseManager {
             throw new RuntimeException(ex);
         }
     }
-
 }

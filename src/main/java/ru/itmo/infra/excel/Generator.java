@@ -9,6 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
@@ -43,12 +44,16 @@ public class Generator {
             "Должность Руководителя"
     };
 
-    public File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
+    public static File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 var studentsWithErrors = errorsByGroups.get(workbook.getSheetName(i));
+                if (studentsWithErrors == null) {
+                    continue;
+                }
+
                 var sheet = workbook.getSheetAt(i);
                 var lastColumnIndex = sheet.getRow(0).getPhysicalNumberOfCells();
 
@@ -80,7 +85,7 @@ public class Generator {
         }
     }
 
-    public File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
+    public static File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
         var workbook = new XSSFWorkbook();
 
         var practicePlaceOptions = getPracticePlaceOptions();
@@ -114,13 +119,13 @@ public class Generator {
                 cellFullName.setCellValue(student.getFullName());
                 cellFullName.setCellStyle(createColoredCellStyle(workbook, student.getCellHexColor()));
 
-                row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getUserName() : "");
+                row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getDisplayName() : "");
                 addEnumValidation(sheet, 3, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
 
                 row.createCell(4).setCellValue(student.getComments() != null ? student.getComments() : "");
                 row.createCell(5).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
-                row.createCell(6).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getUserName() : "");
-                row.createCell(7).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getUserName() : "");
+                row.createCell(6).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
+                row.createCell(7).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
                 row.createCell(8).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
                 row.createCell(9).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
                 row.createCell(10).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
@@ -151,7 +156,7 @@ public class Generator {
         return file;
     }
 
-    private CellStyle createColoredCellStyle(Workbook workbook, String hexColor) {
+    private static CellStyle createColoredCellStyle(Workbook workbook, String hexColor) {
         var style = workbook.createCellStyle();
         if (hexColor != null && !hexColor.isEmpty()) {
             String colorStr = hexColor.startsWith("#") ? hexColor.substring(1) : hexColor;
@@ -167,7 +172,7 @@ public class Generator {
         return style;
     }
 
-    private void addEnumValidation(Sheet sheet, int colIndex, String[] options, int startRow, int endRow) {
+    private static void addEnumValidation(Sheet sheet, int colIndex, String[] options, int startRow, int endRow) {
         var dvHelper = sheet.getDataValidationHelper();
         var constraint = dvHelper.createExplicitListConstraint(options);
         var addressList = new CellRangeAddressList(startRow, endRow, colIndex, colIndex);
@@ -176,27 +181,27 @@ public class Generator {
         sheet.addValidationData(validation);
     }
 
-    private String[] getPracticePlaceOptions() {
+    private static String[] getPracticePlaceOptions() {
         var values = PracticePlace.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            options[i] = values[i].getUserName();
+            options[i] = values[i].getDisplayName();
         }
         return options;
     }
 
-    private String[] getPracticeFormatOptions() {
+    private static String[] getPracticeFormatOptions() {
         var values = PracticeFormat.values();
         var options = new String[values.length];
         for (int i = 0; i < values.length; i++) {
-            options[i] = values[i].getUserName();
+            options[i] = values[i].getDisplayName();
         }
         return options;
     }
 
-    private void applyConditionalFormatting(XSSFSheet sheet, int numberOfRows) {
+    private static void applyConditionalFormatting(XSSFSheet sheet, int numberOfRows) {
         for (StudentStatus status : StudentStatus.values()) {
-            var rule = sheet.getSheetConditionalFormatting().createConditionalFormattingRule(ComparisonOperator.EQUAL, "\"%s\"".formatted(status.getUserName()));
+            var rule = sheet.getSheetConditionalFormatting().createConditionalFormattingRule(ComparisonOperator.EQUAL, "\"%s\"".formatted(status.getDisplayName()));
             var pattern = rule.createPatternFormatting();
             pattern.setFillBackgroundColor(HSSFColor.BLUE.index);
             pattern.setFillBackgroundColor(status.getColorForStatus());

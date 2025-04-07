@@ -14,13 +14,12 @@ import ru.itmo.util.TextParser;
 import java.util.ArrayList;
 
 public class StudentRegistrationProcessISUCommand implements Command {
-    public static final TextParser textParser = new TextParser();
 
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var isuNumber = message.getText().trim();
-        var isu = textParser.parseInt(isuNumber);
+        var isu = TextParser.parseInt(isuNumber);
         var chatId = message.getChatId();
 //        var fullName = StudentService.checkExistenceByIsu(isu);
         var fullName = "Иванов Иван Иванович";

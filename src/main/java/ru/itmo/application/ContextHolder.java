@@ -33,7 +33,7 @@ public class ContextHolder {
     public static String getEduStreamName(long chatId) throws UnknownUserException {
         try {
             if (contextMap.containsKey(chatId)) {
-                return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_ID);
+                return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_NAME);
             }
         } catch (Exception ignored) {}
         throw new UnknownUserException(chatId);
@@ -43,7 +43,7 @@ public class ContextHolder {
         if (!contextMap.containsKey(chatId)) {
             contextMap.put(chatId, new HashMap<>());
         }
-        contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_ID, streamName);
+        contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_NAME, streamName);
     }
 
     public static Object getCommandData(long chatId) throws UnknownUserException {
@@ -67,6 +67,6 @@ public class ContextHolder {
 enum ContextHolderType {
     COMMAND,
     COMMAND_DATA,
-    EDU_STREAM_ID,
+    EDU_STREAM_NAME,
 }
 

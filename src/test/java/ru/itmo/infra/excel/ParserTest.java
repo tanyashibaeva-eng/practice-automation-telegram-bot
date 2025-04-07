@@ -45,7 +45,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_ValidFile_ShouldReturnStudentsWithErrors() throws Exception {
+    void testParseUpdateExcelFile_ValidFile_ShouldReturnStudentsWithErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -75,7 +75,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -100,7 +100,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_InvalidTemplate_ShouldThrowBadRequestException() {
+    void testParseUpdateExcelFile_InvalidTemplate_ShouldThrowBadRequestException() {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -115,14 +115,14 @@ public class ParserTest {
         }
 
         var exception = assertThrows(BadRequestException.class, () -> {
-            parser.parseExcelFile(testFile, List.of("gr1"));
+            parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         });
 
         assertEquals("Неверный шаблон загружаемого файла", exception.getMessage());
     }
 
     @Test
-    void testParseExcelFile_MissingRequiredColumn_ShouldReturnErrors() throws Exception {
+    void testParseUpdateExcelFile_MissingRequiredColumn_ShouldReturnErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -152,7 +152,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -162,7 +162,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_FileWithEmptyValues_ShouldReturnErrors() throws Exception {
+    void testParseUpdateExcelFile_FileWithEmptyValues_ShouldReturnErrors() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -191,7 +191,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
@@ -201,7 +201,7 @@ public class ParserTest {
     }
 
     @Test
-    void testParseExcelFile_InvalidStatus_ShouldReturnError() throws Exception {
+    void testParseUpdateExcelFile_InvalidStatus_ShouldReturnError() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -230,17 +230,17 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 
         assertEquals(1, result.getErrorsByRows().size());
         var errors = result.getErrorsByRows().get(1);
-        assertTrue(errors.contains("значение в колонке \"Статус\" может быть одним из Не зарегистрирован, Зарегистрирован, Практика в ИТМО у Маркиной Т. А., Данные о компании на проверке, Данные о компании возвращены на доработку, Практика согласована, Данные о компании утверждены и ожидается заполнения заявки, Заявка на проверке, Заявка возвращена на доработку, Заявка согласована и ожидает подписания, Заявка подписана"));
+        assertTrue(errors.contains("значение в колонке \"Статус\" может быть одним из Не зарегистрирован, Зарегистрирован, Практика в ИТМО у Маркиной Т. А., Данные о компании на проверке, Данные о компании возвращены на доработку, Практика в ИТМО, Данные о компании утверждены и ожидается заполнения заявки, Заявка на проверке, Заявка возвращена на доработку, Заявка согласована и ожидает подписания, Заявка подписана"));
     }
 
     @Test
-    void testParseExcelFile_InvalidPhone_ShouldReturnError() throws Exception {
+    void testParseUpdateExcelFile_InvalidPhone_ShouldReturnError() throws Exception {
         var workbook = new XSSFWorkbook();
         var sheet = workbook.createSheet("Sheet1");
 
@@ -269,7 +269,7 @@ public class ParserTest {
             workbook.write(fos);
         }
 
-        var mapResult = parser.parseExcelFile(testFile, List.of("gr1"));
+        var mapResult = parser.parseUpdateExcelFile(testFile, List.of("gr1"));
         assertNotNull(mapResult);
         var result = mapResult.get("gr1");
 

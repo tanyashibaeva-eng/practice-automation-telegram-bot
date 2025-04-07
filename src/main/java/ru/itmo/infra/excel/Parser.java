@@ -1,10 +1,13 @@
 package ru.itmo.infra.excel;
 
 import lombok.extern.java.Log;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
@@ -38,13 +41,11 @@ public class Parser {
             "Должность Руководителя"
     };
 
-    private static final TextParser textParser = new TextParser();
-
     private static final BadRequestException invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
 
-    public HashMap<String, StudentsWithErrors> parseExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
+    public static HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
-            var workbook = new XSSFWorkbook(fis);
+            var workbook = getWorkbook(fis);
 
             if (workbook.getNumberOfSheets() != groups.size()) {
                 throw invalidTemplateException;
@@ -54,23 +55,23 @@ public class Parser {
             for (var sheetIndex = 0; sheetIndex < workbook.getNumberOfSheets(); sheetIndex++) {
                 var sheet = workbook.getSheetAt(sheetIndex);
                 var headers = sheet.getRow(0);
-                checkTemplate(headers.cellIterator());
+                checkUpdateTemplate(headers.cellIterator());
 
                 var rowIterator = sheet.iterator();
                 if (rowIterator.hasNext()) rowIterator.next();
-                groupToErrors.put(groups.get(sheetIndex), parseStudents(rowIterator));
+                groupToErrors.put(groups.get(sheetIndex), parseUpdateStudents(rowIterator));
             }
 
             return groupToErrors;
-        } catch (IOException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         } catch (NullPointerException e) {
             log.severe(e.getMessage());
             throw new BadRequestException("Неверный шаблон загружаемого файла (файл пустой)");
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         }
     }
 
-    private static void checkTemplate(Iterator<Cell> headersIterator) throws BadRequestException {
+    private static void checkUpdateTemplate(Iterator<Cell> headersIterator) throws BadRequestException {
         var invalidTemplateException = new BadRequestException("Неверный шаблон загружаемого файла");
         try {
             var columnCount = 0;
@@ -93,7 +94,7 @@ public class Parser {
         }
     }
 
-    private static StudentsWithErrors parseStudents(Iterator<Row> rowIterator) throws InternalException {
+    private static StudentsWithErrors parseUpdateStudents(Iterator<Row> rowIterator) throws InternalException {
         var students = new ArrayList<ExcelStudentDTO>();
         var errorsByRows = new HashMap<Integer, List<String>>();
 
@@ -157,6 +158,46 @@ public class Parser {
         return new StudentsWithErrors(students, errorsByRows);
     }
 
+    private static List<ExcelStudentInfoDTO> parseCreateStudents(Iterator<Row> rowIterator, String group) throws InternalException {
+        var students = new ArrayList<ExcelStudentInfoDTO>();
+        var errorsByRows = new HashMap<Integer, List<String>>();
+
+        while (rowIterator.hasNext()) {
+            var row = rowIterator.next();
+            if (row == null) continue;
+
+            var count = 0;
+            for (int i : new int[]{1, 2}) {
+                if (row.getCell(i) == null) {
+                    count++;
+                    addErr(row.getRowNum(), "Поле \"%s\" должно быть заполнено".formatted(i == 1 ? "ИСУ" : "ФИО"), errorsByRows);
+                }
+            }
+            if (count == 2) {
+                errorsByRows.remove(row.getRowNum());
+                continue;
+            }
+
+            try {
+                var isu = parseInt(row.getCell(1), errorsByRows, false);
+                var fullName = parseString(row.getCell(2), errorsByRows, false);
+
+                var studentDTO = new ExcelStudentInfoDTO(
+                        group,
+                        isu,
+                        fullName,
+                        row.getRowNum(),
+                        errorsByRows.get(row.getRowNum())
+                );
+                students.add(studentDTO);
+            } catch (Exception e) {
+                throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+            }
+        }
+
+        return students;
+    }
+
     private static String parseCellColor() {
         // TODO: implement
         return "FFFFFF";
@@ -191,7 +232,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parseDoubleToInt(strVal);
+            return TextParser.parseDoubleToInt(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -204,7 +245,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parsePhone(strVal);
+            return TextParser.parsePhone(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть номером телефона (+7 925 123 45 67)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -217,7 +258,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return textParser.parseEmail(strVal);
+            return TextParser.parseEmail(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть электронной почтой (ivanov@yandex.ru)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -230,7 +271,7 @@ public class Parser {
             if (strVal == null) {
                 return StudentStatus.NOT_REGISTERED;
             }
-            return textParser.parseStatus(strVal);
+            return TextParser.parseStatus(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getStatusEnumNames()), errorsByRows);
         }
@@ -242,7 +283,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
                 return PracticeFormat.NOT_SPECIFIED;
-            return textParser.parsePracticeFormat(strVal);
+            return TextParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticeFormatEnumNames()), errorsByRows);
         }
@@ -254,7 +295,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, false);
             if (strVal == null)
                 return PracticePlace.NOT_SPECIFIED;
-            return textParser.parsePracticePlace(strVal);
+            return TextParser.parsePracticePlace(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticePlaceEnumNames()), errorsByRows);
         }
@@ -269,14 +310,28 @@ public class Parser {
     }
 
     private static String getStatusEnumNames() {
-        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getDisplayName).collect(Collectors.joining(", "));
     }
 
     private static String getPracticeFormatEnumNames() {
-        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getDisplayName).collect(Collectors.joining(", "));
     }
 
     private static String getPracticePlaceEnumNames() {
-        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getUserName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getDisplayName).collect(Collectors.joining(", "));
+    }
+
+    private static Workbook getWorkbook(FileInputStream fis) throws BadRequestException, IOException {
+        try {
+            var workbook = new XSSFWorkbook(fis);
+            return workbook;
+        } catch (Exception e) {
+            try {
+                var workbook = new HSSFWorkbook(fis);
+                return workbook;
+            } catch (Exception e1) {
+                throw new BadRequestException("Неподдерживаемый формат файла");
+            }
+        }
     }
 }

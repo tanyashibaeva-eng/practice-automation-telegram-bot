@@ -1,13 +1,14 @@
-package ru.itmo.infra.handler.usecase.uploadexcel;
+package ru.itmo.infra.handler.usecase.createedustream;
 
 import lombok.SneakyThrows;
+import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class UploadExcelUploadCommand implements Command {
+public class CreateEduStreamUploadCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -15,13 +16,13 @@ public class UploadExcelUploadCommand implements Command {
         var file = Handler.getFileFromMessage(message);
 //        var eduStreamId = Handler.getStreamEduId(chatId);
 
-        var res = StudentService.updateStudentsFromExcel(file, "1");
+        var res = StudentService.createStudentsFromExcel(file, "1");
         if (res.isEmpty()) {
+            ContextHolder.endCommand(chatId);
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
         return MessageToUser.builder()
-                .text("В загруженном файле содержатся ошибки, поправьте их и попробуйте снова или вернитесь назад.")
-                .document(res.get())
+                .text("В загруженном файле содержатся ошибки, поправьте их и попробуйте снова или вернитесь назад\nСписок ошибок:\n" + res)
                 .build();
     }
 

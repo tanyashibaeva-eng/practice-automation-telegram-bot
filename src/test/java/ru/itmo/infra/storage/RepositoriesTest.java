@@ -1,9 +1,7 @@
 package ru.itmo.infra.storage;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
+import ru.itmo.application.TelegramUserService;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -15,17 +13,18 @@ import ru.itmo.exception.InternalException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class RepositoriesTest {
 
     private static final EduStream eduStream = new EduStream(
-            1,
-            "stream",
+            "stream 1",
             2025,
-            LocalDate.of(2024, 1, 1),
-            LocalDate.of(2025, 1, 1));
+            LocalDate.of(2020, 1, 1),
+            LocalDate.of(2021, 1, 1));
 
     private static final List<TelegramUser> telegramUsers = List.of(
             new TelegramUser(
@@ -45,14 +44,14 @@ public class RepositoriesTest {
                     "username 3")
     );
 
-    private static final List<Student> students = List.of(
+    private static List<Student> students = List.of(
             new Student(
-                    telegramUsers.get(0),
+                    null,
                     eduStream,
                     1,
                     "G1",
                     "name 1",
-                    StudentStatus.REGISTERED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 1",
                     "call status comments 1",
                     PracticePlace.NOT_SPECIFIED,
@@ -67,12 +66,12 @@ public class RepositoriesTest {
                     false
             ),
             new Student(
-                    telegramUsers.get(1),
+                    null,
                     eduStream,
                     2,
                     "G1",
                     "name 2",
-                    StudentStatus.APPLICATION_RETURNED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 2",
                     "call status comments 2",
                     PracticePlace.ITMO_UNIVERSITY,
@@ -87,12 +86,12 @@ public class RepositoriesTest {
                     false
             ),
             new Student(
-                    telegramUsers.get(2),
+                    null,
                     eduStream,
                     3,
                     "G2",
                     "name 3",
-                    StudentStatus.APPLICATION_RETURNED,
+                    StudentStatus.NOT_REGISTERED,
                     "comments 3",
                     "call status comments 3",
                     PracticePlace.OTHER_COMPANY,
@@ -111,27 +110,46 @@ public class RepositoriesTest {
     @BeforeAll
     static void setup() {
         try {
-            long id = EduStreamRepository.save(eduStream);
-            eduStream.setId(id);
-            for (var telegramUser : telegramUsers)
-                TelegramUserRepository.save(telegramUser);
-            StudentRepository.saveBatch(students);
+            EduStreamRepository.save(eduStream);
+            RepositoriesTest.saveBatch(students);
         } catch (InternalException ex) {
             throw new RuntimeException(ex);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 
+    @Order(1)
     @Test
-    void findAllTest_ok() throws InternalException {
+    void findAllEduStreamAndStudentsBeforeRegistrationTest_ok() throws InternalException {
         Assertions.assertEquals(List.of(eduStream), EduStreamRepository.findAll());
-        Assertions.assertEquals(telegramUsers, TelegramUserRepository.findAll());
         Assertions.assertEquals(students, StudentRepository.findAll());
     }
 
+    @Order(2)
+    @Test
+    void registerUsersTest_ok() throws InternalException {
+        Assertions.assertDoesNotThrow(() -> {
+            for (int i = 0; i < students.size(); i++) {
+                TelegramUserService.registerUser(
+                        telegramUsers.get(i),
+                        students.get(i)
+                );
+            }
+        });
+
+        List<Long> expectedChatIds = telegramUsers.stream().map(TelegramUser::getChatId).toList();
+
+        Assertions.assertEquals(expectedChatIds, StudentRepository.findAll().stream().map(student -> student.getTelegramUser().getChatId()).toList());
+    }
+
+    @Order(3)
     @Test
     void filterTest_ok() throws InternalException {
+        students = StudentRepository.findAll();
+
         Filter filter = Filter.builder()
-                .eduStreamId(eduStream.getId() + 1)
+                .eduStreamName("NONEXISTENT")
                 .build();
 
         List<Student> studentsRes = StudentRepository.findAll(filter);
@@ -139,7 +157,7 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamId(eduStream.getId())
+                .eduStreamName(eduStream.getName())
                 .stGroups(List.of("G1", "G2"))
                 .build();
 
@@ -148,24 +166,25 @@ public class RepositoriesTest {
 
 
         filter = Filter.builder()
-                .eduStreamId(eduStream.getId())
+                .eduStreamName(eduStream.getName())
                 .stGroups(List.of("G1"))
-                .stStatuses(List.of(StudentStatus.APPLICATION_RETURNED))
+                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);
-        Assertions.assertEquals(List.of(students.get(1)), studentsRes);
+        Assertions.assertEquals(List.of(students.get(0), students.get(1)), studentsRes);
 
 
         filter = Filter.builder()
-                .stGroups(List.of("G1"))
-                .stStatuses(List.of(StudentStatus.APPLICATION_RETURNED))
+                .stGroups(List.of("G2"))
+                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);
-        Assertions.assertEquals(List.of(students.get(1)), studentsRes);
+        Assertions.assertEquals(List.of(students.get(2)), studentsRes);
     }
 
+    @Order(4)
     @Test
     void updateTest_ok() throws InternalException {
         List<ExcelStudentDTO> dtoList = students.stream().map(student -> new ExcelStudentDTO(
@@ -193,8 +212,21 @@ public class RepositoriesTest {
             Assertions.assertTrue(errors.isEmpty());
         }
 
-        StudentRepository.updateBatchByChatIdAndEduStreamId(students);
+        StudentRepository.updateBatchByChatIdAndEduStreamName(students);
         Assertions.assertEquals(students, StudentRepository.findAll());
+    }
+
+    @Order(5)
+    @Test
+    void findAllEduStreamNamesTest_ok() throws InternalException {
+        EduStream es = new EduStream(
+                "stream 2",
+                2023,
+                LocalDate.of(2023, 1, 1),
+                LocalDate.of(2024, 1, 1));
+        EduStreamRepository.save(es);
+
+        Assertions.assertEquals(List.of("stream 2", "stream 1"), EduStreamRepository.findAllNames());
     }
 
     @AfterAll
@@ -207,4 +239,61 @@ public class RepositoriesTest {
             statement.executeUpdate();
         }
     }
+
+    public static void saveBatch(List<Student> students) throws InternalException, SQLException {
+        final Connection connection = DatabaseManager.getConnection();
+        try (var statement = connection.prepareStatement("""
+                    INSERT INTO student (
+                        edu_stream_name,
+                        isu,
+                        st_group,
+                        fullname,
+                        status,
+                        comments,
+                        call_status_comments,
+                        practice_place,
+                        practice_format,
+                        company_inn,
+                        company_name,
+                        company_lead_fullname,
+                        company_lead_phone,
+                        company_lead_email,
+                        company_lead_job_title,
+                        cell_hex_color,
+                        managed_manually
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """
+        )) {
+            for (var student : students) {
+                statement.setString(1, student.getEduStream().getName());
+                statement.setInt(2, student.getIsu());
+                statement.setString(3, student.getStGroup());
+                statement.setString(4, student.getFullName());
+                statement.setObject(5, student.getStatus(), Types.OTHER);
+                statement.setString(6, student.getComments());
+                statement.setString(7, student.getCallStatusComments());
+                statement.setObject(8, student.getPracticePlace(), Types.OTHER);
+                statement.setObject(9, student.getPracticeFormat(), Types.OTHER);
+
+                Integer companyINN = student.getCompanyINN();
+                if (companyINN == null) {
+                    statement.setNull(10, Types.INTEGER);
+                } else statement.setInt(10, student.getCompanyINN());
+
+                statement.setString(11, student.getCompanyName());
+                statement.setString(12, student.getCompanyLeadFullName());
+                statement.setString(13, student.getCompanyLeadPhone());
+                statement.setString(14, student.getCompanyLeadEmail());
+                statement.setString(15, student.getCompanyLeadJobTitle());
+                statement.setString(16, student.getCellHexColor());
+                statement.setBoolean(17, student.isManagedManually());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+
+        } catch (SQLException ex) {
+            throw ex;
+        }
+    }
+
 }

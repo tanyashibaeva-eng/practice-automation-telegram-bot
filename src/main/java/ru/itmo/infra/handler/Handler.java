@@ -13,6 +13,7 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.createedustream.CreateEduStreamStartCommand;
 import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
 import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
@@ -40,6 +41,7 @@ public class Handler {
         commands.add(new UploadExcelStartCommand());
         commands.add(new ExportExcelExportCommand());
         commands.add(new StudentRegistrationStartCommand());
+        commands.add(new CreateEduStreamStartCommand());
 //        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
 //        commands.put("/registration", StudentRegistration::startRegistration);
 

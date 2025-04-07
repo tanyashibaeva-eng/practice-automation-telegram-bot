@@ -17,14 +17,14 @@ public enum PracticePlace {
 
     public static PracticePlace getByUserName(String text) {
         for (PracticePlace place : PracticePlace.values()) {
-            if (place.getUserName().equals(text)) {
+            if (place.getDisplayName().equals(text)) {
                 return place;
             }
         }
         return NOT_SPECIFIED;
     }
 
-    public String getUserName() {
+    public String getDisplayName() {
         return switch (this) {
             case NOT_SPECIFIED -> "";
             case ITMO_MARKINA -> "Практика в ИТМО";
