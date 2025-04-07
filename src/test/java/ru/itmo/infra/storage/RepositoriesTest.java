@@ -289,8 +289,6 @@ public class RepositoriesTest {
             }
             statement.executeBatch();
 
-        } catch (SQLException ex) {
-            throw ex;
         }
     }
 
