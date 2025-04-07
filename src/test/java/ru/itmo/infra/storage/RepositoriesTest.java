@@ -112,10 +112,8 @@ public class RepositoriesTest {
         try {
             EduStreamRepository.save(eduStream);
             RepositoriesTest.saveBatch(students);
-        } catch (InternalException ex) {
+        } catch (InternalException | SQLException ex) {
             throw new RuntimeException(ex);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
