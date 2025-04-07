@@ -24,21 +24,8 @@ public class StudentRepository {
                         edu_stream_name,
                         isu,
                         st_group,
-                        fullname,
-                        status,
-                        comments,
-                        call_status_comments,
-                        practice_place,
-                        practice_format,
-                        company_inn,
-                        company_name,
-                        company_lead_fullname,
-                        company_lead_phone,
-                        company_lead_email,
-                        company_lead_job_title,
-                        cell_hex_color,
-                        managed_manually
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        fullname
+                    ) VALUES (?, ?, ?, ?);
                 """
         )) {
             for (var student : students) {
@@ -46,24 +33,6 @@ public class StudentRepository {
                 statement.setInt(2, student.getIsu());
                 statement.setString(3, student.getStGroup());
                 statement.setString(4, student.getFullName());
-                statement.setObject(5, student.getStatus(), Types.OTHER);
-                statement.setString(6, student.getComments());
-                statement.setString(7, student.getCallStatusComments());
-                statement.setObject(8, student.getPracticePlace(), Types.OTHER);
-                statement.setObject(9, student.getPracticeFormat(), Types.OTHER);
-
-                Integer companyINN = student.getCompanyINN();
-                if (companyINN == null) {
-                    statement.setNull(10, Types.INTEGER);
-                } else statement.setInt(10, student.getCompanyINN());
-
-                statement.setString(11, student.getCompanyName());
-                statement.setString(12, student.getCompanyLeadFullName());
-                statement.setString(13, student.getCompanyLeadPhone());
-                statement.setString(14, student.getCompanyLeadEmail());
-                statement.setString(15, student.getCompanyLeadJobTitle());
-                statement.setString(16, student.getCellHexColor());
-                statement.setBoolean(17, student.isManagedManually());
                 statement.addBatch();
             }
             statement.executeBatch();
@@ -288,7 +257,7 @@ public class StudentRepository {
                     rs.getString("call_status_comments"),
                     PracticePlace.valueOfIgnoreCase(rs.getString("practice_place")),
                     PracticeFormat.valueOfIgnoreCase(rs.getString("practice_format")),
-                    rs.getInt("company_inn"),
+                    rs.getInt("company_inn") == 0 ? null : rs.getInt("company_inn"),
                     rs.getString("company_name"),
                     rs.getString("company_lead_fullname"),
                     rs.getString("company_lead_phone"),

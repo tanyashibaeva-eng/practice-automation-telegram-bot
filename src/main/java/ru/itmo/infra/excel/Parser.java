@@ -1,8 +1,10 @@
 package ru.itmo.infra.excel;
 
 import lombok.extern.java.Log;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
@@ -43,7 +45,7 @@ public class Parser {
 
     public static HashMap<String, StudentsWithErrors> parseUpdateExcelFile(File file, List<String> groups) throws BadRequestException, InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
-            var workbook = new XSSFWorkbook(fis);
+            var workbook = getWorkbook(fis);
 
             if (workbook.getNumberOfSheets() != groups.size()) {
                 throw invalidTemplateException;
@@ -154,29 +156,6 @@ public class Parser {
         }
 
         return new StudentsWithErrors(students, errorsByRows);
-    }
-
-    public static List<ExcelStudentInfoDTO> parseCreateExcelFile(File file) throws BadRequestException, InternalException {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            var workbook = new XSSFWorkbook(fis);
-
-            var sheet = workbook.getSheetAt(0);
-            var groupInfo = sheet.getRow(1).getCell(0).getStringCellValue();
-            var group = Arrays.asList(groupInfo.split(" ")).get(2);
-
-            var rowIterator = sheet.iterator();
-            if (rowIterator.hasNext()) rowIterator.next();
-            if (rowIterator.hasNext()) rowIterator.next();
-            if (rowIterator.hasNext()) rowIterator.next();
-            if (rowIterator.hasNext()) rowIterator.next();
-            if (rowIterator.hasNext()) rowIterator.next();
-
-            return parseCreateStudents(rowIterator, group);
-        } catch (IOException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
-        } catch (NullPointerException e) {
-            throw new BadRequestException("Неверный шаблон файла (" + e.getMessage() + ")");
-        }
     }
 
     private static List<ExcelStudentInfoDTO> parseCreateStudents(Iterator<Row> rowIterator, String group) throws InternalException {
@@ -340,5 +319,19 @@ public class Parser {
 
     private static String getPracticePlaceEnumNames() {
         return Arrays.stream(PracticePlace.values()).map(PracticePlace::getDisplayName).collect(Collectors.joining(", "));
+    }
+
+    private static Workbook getWorkbook(FileInputStream fis) throws BadRequestException, IOException {
+        try {
+            var workbook = new XSSFWorkbook(fis);
+            return workbook;
+        } catch (Exception e) {
+            try {
+                var workbook = new HSSFWorkbook(fis);
+                return workbook;
+            } catch (Exception e1) {
+                throw new BadRequestException("Неподдерживаемый формат файла");
+            }
+        }
     }
 }

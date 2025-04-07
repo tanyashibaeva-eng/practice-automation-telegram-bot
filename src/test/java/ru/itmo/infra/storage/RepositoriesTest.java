@@ -13,6 +13,7 @@ import ru.itmo.exception.InternalException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -110,8 +111,8 @@ public class RepositoriesTest {
     static void setup() {
         try {
             EduStreamRepository.save(eduStream);
-            StudentRepository.saveBatch(students);
-        } catch (InternalException ex) {
+            RepositoriesTest.saveBatch(students);
+        } catch (InternalException | SQLException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -236,4 +237,61 @@ public class RepositoriesTest {
             statement.executeUpdate();
         }
     }
+
+    public static void saveBatch(List<Student> students) throws InternalException, SQLException {
+        final Connection connection = DatabaseManager.getConnection();
+        try (var statement = connection.prepareStatement("""
+                    INSERT INTO student (
+                        edu_stream_name,
+                        isu,
+                        st_group,
+                        fullname,
+                        status,
+                        comments,
+                        call_status_comments,
+                        practice_place,
+                        practice_format,
+                        company_inn,
+                        company_name,
+                        company_lead_fullname,
+                        company_lead_phone,
+                        company_lead_email,
+                        company_lead_job_title,
+                        cell_hex_color,
+                        managed_manually
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """
+        )) {
+            for (var student : students) {
+                statement.setString(1, student.getEduStream().getName());
+                statement.setInt(2, student.getIsu());
+                statement.setString(3, student.getStGroup());
+                statement.setString(4, student.getFullName());
+                statement.setObject(5, student.getStatus(), Types.OTHER);
+                statement.setString(6, student.getComments());
+                statement.setString(7, student.getCallStatusComments());
+                statement.setObject(8, student.getPracticePlace(), Types.OTHER);
+                statement.setObject(9, student.getPracticeFormat(), Types.OTHER);
+
+                Integer companyINN = student.getCompanyINN();
+                if (companyINN == null) {
+                    statement.setNull(10, Types.INTEGER);
+                } else statement.setInt(10, student.getCompanyINN());
+
+                statement.setString(11, student.getCompanyName());
+                statement.setString(12, student.getCompanyLeadFullName());
+                statement.setString(13, student.getCompanyLeadPhone());
+                statement.setString(14, student.getCompanyLeadEmail());
+                statement.setString(15, student.getCompanyLeadJobTitle());
+                statement.setString(16, student.getCellHexColor());
+                statement.setBoolean(17, student.isManagedManually());
+                statement.addBatch();
+            }
+            statement.executeBatch();
+
+        } catch (SQLException ex) {
+            throw ex;
+        }
+    }
+
 }

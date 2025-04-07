@@ -8,15 +8,14 @@ import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.Parser;
+import ru.itmo.infra.html.ParserIsuXls;
 import ru.itmo.infra.storage.EduStreamRepository;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Log
 public class StudentService {
@@ -25,6 +24,10 @@ public class StudentService {
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStreamName);
         var students = StudentRepository.findAll(Filter.builder().eduStreamName(eduStreamName).build());
         var groupToStudentDTOsWithErrors = Parser.parseUpdateExcelFile(file, groups);
+
+        if (students.isEmpty()) {
+            return Optional.empty();
+        }
 
         var studentInfoToStudents = new HashMap<String, ExcelStudentDTO>();
         for (var g : groups) {
@@ -61,19 +64,23 @@ public class StudentService {
         return Optional.empty();
     }
 
-    public static Optional<File> createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
-        var parsedStudents = Parser.parseCreateExcelFile(file);
+    public static String createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+        var parsedStudents = ParserIsuXls.parseISUXls(file);
         var studentsToCreate = new ArrayList<Student>();
+        var errors = new StringBuilder();
         for (var s : parsedStudents) {
             if (!s.getErrors().isEmpty()) {
-                return Optional.of(Generator.generateExcelCreateWithErrors(file, parsedStudents));
+                errors.append("Строка: ").append(s.getRow()).append(" , Ошибки: ").append(String.join(", ", s.getErrors())).append("\n");
             }
             studentsToCreate.add(new Student(s, eduStreamName));
         }
 
-        StudentRepository.saveBatch(studentsToCreate);
+        if (!errors.isEmpty()) {
+            return errors.toString();
+        }
 
-        return Optional.empty();
+        StudentRepository.saveBatch(studentsToCreate);
+        return "";
     }
 
     public static File exportStudentsToExcel(String eduStreamName) throws InternalException {

@@ -7,7 +7,10 @@ import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -47,8 +50,9 @@ public class Student {
     public Student(ExcelStudentInfoDTO s, String eduStreamName) {
         this.eduStream = EduStream.builder().name(eduStreamName).build();
         this.isu = s.getIsu();
-        this.stGroup = eduStreamName;
-        this.fullName = eduStreamName;
+        this.stGroup = s.getGroup();
+        this.fullName = s.getFullName();
+        this.status = StudentStatus.REGISTERED;
     }
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {

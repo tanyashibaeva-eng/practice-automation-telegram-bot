@@ -50,6 +50,10 @@ public class Generator {
 
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 var studentsWithErrors = errorsByGroups.get(workbook.getSheetName(i));
+                if (studentsWithErrors == null) {
+                    continue;
+                }
+
                 var sheet = workbook.getSheetAt(i);
                 var lastColumnIndex = sheet.getRow(0).getPhysicalNumberOfCells();
 
@@ -73,41 +77,6 @@ public class Generator {
             }
 
             file = new File("список студентов – ошибки.xlsx");
-            var fileOut = new FileOutputStream(file);
-            workbook.write(fileOut);
-            return file;
-        } catch (IOException e) {
-            throw new InternalException("Произошла ошибка при обработке Excel файла: " + e.getMessage(), e);
-        }
-    }
-
-    public static File generateExcelCreateWithErrors(File file, List<ExcelStudentInfoDTO> students) throws InternalException {
-        try (FileInputStream fis = new FileInputStream(file)) {
-            var workbook = new XSSFWorkbook(fis);
-
-            for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-                var sheet = workbook.getSheetAt(i);
-                var lastColumnIndex = sheet.getRow(4).getPhysicalNumberOfCells();
-
-                var headerRow = sheet.getRow(4);
-                if (headerRow == null) {
-                    headerRow = sheet.createRow(4);
-                }
-                var errorHeaderCell = headerRow.createCell(lastColumnIndex);
-                errorHeaderCell.setCellValue("Ошибки");
-
-                for (var s : students) {
-                    if (s.getErrors().isEmpty()) {
-                        continue;
-                    }
-                    var row = sheet.getRow(s.getRow());
-                    var errors = String.join("; ", s.getErrors());
-                    var errorCell = row.createCell(lastColumnIndex);
-                    errorCell.setCellValue(errors);
-                }
-            }
-
-            file = new File("группа студентов – ошибки.xlsx");
             var fileOut = new FileOutputStream(file);
             workbook.write(fileOut);
             return file;

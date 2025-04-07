@@ -31,6 +31,7 @@ tasks.named('shadowJar', ShadowJar) {
 dependencies {
     implementation 'org.telegram:telegrambots-client:7.6.1'
     implementation 'org.telegram:telegrambots-longpolling:8.0.0'
+    implementation 'org.telegram:telegrambots:5.5.0'
 
     implementation 'org.postgresql:postgresql:42.7.5'
 
@@ -46,8 +47,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
 
     implementation 'org.apache.poi:poi-ooxml:3.9'
-
-    implementation 'org.telegram:telegrambots:5.5.0'
+    implementation 'org.jsoup:jsoup:1.7.2'
 
 }
 
@@ -105,6 +105,7 @@ jacocoTestCoverageVerification {
                             '**/application/**',
                             '**/bot/**',
                             '**/excel/Generator.class',
+                            '**/html/**',
                             '**/storage/DatabaseManager.class',
                             '**/util/PropertiesProvider.class',
                     ]

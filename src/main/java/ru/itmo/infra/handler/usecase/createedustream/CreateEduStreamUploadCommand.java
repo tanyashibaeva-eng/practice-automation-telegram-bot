@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler.usecase.createedustream;
 
 import lombok.SneakyThrows;
+import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
@@ -17,11 +18,11 @@ public class CreateEduStreamUploadCommand implements Command {
 
         var res = StudentService.createStudentsFromExcel(file, "1");
         if (res.isEmpty()) {
+            ContextHolder.endCommand(chatId);
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
         return MessageToUser.builder()
-                .text("В загруженном файле содержатся ошибки, поправьте их и попробуйте снова или вернитесь назад.")
-                .document(res.get())
+                .text("В загруженном файле содержатся ошибки, поправьте их и попробуйте снова или вернитесь назад\nСписок ошибок:\n" + res)
                 .build();
     }
 
