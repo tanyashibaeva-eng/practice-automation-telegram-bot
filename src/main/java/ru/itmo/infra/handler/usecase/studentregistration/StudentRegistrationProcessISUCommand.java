@@ -17,6 +17,25 @@ import java.util.ArrayList;
 public class StudentRegistrationProcessISUCommand implements Command {
     public static final TextParser textParser = new TextParser();
 
+    protected static ReplyKeyboard getInlineKeyboard() {
+        var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
+        replyKeyboardMarkupBuilder.resizeKeyboard(true);
+        replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
+
+        var keyboard = new ArrayList<KeyboardRow>();
+        var keyboardFirstRow = new KeyboardRow();
+        keyboardFirstRow.add("Да");
+        keyboardFirstRow.add("Нет");
+        keyboard.add(keyboardFirstRow);
+
+        var keyboardSecondRow = new KeyboardRow();
+        keyboardSecondRow.add("Вернуться в меню");
+        keyboard.add(keyboardSecondRow);
+        replyKeyboardMarkupBuilder.keyboard(keyboard);
+
+        return replyKeyboardMarkupBuilder.build();
+    }
+
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -43,24 +62,5 @@ public class StudentRegistrationProcessISUCommand implements Command {
     @Override
     public String getName() {
         return "";
-    }
-
-    protected static ReplyKeyboard getInlineKeyboard() {
-        var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
-        replyKeyboardMarkupBuilder.resizeKeyboard(true);
-        replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
-
-        var keyboard = new ArrayList<KeyboardRow>();
-        var keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add("Да");
-        keyboardFirstRow.add("Нет");
-        keyboard.add(keyboardFirstRow);
-
-        var keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add("Вернуться в меню");
-        keyboard.add(keyboardSecondRow);
-        replyKeyboardMarkupBuilder.keyboard(keyboard);
-
-        return replyKeyboardMarkupBuilder.build();
     }
 }

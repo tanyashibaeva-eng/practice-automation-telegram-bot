@@ -45,6 +45,10 @@ CREATE TABLE IF NOT EXISTS tg_user (
     username                text                NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS admin_token (
+    token                   uuid                PRIMARY KEY
+);
+
 CREATE TABLE IF NOT EXISTS edu_stream (
     name                    text                PRIMARY KEY CHECK (name <> ''),
     year                    smallint            NOT NULL,
