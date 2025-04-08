@@ -20,7 +20,9 @@ import java.util.logging.Logger;
 
 public interface Command {
     MessageToUser execute(MessageDTO message);
+
     boolean isNextCallNeeded();
+
     String getName();
 
     default ReplyKeyboard getReturnToStartMarkup() {
