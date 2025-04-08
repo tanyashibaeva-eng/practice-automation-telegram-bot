@@ -5,6 +5,7 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.model.EduStream;
 import ru.itmo.infra.handler.usecase.Command;
 
 public class ExportExcelExportCommand implements Command {
@@ -12,8 +13,8 @@ public class ExportExcelExportCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var eduStreamName = "1";
-        var file = StudentService.exportStudentsToExcel("1");
+        EduStream eduStream = new EduStream("1");
+        var file = StudentService.exportStudentsToExcel(eduStream.getName());
         ContextHolder.endCommand(chatId);
         var text = message.getText();
         return MessageToUser.builder().text("Сгенерированная выгрузка:").document(file).build();

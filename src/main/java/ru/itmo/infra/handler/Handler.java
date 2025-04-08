@@ -13,14 +13,12 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.createedustream.CreateEduStreamStartCommand;
 import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
 import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +39,7 @@ public class Handler {
         commands.add(new UploadExcelStartCommand());
         commands.add(new ExportExcelExportCommand());
         commands.add(new StudentRegistrationStartCommand());
-        commands.add(new CreateEduStreamStartCommand());
+        commands.add(new StudentRegistrationStartCommand());
 //        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
 //        commands.put("/registration", StudentRegistration::startRegistration);
 
@@ -77,7 +75,7 @@ public class Handler {
         }
     }
 
-    private static MessageToUser executeCommand(Command command, MessageDTO message) {
+    private static MessageToUser executeCommand(Command command, MessageDTO message) throws UnknownUserException {
         var response = command.execute(message);
 
         var nextCommand = getNextCommandFunction(message.getChatId());
@@ -87,8 +85,8 @@ public class Handler {
         }
 
         if (command.isNextCallNeeded() && nextCommand != null && !command.getName().equals(nextCommand.getName())) {
-            PracticeAutomationBot.sendToUser(response, message.getChatId());
-            return nextCommand.execute(message);
+            PracticeAutomationBot.sendToUser(response, message.getChatId(), false);
+            response = nextCommand.execute(message);
         }
 
         return response;
@@ -102,7 +100,7 @@ public class Handler {
         return commandsMap.get(callbackData.getCommand()).execute(message);
     }
 
-    public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, IOException, InvalidMessageException {
+    public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, InvalidMessageException {
         if (!message.hasDocument()) {
             ThrowDocumentException();
         }

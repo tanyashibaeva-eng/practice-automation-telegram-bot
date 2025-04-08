@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class ContextHolder {
     private static final ConcurrentMap<Long, Map<ContextHolderType, Object>> contextMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, Integer> lastMessageIdMap = new ConcurrentHashMap<>();
 
     public static void endCommand(Long chatId) {
         contextMap.remove(chatId);
@@ -35,7 +36,8 @@ public class ContextHolder {
             if (contextMap.containsKey(chatId)) {
                 return (String) contextMap.get(chatId).get(ContextHolderType.EDU_STREAM_NAME);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new UnknownUserException(chatId);
     }
 
@@ -51,7 +53,8 @@ public class ContextHolder {
             if (contextMap.containsKey(chatId)) {
                 return contextMap.get(chatId).get(ContextHolderType.COMMAND_DATA);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         throw new UnknownUserException(chatId);
     }
 
@@ -61,12 +64,28 @@ public class ContextHolder {
         }
         contextMap.get(chatId).put(ContextHolderType.COMMAND_DATA, commandData);
     }
+
+    public static Integer getLastMessageId(long chatId) {
+        try {
+            if (lastMessageIdMap.containsKey(chatId)) {
+                return lastMessageIdMap.get(chatId);
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    public static void setLastMessageId(Long chatId, Integer lastMessageId) {
+        lastMessageIdMap.put(chatId, lastMessageId);
+    }
 }
+
 
 @AllArgsConstructor
 enum ContextHolderType {
     COMMAND,
     COMMAND_DATA,
     EDU_STREAM_NAME,
+    LAST_MESSAGE_ID,
 }
 
