@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.EduStream;
+import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
@@ -13,6 +14,7 @@ import ru.itmo.infra.html.ParserIsuXls;
 import ru.itmo.infra.storage.EduStreamRepository;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
+import ru.itmo.util.TextParser;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -27,7 +29,8 @@ public class StudentService {
         return StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
     }
 
-    public static Optional<File> updateStudentsFromExcel(File file, EduStream eduStream) throws InternalException, BadRequestException {
+    public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+        var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
         var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
         var groupToStudentDTOsWithErrors = Parser.parseUpdateExcelFile(file, groups);
@@ -71,7 +74,8 @@ public class StudentService {
         return Optional.empty();
     }
 
-    public static String createStudentsFromExcel(File file, EduStream eduStream) throws InternalException {
+    public static String createStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+        var eduStream = new EduStream(eduStreamName);
         var parsedStudents = ParserIsuXls.parseISUXls(file);
         var studentsToCreate = new ArrayList<Student>();
         var errors = new StringBuilder();
@@ -90,7 +94,8 @@ public class StudentService {
         return "";
     }
 
-    public static File exportStudentsToExcel(EduStream eduStream) throws InternalException {
+    public static File exportStudentsToExcel(String eduStreamName) throws InternalException, BadRequestException {
+        var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
         var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
         var groupToStudents = new HashMap<String, List<Student>>();
@@ -106,5 +111,14 @@ public class StudentService {
     }
 
     public static void registerStudent(StudentRegistrationArgs args) {
+    }
+
+    public static Optional<Integer> validateIsu(String isuText) {
+        try {
+            var isu = TextParser.parseInt(isuText);
+            return Optional.of(isu);
+        } catch (BadRequestException e) {
+            return Optional.empty();
+        }
     }
 }
