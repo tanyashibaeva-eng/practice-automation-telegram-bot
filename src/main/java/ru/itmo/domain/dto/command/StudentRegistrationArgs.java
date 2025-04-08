@@ -7,5 +7,6 @@ import lombok.Data;
 @Data
 public class StudentRegistrationArgs {
     long chatId;
+    String eduStreamName;
     int isu;
 }

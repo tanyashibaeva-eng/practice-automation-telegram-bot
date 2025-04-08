@@ -16,17 +16,33 @@ public class StudentRegistrationConfirmationCommand implements Command {
         var chatId = message.getChatId();
         var args = (StudentRegistrationArgs) ContextHolder.getCommandData(chatId);
         args.setChatId(chatId);
+
         switch (message.getText()) {
             case "Да":
                 StudentService.registerStudent(args);
                 ContextHolder.endCommand(chatId);
-                return MessageToUser.builder().text("Вы были успешно зарегистрированы").build();
+                return MessageToUser.builder()
+                        .text("Вы успешно зарегистрировались!")
+                        .needRewriting(false)
+                        .build();
             case "Нет":
-                ContextHolder.setCommandData(chatId, new StudentRegistrationProcessISUCommand());
-                return MessageToUser.builder().text("Возврат в предыдущему шагу").build();
+//                Command.sendNewMessage(chatId, "Возврат к предыдущему шагу", null);
+//                ContextHolder.setNextCommand(chatId, new StudentRegistrationProcessISUCommand());
+//                return MessageToUser.builder()
+//                        .text("Введите ваш номер ИСУ")
+//                        .keyboardMarkup(getReturnToStartMarkup())
+//                        .needRewriting(true)
+//                        .build();
+                ContextHolder.setNextCommand(chatId, new StudentRegistrationStartCommand());
+                return MessageToUser.builder()
+                        .text("Возврат в предыдущему шагу")
+                        .build();
+
             case "Вернуться в меню":
                 ContextHolder.endCommand(chatId);
-                return MessageToUser.builder().text("Регистрация отменена").build();
+                return MessageToUser.builder()
+                        .text("Регистрация отменена")
+                        .build();
             default:
                 ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
                 return MessageToUser.builder()

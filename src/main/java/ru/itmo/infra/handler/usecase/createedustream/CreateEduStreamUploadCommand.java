@@ -19,7 +19,7 @@ public class CreateEduStreamUploadCommand implements Command {
 //        var eduStreamId = Handler.getStreamEduId(chatId);
         EduStream eduStream = new EduStream("1");
 
-        var res = StudentService.createStudentsFromExcel(file, eduStream);
+        var res = StudentService.createStudentsFromExcel(file, eduStream.getName());
         if (res.isEmpty()) {
             ContextHolder.endCommand(chatId);
             return MessageToUser.builder().text("Файл был успешно загружен").build();
