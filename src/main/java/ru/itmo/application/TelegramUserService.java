@@ -1,17 +1,20 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.model.AdminToken;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
+import ru.itmo.infra.storage.AdminTokenRepository;
 import ru.itmo.infra.storage.DatabaseManager;
 import ru.itmo.infra.storage.StudentRepository;
 import ru.itmo.infra.storage.TelegramUserRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 
 @Log
 public class TelegramUserService {
@@ -40,9 +43,14 @@ public class TelegramUserService {
         }
     }
 
-    public static boolean registerAdmin(TelegramUser telegramUser) throws InternalException {
-        // TODO: implement
-        return false;
+    public static void registerAdmin(TelegramUser telegramUser, AdminToken adminToken) throws InternalException, BadRequestException {
+        Optional<TelegramUser> existingUser = TelegramUserRepository.findByChatId(telegramUser.getChatId());
+        if (existingUser.isPresent() && existingUser.get().isAdmin())
+            throw new BadRequestException("Пользователь %s уже админ".formatted(telegramUser.getUsername()));
+        if (!AdminTokenRepository.delete(adminToken))
+            throw new BadRequestException("Токен невалиден");
+        telegramUser.setAdmin(true);
+        TelegramUserRepository.save(telegramUser);
     }
 
     public static boolean deleteAdmin(TelegramUser telegramUser) throws InternalException, BadRequestException {
@@ -50,6 +58,10 @@ public class TelegramUserService {
         if (!telegramUser.isAdmin())
             throw new BadRequestException("Пользователь %s не является админом".formatted(telegramUser.getUsername()));
         return TelegramUserRepository.deleteByChatId(telegramUser.getChatId());
+    }
+
+    public static Optional<TelegramUser> findByChatId(long chatId) throws InternalException {
+        return TelegramUserRepository.findByChatId(chatId);
     }
 
     public static boolean banUser(TelegramUser telegramUser, EduStream eduStream) throws InternalException, BadRequestException {
