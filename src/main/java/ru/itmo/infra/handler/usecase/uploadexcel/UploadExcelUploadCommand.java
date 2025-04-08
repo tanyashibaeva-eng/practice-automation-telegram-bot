@@ -4,7 +4,6 @@ import lombok.SneakyThrows;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.domain.model.EduStream;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
 
@@ -16,9 +15,7 @@ public class UploadExcelUploadCommand implements Command {
         var file = Handler.getFileFromMessage(message);
 //        var eduStreamId = Handler.getStreamEduId(chatId);
 
-        EduStream eduStream = new EduStream("1");
-
-        var res = StudentService.updateStudentsFromExcel(file, eduStream);
+        var res = StudentService.updateStudentsFromExcel(file, "1");
         if (res.isEmpty()) {
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
