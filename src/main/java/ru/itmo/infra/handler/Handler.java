@@ -44,7 +44,6 @@ public class Handler {
 
     static {
         commands.add(new GreetingCommand());
-        commands.add(new GreetingCommand());
         commands.add(new UploadExcelStartCommand());
         commands.add(new ExportExcelExportCommand());
         commands.add(new CreateEduStreamStartCommand());

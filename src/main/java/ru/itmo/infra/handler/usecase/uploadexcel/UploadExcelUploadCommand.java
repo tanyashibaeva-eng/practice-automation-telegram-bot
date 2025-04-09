@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler.usecase.uploadexcel;
 
 import lombok.SneakyThrows;
+import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
@@ -15,6 +16,7 @@ public class UploadExcelUploadCommand implements Command {
 
         var res = StudentService.updateStudentsFromExcel(file, "1");
         if (res.isEmpty()) {
+            ContextHolder.endCommand(message.getChatId());
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
         return MessageToUser.builder()
