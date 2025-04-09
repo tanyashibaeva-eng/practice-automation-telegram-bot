@@ -1,43 +1,44 @@
-package ru.itmo.infra.handler.usecase.studentregistration;
+package ru.itmo.infra.handler.usecase.companyinfoinput;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationConfirmationCommand;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationProcessISUCommand;
 
-public class StudentRegistrationConfirmationCommand implements Command {
+public class PracticeConfirmationCommand implements Command {
 
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var args = (StudentRegistrationArgs) ContextHolder.getCommandData(chatId);
-        args.setChatId(chatId);
 
         switch (message.getText()) {
-            case "Да":
-                StudentService.registerStudent(args);
-                ContextHolder.endCommand(chatId);
+            case "Практика у Маркиной Т.А":
+                ContextHolder.setNextCommand(chatId, new InfoTakenCommand());
                 return MessageToUser.builder()
-                        .text("Вы успешно зарегистрировались!")
-                        .keyboardMarkup(new ReplyKeyboardRemove(true))
-                        .needRewriting(false)
-                        .build();
-            case "Нет":
-                ContextHolder.setNextCommand(chatId, new StudentRegistrationISUCommand());
-                return MessageToUser.builder()
-                        .text("Возврат в предыдущему шагу")
+                        .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
-
+            case "Практика в ИТМО":
+                ContextHolder.setNextCommand(chatId, new ITMOPracticeBossInfoCommand());
+                return MessageToUser.builder()
+                        .text("")
+                        .keyboardMarkup(new ReplyKeyboardRemove(true))
+                        .build();
+            case "В сторонней компании":
+                ContextHolder.setNextCommand(chatId, new CompanyPracticeCommand());
+                return MessageToUser.builder()
+                        .text("")
+                        .keyboardMarkup(new ReplyKeyboardRemove(true))
+                        .build();
             case "Вернуться в меню":
                 ContextHolder.endCommand(chatId);
                 return MessageToUser.builder()
-                        .text("Регистрация отменена")
+                        .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
             default:
@@ -56,6 +57,6 @@ public class StudentRegistrationConfirmationCommand implements Command {
 
     @Override
     public String getName() {
-        return "";
+        return "/confirm_place";
     }
 }

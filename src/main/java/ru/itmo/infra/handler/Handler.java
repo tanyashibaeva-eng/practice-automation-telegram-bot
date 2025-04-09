@@ -13,9 +13,18 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.companyinfoinput.*;
+import ru.itmo.infra.handler.usecase.createedustream.CreateEduStreamStartCommand;
 import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.ApplicationInfoTakenCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.CodeAndNameSpecializationCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.ErrorApplicationInputCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.FacultyCommand;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationISUCommand;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationProcessISUCommand;
 import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.studentstatus.StatusCommand;
 import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
@@ -38,10 +47,23 @@ public class Handler {
         commands.add(new GreetingCommand());
         commands.add(new UploadExcelStartCommand());
         commands.add(new ExportExcelExportCommand());
+        commands.add(new CreateEduStreamStartCommand());
         commands.add(new StudentRegistrationStartCommand());
-        commands.add(new StudentRegistrationStartCommand());
-//        commands.put("/showEduStreamInfo", ShowEduStreamInfo::start);
-//        commands.put("/registration", StudentRegistration::startRegistration);
+        commands.add(new StudentRegistrationProcessISUCommand());
+        commands.add(new StudentRegistrationISUCommand());
+        commands.add(new ChoosePracticePlaceCommand());
+        commands.add(new PracticeConfirmationCommand());
+        commands.add(new ITMOPracticeBossInfoCommand());
+        commands.add(new CompanyPracticeCommand());
+        commands.add(new FacultyCommand());
+        commands.add(new ApplicationInfoTakenCommand());
+        commands.add(new CodeAndNameSpecializationCommand());
+        commands.add(new ErrorApplicationInputCommand());
+        commands.add(new ErrorCompanyInputCommand());
+        commands.add(new ContractWithCompanyCommand());
+        commands.add(new ContractConfirmationCommand());
+        commands.add(new StatusCommand());
+        commands.add(new InfoTakenCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -86,7 +108,7 @@ public class Handler {
 
         if (command.isNextCallNeeded() && nextCommand != null && !command.getName().equals(nextCommand.getName())) {
             PracticeAutomationBot.sendToUser(response, message.getChatId(), false);
-            response = nextCommand.execute(message);
+            response = executeCommand(nextCommand, message);
         }
 
         return response;
