@@ -224,10 +224,10 @@ public class StudentRepository {
                 statement.setObject(7, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
 
-                Integer companyINN = student.getCompanyINN();
+                Long companyINN = student.getCompanyINN();
                 if (companyINN == null) {
                     statement.setNull(9, Types.INTEGER);
-                } else statement.setInt(9, student.getCompanyINN());
+                } else statement.setLong(9, student.getCompanyINN());
 
                 statement.setString(10, student.getCompanyName());
                 statement.setString(11, student.getCompanyLeadFullName());
@@ -282,7 +282,7 @@ public class StudentRepository {
                     rs.getString("call_status_comments"),
                     PracticePlace.valueOfIgnoreCase(rs.getString("practice_place")),
                     PracticeFormat.valueOfIgnoreCase(rs.getString("practice_format")),
-                    rs.getInt("company_inn") == 0 ? null : rs.getInt("company_inn"),
+                    rs.getLong("company_inn") == 0 ? null : rs.getLong("company_inn"),
                     rs.getString("company_name"),
                     rs.getString("company_lead_fullname"),
                     rs.getString("company_lead_phone"),

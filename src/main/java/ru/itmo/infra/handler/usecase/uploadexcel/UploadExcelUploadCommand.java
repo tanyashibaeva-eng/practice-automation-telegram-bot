@@ -11,9 +11,7 @@ public class UploadExcelUploadCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        var chatId = message.getChatId();
         var file = Handler.getFileFromMessage(message);
-//        var eduStreamId = Handler.getStreamEduId(chatId);
 
         var res = StudentService.updateStudentsFromExcel(file, "1");
         if (res.isEmpty()) {

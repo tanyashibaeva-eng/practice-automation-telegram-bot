@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS student (
     call_status_comments    text                NOT NULL DEFAULT '',
     practice_place          st_practice_place   NOT NULL DEFAULT 'NOT_SPECIFIED',
     practice_format         st_practice_format  NOT NULL DEFAULT 'NOT_SPECIFIED',
-    company_inn             int                 DEFAULT NULL,
+    company_inn             bigint              DEFAULT NULL,
     company_name            text                DEFAULT NULL,
     company_lead_fullname   text                DEFAULT NULL,
     company_lead_phone      text                DEFAULT NULL,

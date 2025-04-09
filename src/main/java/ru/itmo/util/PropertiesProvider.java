@@ -16,12 +16,15 @@ public class PropertiesProvider {
     private static final String token;
     @Getter
     private static final String dsn;
+    @Getter
+    private static final Boolean innCheck;
     private static final Properties properties;
 
     static {
         properties = loadProperties();
         token = loadToken();
         dsn = loadDsn();
+        innCheck = loadINNCheck();
     }
 
     private static Properties loadProperties() {
@@ -47,6 +50,13 @@ public class PropertiesProvider {
         if (dsn == null)
             throw new RuntimeException("PG_DSN variable in .env file is not set");
         return dsn;
+    }
+
+    private static boolean loadINNCheck() {
+        String innCheck = System.getenv("INN_CHECK");
+        if (innCheck == null)
+            throw new RuntimeException("INN_CHECK variable in .env file is not set");
+        return Boolean.parseBoolean(innCheck);
     }
 
     public static String getProperty(String propertyName) {

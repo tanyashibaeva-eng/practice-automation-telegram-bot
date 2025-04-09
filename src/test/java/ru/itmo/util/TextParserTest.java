@@ -12,16 +12,16 @@ public class TextParserTest {
     private final TextParser textParser = new TextParser();
 
     @Test
-    public void testParseInt_ValidInput() throws BadRequestException {
-        assertEquals(123, TextParser.parseInt(" 123 "));
+    public void testParseIsu_ValidInput() throws BadRequestException {
+        assertEquals(123, TextParser.parseIsu(" 123 "));
     }
 
     @Test
-    public void testParseInt_InvalidInput() {
+    public void testParseIsu_InvalidInput() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseInt("abc");
+            TextParser.parseIsu("abc");
         });
-        assertEquals("должно быть числом", exception.getMessage());
+        assertEquals("Номер ИСУ должен быть числом", exception.getMessage());
     }
 
     @Test

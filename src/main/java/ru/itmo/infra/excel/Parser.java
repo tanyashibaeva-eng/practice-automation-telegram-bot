@@ -123,7 +123,7 @@ public class Parser {
                 var callStatusComments = parseString(row.getCell(5), errorsByRows, true);
                 var practicePlace = parsePracticePlace(row.getCell(6), errorsByRows);
                 var practiceFormat = parsePracticeFormat(row.getCell(7), errorsByRows);
-                var companyINN = parseInt(row.getCell(8), errorsByRows, true);
+                var companyINN = parseLong(row.getCell(8), errorsByRows, true);
                 var companyName = parseString(row.getCell(9), errorsByRows, true);
                 var leadFullName = parseString(row.getCell(10), errorsByRows, true);
                 var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
@@ -233,6 +233,19 @@ public class Parser {
                 return null;
             }
             return TextParser.parseDoubleToInt(strVal);
+        } catch (Exception e) {
+            addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
+        }
+        return null;
+    }
+
+    private static Long parseLong(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
+        try {
+            var strVal = parseString(cell, errorsByRows, canBeEmpty);
+            if (strVal == null) {
+                return null;
+            }
+            return TextParser.parseDoubleToLong(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
