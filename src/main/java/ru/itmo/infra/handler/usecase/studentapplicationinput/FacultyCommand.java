@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.studentregistration;
+package ru.itmo.infra.handler.usecase.studentapplicationinput;
 
 import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
@@ -6,14 +6,14 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class StudentRegistrationStartCommand implements Command {
+public class FacultyCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationISUCommand());
+        ContextHolder.setNextCommand(message.getChatId(), new CodeAndNameSpecializationCommand());
 
         return MessageToUser.builder()
-                .text("Введите ваш номер ИСУ (6-значное число)")
+                .text("Введите наименование вашего факультета")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();
@@ -26,6 +26,6 @@ public class StudentRegistrationStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "/register";
+        return "/faculty";
     }
 }

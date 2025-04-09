@@ -6,11 +6,11 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class StudentRegistrationStartCommand implements Command {
+public class StudentRegistrationISUCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationISUCommand());
+        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationProcessISUCommand());
 
         return MessageToUser.builder()
                 .text("Введите ваш номер ИСУ (6-значное число)")
@@ -26,6 +26,6 @@ public class StudentRegistrationStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "/register";
+        return "/input_isu";
     }
 }
