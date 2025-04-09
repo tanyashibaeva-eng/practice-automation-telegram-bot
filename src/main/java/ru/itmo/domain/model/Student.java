@@ -37,7 +37,7 @@ public class Student {
     private String callStatusComments;
     private PracticePlace practicePlace;
     private PracticeFormat practiceFormat;
-    private Integer companyINN;
+    private Long companyINN;
     private String companyName;
     private String companyLeadFullName;
     private String companyLeadPhone;
@@ -100,7 +100,7 @@ public class Student {
         return phone.startsWith("+7") || phone.startsWith("8") || phone.startsWith("7");
     }
 
-    private boolean isPracticeFormatValid(Integer companyINN, PracticeFormat practiceFormat) {
+    private boolean isPracticeFormatValid(Long companyINN, PracticeFormat practiceFormat) {
         if (companyINN.toString().startsWith("78")) {
             return true;
         }

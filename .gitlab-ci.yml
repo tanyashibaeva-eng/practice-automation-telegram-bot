@@ -37,6 +37,7 @@ test:
     POSTGRES_PASSWORD: postgres
     PG_DSN: "jdbc:postgresql://postgres:5432/testdb?user=postgres&password=postgres"
     BOT_TOKEN: "some_token"
+    INN_CHECK: "false"
   script:
     - ./gradlew clean test jacocoTestReport check
   dependencies:
@@ -58,6 +59,7 @@ coverage:
     POSTGRES_PASSWORD: postgres
     PG_DSN: "jdbc:postgresql://postgres:5432/testdb?user=postgres&password=postgres"
     BOT_TOKEN: "some_token"
+    INN_CHECK: "false"
   allow_failure: true
   script:
     - apt-get update && apt-get install -y xargs
@@ -73,7 +75,7 @@ deploy:
   script:
     - echo "Deploying Docker container"
     - docker rm -f my-app-container || true
-    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN -e PG_DSN=$PG_DSN my-app:latest
+    - docker run -d --name my-app-container -e BOT_TOKEN=$BOT_TOKEN -e PG_DSN=$PG_DSN -e INN_CHECK=false my-app:latest
   only:
     - main
   dependencies:

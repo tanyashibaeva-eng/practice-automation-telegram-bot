@@ -65,7 +65,7 @@ public class RepositoriesTest {
                     "call status comments 1",
                     PracticePlace.NOT_SPECIFIED,
                     PracticeFormat.NOT_SPECIFIED,
-                    78111,
+                    78111L,
                     "company name 1",
                     "company lead full name 1",
                     "+7 phone 1",
@@ -85,7 +85,7 @@ public class RepositoriesTest {
                     "call status comments 2",
                     PracticePlace.ITMO_UNIVERSITY,
                     PracticeFormat.ONLINE,
-                    78222,
+                    78222L,
                     "company name 2",
                     "company lead full name 2",
                     "+7 phone 2",
@@ -105,7 +105,7 @@ public class RepositoriesTest {
                     "call status comments 3",
                     PracticePlace.OTHER_COMPANY,
                     PracticeFormat.OFFLINE,
-                    78333,
+                    78333L,
                     "company name 3",
                     "company lead full name 3",
                     "+7 phone 3",
@@ -291,10 +291,10 @@ public class RepositoriesTest {
                 statement.setObject(8, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(9, student.getPracticeFormat(), Types.OTHER);
 
-                Integer companyINN = student.getCompanyINN();
+                Long companyINN = student.getCompanyINN();
                 if (companyINN == null) {
-                    statement.setNull(10, Types.INTEGER);
-                } else statement.setInt(10, student.getCompanyINN());
+                    statement.setNull(10, Types.BIGINT);
+                } else statement.setLong(10, student.getCompanyINN());
 
                 statement.setString(11, student.getCompanyName());
                 statement.setString(12, student.getCompanyLeadFullName());

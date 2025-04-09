@@ -6,17 +6,25 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
 public class TextParser {
-    public static int parseInt(String text) throws BadRequestException {
+    public static int parseIsu(String text) throws BadRequestException {
         try {
             return Integer.parseInt(text.trim());
         } catch (NumberFormatException e) {
-            throw new BadRequestException("должно быть числом");
+            throw new BadRequestException("Номер ИСУ должен быть числом");
         }
     }
 
     public static int parseDoubleToInt(String text) throws BadRequestException {
         try {
             return (int) Double.parseDouble(text.trim());
+        } catch (NumberFormatException e) {
+            throw new BadRequestException("должно быть числом");
+        }
+    }
+
+    public static long parseDoubleToLong(String text) throws BadRequestException {
+        try {
+            return (long) Double.parseDouble(text.trim());
         } catch (NumberFormatException e) {
             throw new BadRequestException("должно быть числом");
         }

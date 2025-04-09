@@ -8,6 +8,7 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.util.TextParser;
@@ -40,18 +41,24 @@ public class StudentRegistrationProcessISUCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var isuNumber = message.getText().trim();
-        var isu = StudentService.validateIsu(isuNumber);
-        if (isu.isEmpty()) {
+        var isuResp = StudentService.validateIsu(isuNumber, "1");
+        if (isuResp.getErrorText() != null) {
+            PracticeAutomationBot.sendToUser(MessageToUser.builder().text(isuResp.getErrorText()).build(), message.getChatId(), false);
             return new StudentRegistrationStartCommand().execute(message);
         }
 
+        if (isuResp.isAlreadyRegistered()) {
+            // TODO: спросить уверены ли что хотите зарегаться
+        }
+
+        var student = isuResp.getStudent();
         var chatId = message.getChatId();
-//        var fullName = StudentService.checkExistenceByIsu(isu);
-        var fullName = "Иванов Иван Иванович";
-        var dto = StudentRegistrationArgs.builder().isu(isu.get()).build();
+        var dto = StudentRegistrationArgs.builder().isu(isuResp.getIsu()).build(); // TODO: подумать возможно класть просто студента
         ContextHolder.setCommandData(chatId, dto);
         ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
-        return MessageToUser.builder().text("Найден студент с ИСУ номером " + isuNumber + ". Его ФИО: " + fullName + ". Это вы?").keyboardMarkup(getInlineKeyboard()).build();
+        return MessageToUser.builder()
+                .text("Найден студент с ИСУ номером %d. Его ФИО: %s. Это вы?".formatted(student.getIsu(), student.getFullName()))
+                .keyboardMarkup(getInlineKeyboard()).build();
     }
 
     @Override

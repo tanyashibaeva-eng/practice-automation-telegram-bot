@@ -17,7 +17,7 @@ public class ExcelStudentDTO {
     private String callStatusComments;
     private PracticePlace practicePlace;
     private PracticeFormat practiceFormat;
-    private Integer companyINN;
+    private Long companyINN;
     private String companyName;
     private String companyLeadFullName;
     private String companyLeadPhone;

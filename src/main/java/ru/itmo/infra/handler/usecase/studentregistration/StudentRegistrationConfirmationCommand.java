@@ -26,18 +26,10 @@ public class StudentRegistrationConfirmationCommand implements Command {
                         .needRewriting(false)
                         .build();
             case "Нет":
-//                Command.sendNewMessage(chatId, "Возврат к предыдущему шагу", null);
-//                ContextHolder.setNextCommand(chatId, new StudentRegistrationProcessISUCommand());
-//                return MessageToUser.builder()
-//                        .text("Введите ваш номер ИСУ")
-//                        .keyboardMarkup(getReturnToStartMarkup())
-//                        .needRewriting(true)
-//                        .build();
                 ContextHolder.setNextCommand(chatId, new StudentRegistrationStartCommand());
                 return MessageToUser.builder()
                         .text("Возврат в предыдущему шагу")
                         .build();
-
             case "Вернуться в меню":
                 ContextHolder.endCommand(chatId);
                 return MessageToUser.builder()
