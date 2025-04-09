@@ -11,7 +11,6 @@ public class StudentRegistrationISUCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationProcessISUCommand());
-
         return MessageToUser.builder()
                 .text("Введите ваш номер ИСУ (6-значное число)")
                 .keyboardMarkup(getReturnToStartMarkup())

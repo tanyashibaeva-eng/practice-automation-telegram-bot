@@ -10,8 +10,7 @@ public class StudentRegistrationStartCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationISUCommand());
-
+        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationProcessISUCommand());
         return MessageToUser.builder()
                 .text("Введите ваш номер ИСУ (6-значное число)")
                 .keyboardMarkup(getReturnToStartMarkup())
