@@ -1,10 +1,10 @@
 package ru.itmo.infra.excel;
 
 import lombok.extern.java.Log;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
@@ -129,7 +129,7 @@ public class Parser {
                 var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
                 var leadEmail = parseEmail(row.getCell(12), errorsByRows, true);
                 var leadJobTitle = parseString(row.getCell(13), errorsByRows, true);
-                var cellHexColor = parseCellColor();
+                var cellHexColor = parseCellColor(row.getCell(2));
 
                 var studentDTO = new ExcelStudentDTO(
                         isu,
@@ -198,10 +198,22 @@ public class Parser {
         return students;
     }
 
-    private static String parseCellColor() {
-        // TODO: implement
-        return "FFFFFF";
+    public static String parseCellColor(Cell cell) {
+        if (cell == null) {
+            return "FFFFFF";
+        }
+
+        CellStyle cellStyle = cell.getCellStyle();
+        short colorIndex = cellStyle.getFillForegroundColor();
+        if (colorIndex == IndexedColors.AUTOMATIC.getIndex()) {
+            return "FFFFFF";
+        }
+
+        XSSFCellStyle xssfCellStyle = (XSSFCellStyle) cellStyle;
+        var rgb = xssfCellStyle.getFillForegroundColorColor().getRgb();
+        return String.format("#%02X%02X%02X", rgb[0] & 0xFF, rgb[1] & 0xFF, rgb[2] & 0xFF);
     }
+
 
     private static String parseString(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         if (cell == null) {
@@ -242,7 +254,7 @@ public class Parser {
     private static Long parseLong(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if (strVal == null) {
+            if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
             return TextParser.parseDoubleToLong(strVal);
@@ -255,7 +267,7 @@ public class Parser {
     private static String parsePhone(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if (strVal == null) {
+            if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
             return TextParser.parsePhone(strVal);
@@ -268,7 +280,7 @@ public class Parser {
     private static String parseEmail(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         try {
             var strVal = parseString(cell, errorsByRows, canBeEmpty);
-            if (strVal == null) {
+            if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
             return TextParser.parseEmail(strVal);
@@ -280,7 +292,10 @@ public class Parser {
 
     private static StudentStatus parseStatus(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
-            var strVal = parseString(cell, errorsByRows, false);
+            if (cell == null) {
+                return StudentStatus.NOT_REGISTERED;
+            }
+            var strVal = parseString(cell, errorsByRows, true);
             if (strVal == null) {
                 return StudentStatus.NOT_REGISTERED;
             }
@@ -293,8 +308,11 @@ public class Parser {
 
     private static PracticeFormat parsePracticeFormat(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
-            var strVal = parseString(cell, errorsByRows, false);
-            if (strVal == null)
+            if (cell == null) {
+                return PracticeFormat.NOT_SPECIFIED;
+            }
+            var strVal = parseString(cell, errorsByRows, true);
+            if (strVal == null || strVal.isEmpty())
                 return PracticeFormat.NOT_SPECIFIED;
             return TextParser.parsePracticeFormat(strVal);
         } catch (Exception e) {
@@ -305,8 +323,11 @@ public class Parser {
 
     private static PracticePlace parsePracticePlace(Cell cell, Map<Integer, List<String>> errorsByRows) {
         try {
-            var strVal = parseString(cell, errorsByRows, false);
-            if (strVal == null)
+            if (cell == null) {
+                return PracticePlace.NOT_SPECIFIED;
+            }
+            var strVal = parseString(cell, errorsByRows, true);
+            if (strVal == null || strVal.isEmpty())
                 return PracticePlace.NOT_SPECIFIED;
             return TextParser.parsePracticePlace(strVal);
         } catch (Exception e) {
@@ -323,15 +344,15 @@ public class Parser {
     }
 
     private static String getStatusEnumNames() {
-        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getDisplayName).collect(Collectors.joining(", "));
+        return Arrays.stream(StudentStatus.values()).map(StudentStatus::getDisplayName).map(str -> "\"" + str + "\"").collect(Collectors.joining(", "));
     }
 
     private static String getPracticeFormatEnumNames() {
-        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getDisplayName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticeFormat.values()).map(PracticeFormat::getDisplayName).map(str -> "\"" + str + "\"").collect(Collectors.joining(", "));
     }
 
     private static String getPracticePlaceEnumNames() {
-        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getDisplayName).collect(Collectors.joining(", "));
+        return Arrays.stream(PracticePlace.values()).map(PracticePlace::getDisplayName).map(str -> "\"" + str + "\"").collect(Collectors.joining(", "));
     }
 
     private static Workbook getWorkbook(FileInputStream fis) throws BadRequestException, IOException {

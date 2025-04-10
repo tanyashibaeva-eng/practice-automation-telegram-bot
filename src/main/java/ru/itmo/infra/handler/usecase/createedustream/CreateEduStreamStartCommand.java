@@ -20,6 +20,6 @@ public class CreateEduStreamStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "/create";
+        return "/create_edu_stream";
     }
 }
