@@ -2,13 +2,10 @@ package ru.itmo.application;
 
 import lombok.extern.java.Log;
 import ru.itmo.domain.dto.ExcelStudentDTO;
-import ru.itmo.domain.dto.command.InnValidationResult;
-import ru.itmo.domain.dto.command.IsuValidationResult;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
+import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
-import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.client.NalogRuClient;
@@ -32,8 +29,24 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
-        return StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
+    public static List<Student> findStudentByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
+    }
+
+    public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
+    }
+
+    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
+       ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
+        return StudentRepository.updateCompanyInfo(args);
+    }
+
+    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о практике в ИТМО (статус соответствует),
+       название подразделения и ФИО руководителя валидны */
+    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
+        return StudentRepository.updateITMOPracticeInfo(args);
     }
 
     public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
@@ -62,7 +75,7 @@ public class StudentService {
 
         var hasErrors = false;
         for (var s : students) {
-            var key = "%s-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
+            var key = "%d-%d-%s-%s".formatted(s.getTelegramUser().getChatId(), s.getIsu(), s.getFullName(), s.getStGroup());
             if (studentInfoToStudents.containsKey(key)) {
                 var d = studentInfoToStudents.get(key);
                 var errors = s.updateOrGetErrors(d);
@@ -117,81 +130,83 @@ public class StudentService {
         return Generator.generateExcel(groupToStudents, groups);
     }
 
-    public static void registerStudent(StudentRegistrationArgs args) {
-    }
-
     public static IsuValidationResult validateIsu(String isuText, String eduStreamName) throws InternalException {
         try {
-            var respBuilder = IsuValidationResult.builder();
+            var resBuilder = IsuValidationResult.builder();
 
             // парсим ису
             var isu = TextParser.parseIsu(isuText);
-            respBuilder.isu(isu);
+            resBuilder.isu(isu);
 
             // проверяем что такой студент есть
             var eduStream = new EduStream(eduStreamName);
-            var studentOpt = StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
-            if (studentOpt.isEmpty()) {
-                respBuilder.errorText("Студент с ИСУ %d не найден в потоке %s, попробуйте еще раз".formatted(isu, eduStreamName));
-                return respBuilder.build();
+            var studentList = StudentRepository.findAllByIsuAndEduStreamName(isu, eduStream);
+            if (studentList.isEmpty()) {
+                resBuilder.errorText("Студент с ИСУ %d не найден в потоке %s, попробуйте еще раз".formatted(isu, eduStreamName));
+                return resBuilder.build();
             }
-            var student = studentOpt.get();
-            respBuilder.student(student);
+            var student = studentList.get(0).duplicateBase();
+            resBuilder.student(student);
 
-            // проверяем зарегистрирован ли он уже
-            if (student.getStatus() != StudentStatus.NOT_REGISTERED) {
-                respBuilder.alreadyRegistered(true);
-                return respBuilder.build();
-            }
-
-            return respBuilder.build();
+            return resBuilder.build();
         } catch (BadRequestException e) {
             return IsuValidationResult.builder().errorText(e.getMessage()).build();
         } catch (InternalException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
+            log.severe("Ошибка во время валидации ИСУ: " + e.getMessage());
+            throw new InternalException("Что-то пошло не так");
         }
     }
 
     public static InnValidationResult validateInn(String inn) throws InternalException {
         try {
-            var respBuilder = InnValidationResult.builder();
+            var resBuilder = InnValidationResult.builder();
 
             // парсим инн
             long innLong;
             try {
                 innLong = TextParser.parseDoubleToLong(inn);
-                respBuilder.inn(innLong);
+                resBuilder.inn(innLong);
             } catch (BadRequestException e) {
                 return InnValidationResult.builder().errorText("ИНН должен быть числом").build();
             }
 
             // валидируем инн
             if (inn.length() != 10) {
-                respBuilder.errorText("ИНН должен состоять из 10");
-                return respBuilder.build();
+                resBuilder.errorText("ИНН должен состоять из 10");
+                return resBuilder.build();
             }
 
             // если включена опция проверки ИНН на налог.ру – пытаемся найти и проставить компанию
             if (PropertiesProvider.getInnCheck()) {
                 var companyName = NalogRuClient.getCompanyNameByInn(inn);
-                respBuilder.companyName(companyName);
+                resBuilder.companyName(companyName);
             }
 
             // если компания не найдена/опция отключена – просим заполнить компанию
-            if (respBuilder.build().getCompanyName() == null) {
-                respBuilder.userShouldProvideCompanyName(true);
-                return respBuilder.build();
+            if (resBuilder.build().getCompanyName() == null) {
+                resBuilder.userShouldProvideCompanyName(true);
+                return resBuilder.build();
             }
 
             // проставляем флаг для питерских компаний
-            respBuilder.isSPB(inn.trim().startsWith("78"));
+            resBuilder.isSPB(inn.trim().startsWith("78"));
 
             // проверяем в списке компаний с договорами
-            respBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
+            resBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
 
-            return respBuilder.build();
+            return resBuilder.build();
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }
+    }
+
+    public static PracticeFormatValidationResult validatePracticeFormat(InnValidationResult innValidationResult, PracticeFormat practiceFormat) {
+        if (innValidationResult.isSPB() || practiceFormat == PracticeFormat.ONLINE)
+            return PracticeFormatValidationResult.builder()
+                    .errorText("")
+                    .build();
+        return PracticeFormatValidationResult.builder()
+                .errorText("Для компаний не из Санкт-Петербурга формат прохождения практики может быть только дистанционным")
+                .build();
     }
 }
