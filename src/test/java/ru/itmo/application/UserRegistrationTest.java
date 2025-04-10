@@ -1,6 +1,7 @@
 package ru.itmo.application;
 
 import org.junit.jupiter.api.*;
+import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.domain.model.AdminToken;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -104,17 +105,28 @@ public class UserRegistrationTest {
 
     @Order(1)
     @Test
-    void registerUserTest_userIsAdmin_fail() {
-        Assertions.assertThrows(
-                BadRequestException.class,
-                () -> TelegramUserService.registerUser(adminUser, studentAStreamA)
+    void registerUserTest_userIsAdmin_fail() throws InternalException {
+        Assertions.assertFalse(
+                TelegramUserService.registerUser(new UserRegistrationArgs(
+                        adminUser.getChatId(),
+                        adminUser.getUsername(),
+                        studentAStreamA.getEduStream().getName(),
+                        studentAStreamA.getIsu()
+                )).getErrorText().isEmpty()
         );
     }
 
     @Order(2)
     @Test
     void registerUserTest_ok() throws InternalException {
-        Assertions.assertDoesNotThrow(() -> TelegramUserService.registerUser(userA, studentAStreamA));
+        Assertions.assertTrue(
+                TelegramUserService.registerUser(new UserRegistrationArgs(
+                        userA.getChatId(),
+                        userA.getUsername(),
+                        studentAStreamA.getEduStream().getName(),
+                        studentAStreamA.getIsu()
+                )).getErrorText().isEmpty()
+        );
 
         Optional<Student> resultStudentOpt = StudentRepository.findByChatIdAndEduStreamName(userA.getChatId(), streamA);
         Assertions.assertTrue(resultStudentOpt.isPresent());
@@ -126,7 +138,14 @@ public class UserRegistrationTest {
     @Order(3)
     @Test
     void registerDuplicateStudent_ok() throws InternalException {
-        Assertions.assertDoesNotThrow(() -> TelegramUserService.registerUser(userB, studentAStreamA));
+        Assertions.assertTrue(
+                TelegramUserService.registerUser(new UserRegistrationArgs(
+                        userB.getChatId(),
+                        userB.getUsername(),
+                        studentAStreamA.getEduStream().getName(),
+                        studentAStreamA.getIsu()
+                )).getErrorText().isEmpty()
+        );
 
         Optional<Student> resultStudentOpt = StudentRepository.findByChatIdAndEduStreamName(userB.getChatId(), streamA);
         Assertions.assertTrue(resultStudentOpt.isPresent());
@@ -136,7 +155,14 @@ public class UserRegistrationTest {
     @Order(4)
     @Test
     void registerSameUserOnMultipleStreams_ok() throws InternalException {
-        Assertions.assertDoesNotThrow(() -> TelegramUserService.registerUser(userA, studentAStreamB));
+        Assertions.assertTrue(
+                TelegramUserService.registerUser(new UserRegistrationArgs(
+                        userA.getChatId(),
+                        userA.getUsername(),
+                        studentAStreamB.getEduStream().getName(),
+                        studentAStreamB.getIsu()
+                )).getErrorText().isEmpty()
+        );
 
         Optional<Student> resultStudentOpt = StudentRepository.findByChatIdAndEduStreamName(userA.getChatId(), streamB);
         Assertions.assertTrue(resultStudentOpt.isPresent());

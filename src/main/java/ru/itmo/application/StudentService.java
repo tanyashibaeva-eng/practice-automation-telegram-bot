@@ -2,13 +2,10 @@ package ru.itmo.application;
 
 import lombok.extern.java.Log;
 import ru.itmo.domain.dto.ExcelStudentDTO;
-import ru.itmo.domain.dto.command.InnValidationResult;
-import ru.itmo.domain.dto.command.IsuValidationResult;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
+import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
-import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.client.NalogRuClient;
@@ -40,6 +37,18 @@ public class StudentService {
         return StudentRepository.findByChatIdAndEduStreamName(chatId, eduStream);
     }
 
+    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
+       ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
+        return StudentRepository.updateCompanyInfo(args);
+    }
+
+    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о практике в ИТМО (статус соответствует),
+       название подразделения и ФИО руководителя валидны */
+    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
+        return StudentRepository.updateITMOPracticeInfo(args);
+    }
+
     public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
         var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
@@ -66,7 +75,7 @@ public class StudentService {
 
         var hasErrors = false;
         for (var s : students) {
-            var key = "%s-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
+            var key = "%d-%d-%s-%s".formatted(s.getTelegramUser().getChatId(), s.getIsu(), s.getFullName(), s.getStGroup());
             if (studentInfoToStudents.containsKey(key)) {
                 var d = studentInfoToStudents.get(key);
                 var errors = s.updateOrGetErrors(d);
@@ -121,9 +130,6 @@ public class StudentService {
         return Generator.generateExcel(groupToStudents, groups);
     }
 
-    public static void registerStudent(StudentRegistrationArgs args) {
-    }
-
     public static IsuValidationResult validateIsu(String isuText, String eduStreamName) throws InternalException {
         try {
             var resBuilder = IsuValidationResult.builder();
@@ -139,14 +145,8 @@ public class StudentService {
                 resBuilder.errorText("Студент с ИСУ %d не найден в потоке %s, попробуйте еще раз".formatted(isu, eduStreamName));
                 return resBuilder.build();
             }
-            var student = studentList.get(1).duplicateBase();
+            var student = studentList.get(0).duplicateBase();
             resBuilder.student(student);
-
-            // проверяем зарегистрирован ли он уже
-            if (student.getStatus() != StudentStatus.NOT_REGISTERED) {
-                resBuilder.alreadyRegistered(true);
-                return resBuilder.build();
-            }
 
             return resBuilder.build();
         } catch (BadRequestException e) {
@@ -198,5 +198,15 @@ public class StudentService {
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }
+    }
+
+    public static PracticeFormatValidationResult validatePracticeFormat(InnValidationResult innValidationResult, PracticeFormat practiceFormat) {
+        if (innValidationResult.isSPB() || practiceFormat == PracticeFormat.ONLINE)
+            return PracticeFormatValidationResult.builder()
+                    .errorText("")
+                    .build();
+        return PracticeFormatValidationResult.builder()
+                .errorText("Для компаний не из Санкт-Петербурга формат прохождения практики может быть только дистанционным")
+                .build();
     }
 }

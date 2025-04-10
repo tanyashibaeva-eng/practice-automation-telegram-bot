@@ -3,6 +3,7 @@ package ru.itmo.infra.storage;
 import org.junit.jupiter.api.*;
 import ru.itmo.application.TelegramUserService;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.model.TelegramUser;
@@ -139,8 +140,12 @@ public class RepositoriesTest {
         Assertions.assertDoesNotThrow(() -> {
             for (int i = 0; i < students.size(); i++) {
                 TelegramUserService.registerUser(
-                        telegramUsers.get(i),
-                        students.get(i)
+                        new UserRegistrationArgs(
+                                telegramUsers.get(i).getChatId(),
+                                telegramUsers.get(i).getUsername(),
+                                students.get(i).getEduStream().getName(),
+                                students.get(i).getIsu()
+                        )
                 );
             }
         });

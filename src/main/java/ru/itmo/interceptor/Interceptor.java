@@ -3,14 +3,12 @@ package ru.itmo.interceptor;
 import lombok.SneakyThrows;
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.infra.handler.Handler;
-import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
 
 import java.io.IOException;
 
