@@ -20,6 +20,6 @@ public class UploadExcelStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "";
+        return "/upload";
     }
 }

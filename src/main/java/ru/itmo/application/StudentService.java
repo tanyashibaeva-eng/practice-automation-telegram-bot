@@ -6,6 +6,7 @@ import ru.itmo.domain.dto.command.InnValidationResult;
 import ru.itmo.domain.dto.command.IsuValidationResult;
 import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.EduStream;
+import ru.itmo.domain.dto.command.StudentRegistrationArgs;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;

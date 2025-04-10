@@ -5,6 +5,10 @@ import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+
 public class TextParser {
     public static int parseIsu(String text) throws BadRequestException {
         try {
@@ -76,5 +80,18 @@ public class TextParser {
             throw new BadRequestException("должно быть строкой, представляющей место прохождения практики.");
         }
         return PracticePlace.getByUserName(text);
+    }
+
+    public static LocalDate parseDate(String text) throws BadRequestException {
+        if (text == null || text.trim().isEmpty()) {
+            throw new BadRequestException("должно быть строкой, представляющей дату в формате чч.мм.гггг.");
+        }
+
+        var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        try {
+            return LocalDate.parse(text.trim(), formatter);
+        } catch (DateTimeParseException e) {
+            throw new BadRequestException("неверный формат даты. Ожидается чч.мм.гггг");
+        }
     }
 }

@@ -241,9 +241,10 @@ public class StudentRepository {
                         company_lead_job_title = ?,
                         cell_hex_color = ?,
                         managed_manually = ?
-                    WHERE chat_id = ? AND edu_stream_name = ?;
+                    WHERE (chat_id = ? OR (chat_id IS NULL AND ? IS NULL)) AND isu = ? AND edu_stream_name = ?;
                 """
         )) {
+            var updated = new ArrayList<Integer>();
             for (var student : students) {
                 statement.setInt(1, student.getIsu());
                 statement.setString(2, student.getStGroup());
@@ -266,12 +267,21 @@ public class StudentRepository {
                 statement.setString(14, student.getCompanyLeadJobTitle());
                 statement.setString(15, student.getCellHexColor());
                 statement.setBoolean(16, student.isManagedManually());
-                statement.setLong(17, student.getTelegramUser().getChatId());
-                statement.setString(18, student.getEduStream().getName());
-                statement.addBatch();
+
+                if (student.getTelegramUser() != null) {
+                    statement.setLong(17, (student.getTelegramUser().getChatId()));
+                    statement.setLong(18, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
+                } else {
+                    statement.setNull(17, Types.BIGINT);
+                    statement.setNull(18, Types.BIGINT); // второй параметр для проверки на NULL
+                }
+
+                statement.setInt(19, student.getIsu());
+                statement.setString(20, student.getEduStream().getName());
+                updated.add(statement.executeUpdate());
             }
 
-            return statement.executeBatch();
+            return updated.stream().mapToInt(i -> i).toArray();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);

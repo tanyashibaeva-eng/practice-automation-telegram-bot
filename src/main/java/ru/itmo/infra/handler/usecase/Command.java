@@ -1,22 +1,16 @@
 package ru.itmo.infra.handler.usecase;
 
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import ru.itmo.application.ContextHolder;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.bot.PracticeAutomationBot;
-import ru.itmo.exception.UnknownUserException;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.ArrayList;
 
 public interface Command {
     MessageToUser execute(MessageDTO message);
@@ -38,6 +32,41 @@ public interface Command {
                                                         .toString()
                                         ).build()
                         )).build();
+    }
+
+    default ReplyKeyboard getInlineKeyboard() {
+        var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
+        replyKeyboardMarkupBuilder.resizeKeyboard(true);
+        replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
+
+        var keyboard = new ArrayList<KeyboardRow>();
+        var keyboardFirstRow = new KeyboardRow();
+        keyboardFirstRow.add("Да");
+        keyboardFirstRow.add("Нет");
+        keyboard.add(keyboardFirstRow);
+
+        var keyboardSecondRow = new KeyboardRow();
+        keyboardSecondRow.add("Вернуться в меню");
+        keyboard.add(keyboardSecondRow);
+        replyKeyboardMarkupBuilder.keyboard(keyboard);
+
+        return replyKeyboardMarkupBuilder.build();
+    }
+
+    default ReplyKeyboard getConfirmationKeyboard() {
+        var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
+        replyKeyboardMarkupBuilder.resizeKeyboard(true);
+        replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
+        var keyboard = new ArrayList<KeyboardRow>();
+
+        KeyboardRow row = new KeyboardRow();
+        row.add("Да");
+        row.add("Нет");
+        keyboard.add(row);
+
+        replyKeyboardMarkupBuilder.keyboard(keyboard);
+
+        return replyKeyboardMarkupBuilder.build();
     }
 }
 

@@ -95,7 +95,7 @@ public class Student {
         this.isu = dto.getIsu();
         this.stGroup = dto.getStGroup();
         this.fullName = dto.getFullName();
-        this.cellHexColor = dto.getCellHexColor();
+        this.cellHexColor = dto.getCellHexColor() == null ? "FFFFFF" : dto.getCellHexColor().replace("#", "");
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();
         if (!this.managedManually && (status == dto.getStatus() || (possibleAdminStatusChangesMap.containsKey(status) && possibleAdminStatusChangesMap.get(status).contains(dto.getStatus())))) {
