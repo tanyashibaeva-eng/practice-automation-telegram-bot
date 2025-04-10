@@ -29,12 +29,12 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    public static List<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
-        return StudentRepository.findAllByIsuAndEduStreamName(isu, eduStream);
+    public static List<Student> findStudentByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
     }
 
-    public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
-        return StudentRepository.findByChatIdAndEduStreamName(chatId, eduStream);
+    public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
     }
 
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
