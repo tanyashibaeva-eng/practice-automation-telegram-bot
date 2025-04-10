@@ -1,6 +1,8 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.dto.command.UserRegistrationArgs;
+import ru.itmo.domain.dto.command.UserRegistrationResult;
 import ru.itmo.domain.model.AdminToken;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -14,6 +16,7 @@ import ru.itmo.infra.storage.TelegramUserRepository;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 
 @Log
@@ -30,10 +33,48 @@ public class TelegramUserService {
         }
     }
 
-    public static void registerUser(TelegramUser telegramUser, Student student) throws InternalException {
+    /* Здесь мы считаем, что ИСУ уже корректный и такой студент существует */
+    public static UserRegistrationResult registerUser(UserRegistrationArgs args) throws InternalException {
+        boolean shouldCreateTelegramUser = false;
+        boolean shouldDuplicateStudent = false;
+
+        var resultBuilder = UserRegistrationResult.builder();
+        EduStream eduStream;
+
         try {
+            eduStream = new EduStream(args.getEduStreamName());
+        } catch (BadRequestException ex) {
+            return resultBuilder.errorText(ex.getMessage()).build();
+        }
+
+        Optional<TelegramUser> existingUser = TelegramUserRepository.findByChatId(args.getChatId());
+
+        if (existingUser.isPresent()) {
+            if (existingUser.get().isAdmin())
+                return resultBuilder.errorText("Вы не можете зарегистрироваться как студент, так как вы администратор").build();
+        } else shouldCreateTelegramUser = true;
+
+        List<Student> studentList = StudentRepository.findAllByIsuAndEduStreamName(args.getIsu(), eduStream);
+        if (studentList.isEmpty()) {
+            log.severe("Нарушена консистентность данных студентов: ису не найден при регистрации");
+            throw new InternalException("Что-то пошло не так");
+        }
+        Student student = studentList.get(0);
+
+        if (student.getTelegramUser() != null) {
+            if (student.getTelegramUser().getChatId() == args.getChatId())
+                return resultBuilder.errorText("Вы уже зарегистрированы").build();
+            shouldDuplicateStudent = true;
+        }
+
+        try {
+            TelegramUser telegramUser = new TelegramUser(args.getChatId(), false, false, args.getUsername());
+
+            if (shouldCreateTelegramUser)
+                TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
+            if (shouldDuplicateStudent)
+                StudentRepository.saveTransactional(student, transactionConnection);
             student.setTelegramUser(telegramUser);
-            TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
             StudentRepository.updateChatIdTransactional(student, transactionConnection);
 
             transactionConnection.commit();
@@ -41,6 +82,12 @@ public class TelegramUserService {
             log.severe("Ошибка во время выполнения транзакции регистрации студента.\nStudent: " + student + "\nException: " + ex.getMessage());
             throw new InternalException("Что-то пошло не так");
         }
+
+        if (shouldDuplicateStudent) {
+            // TODO: somehow notify admins
+        }
+
+        return resultBuilder.errorText("").build();
     }
 
     public static void registerAdmin(TelegramUser telegramUser, AdminToken adminToken) throws InternalException, BadRequestException {

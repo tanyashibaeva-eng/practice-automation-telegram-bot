@@ -7,7 +7,6 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationConfirmationCommand;
-import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationProcessISUCommand;
 
 public class PracticeConfirmationCommand implements Command {
 

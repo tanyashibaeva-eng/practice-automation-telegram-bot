@@ -5,6 +5,7 @@ import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.storage.EduStreamRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public class EduStreamService {
@@ -27,6 +28,10 @@ public class EduStreamService {
 
     public static Optional<EduStream> findEduStreamByName(EduStream eduStream) throws InternalException {
         return EduStreamRepository.findByName(eduStream);
+    }
+
+    public static List<EduStream> findAllEduStreams() throws InternalException {
+        return EduStreamRepository.findAll();
     }
 
     private static void doesExistOrThrow(EduStream eduStream) throws InternalException, BadRequestException {
