@@ -5,8 +5,7 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.bot.PracticeAutomationBot;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
+import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.util.TextParser;
 
@@ -26,12 +25,8 @@ public class StudentRegistrationProcessISUCommand implements Command {
                     .build();
         }
 
-        if (isuResp.isAlreadyRegistered()) {
-            // TODO: спросить уверены ли что хотите зарегаться
-        }
-
         var student = isuResp.getStudent();
-        var dto = StudentRegistrationArgs.builder().isu(isuResp.getIsu()).build(); // TODO: подумать возможно класть просто студента
+        var dto = UserRegistrationArgs.builder().isu(isuResp.getIsu()).build(); // TODO: подумать возможно класть просто студента
         ContextHolder.setCommandData(chatId, dto);
         ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
         return MessageToUser.builder()

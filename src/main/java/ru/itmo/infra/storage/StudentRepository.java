@@ -1,6 +1,8 @@
 package ru.itmo.infra.storage;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
+import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
@@ -44,6 +46,24 @@ public class StudentRepository {
         }
     }
 
+    public static void saveTransactional(Student student, Connection transactionConnection) throws SQLException {
+        try (var statement = transactionConnection.prepareStatement("""
+                    INSERT INTO student (
+                        edu_stream_name,
+                        isu,
+                        st_group,
+                        fullname
+                    ) VALUES (?, ?, ?, ?);
+                """
+        )) {
+            statement.setString(1, student.getEduStream().getName());
+            statement.setInt(2, student.getIsu());
+            statement.setString(3, student.getStGroup());
+            statement.setString(4, student.getFullName());
+            statement.executeUpdate();
+        }
+    }
+
     public static void updateChatIdTransactional(Student student, Connection transactionConnection) throws SQLException {
         try (var statement = transactionConnection.prepareStatement("""
                 UPDATE student
@@ -51,7 +71,8 @@ public class StudentRepository {
                 WHERE edu_stream_name = ?
                     AND isu = ?
                     AND st_group = ?
-                    AND fullname = ?;
+                    AND fullname = ?
+                    AND chat_id IS NULL;
                 """
         )) {
             statement.setLong(1, student.getTelegramUser().getChatId());
@@ -151,6 +172,28 @@ public class StudentRepository {
         }
     }
 
+    public static List<Student> findAllByChatId(long chatId) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT * FROM student WHERE chat_id = ?;"
+        )) {
+            statement.setLong(1, chatId);
+            var rs = statement.executeQuery();
+
+            List<Student> result = new ArrayList<>();
+
+            Student student = mapToStudent(rs);
+            while (student != null) {
+                result.add(student);
+                student = mapToStudent(rs);
+            }
+
+            return result;
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static Optional<Student> findByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
@@ -165,14 +208,25 @@ public class StudentRepository {
         }
     }
 
-    public static Optional<Student> findByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+    public static List<Student> findAllByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE isu = ? AND edu_stream_name = ?;"
         )) {
             statement.setInt(1, isu);
             statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
-            return mapToStudentOptional(rs);
+
+            List<Student> result = new ArrayList<>();
+
+            Student student = mapToStudent(rs);
+            while (student != null) {
+                result.add(student);
+                student = mapToStudent(rs);
+            }
+
+            result.sort(Comparator.comparing(Student::getFullName));
+
+            return result;
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -185,6 +239,60 @@ public class StudentRepository {
         )) {
             statement.setLong(1, chatId);
             statement.setString(2, eduStream.getName());
+            return 1 == statement.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
+        try (var statement = connection.prepareStatement("""
+                    UPDATE student SET
+                        status = ?,
+                        practice_place = ?,
+                        practice_format = ?,
+                        company_inn = ?,
+                        company_name = ?,
+                        company_lead_fullname = ?,
+                        company_lead_phone = ?,
+                        company_lead_email = ?,
+                        company_lead_job_title = ?
+                    WHERE chatId = ?;
+                """
+        )) {
+            statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
+            statement.setObject(2, PracticePlace.OTHER_COMPANY, Types.OTHER);
+            statement.setObject(3, args.getPracticeFormat(), Types.OTHER);
+            statement.setLong(4, args.getInn());
+            statement.setString(5, args.getCompanyName());
+            statement.setString(6, args.getCompanyLeadFullname());
+            statement.setString(7, args.getCompanyLeadPhone());
+            statement.setString(8, args.getCompanyLeadEmail());
+            statement.setString(9, args.getCompanyLeadJobTitle());
+            statement.setLong(10, args.getChatId());
+            return 1 == statement.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
+        try (var statement = connection.prepareStatement("""
+                    UPDATE student SET
+                        status = ?,
+                        practice_place = ?,
+                        company_name = ?,
+                        company_lead_fullname = ?,
+                    WHERE chatId = ?;
+                """
+        )) {
+            statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
+            statement.setObject(2, PracticePlace.ITMO_UNIVERSITY, Types.OTHER);
+            statement.setString(3, args.getCompanyName());
+            statement.setString(4, args.getCompanyLeadFullname());
+            statement.setLong(5, args.getChatId());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {

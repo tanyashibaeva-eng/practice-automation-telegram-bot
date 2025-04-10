@@ -3,10 +3,10 @@ package ru.itmo.infra.handler.usecase.studentregistration;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.StudentService;
+import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.domain.dto.command.StudentRegistrationArgs;
+import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
 
 public class StudentRegistrationConfirmationCommand implements Command {
@@ -15,12 +15,12 @@ public class StudentRegistrationConfirmationCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var args = (StudentRegistrationArgs) ContextHolder.getCommandData(chatId);
+        var args = (UserRegistrationArgs) ContextHolder.getCommandData(chatId);
         args.setChatId(chatId);
 
         switch (message.getText()) {
             case "Да":
-                StudentService.registerStudent(args);
+                TelegramUserService.registerUser(args);
                 ContextHolder.endCommand(chatId);
                 return MessageToUser.builder()
                         .text("Вы успешно зарегистрировались!")
