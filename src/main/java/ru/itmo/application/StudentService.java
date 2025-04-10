@@ -31,8 +31,12 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
-        return StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
+    public static List<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+        return StudentRepository.findAllByIsuAndEduStreamName(isu, eduStream);
+    }
+
+    public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
+        return StudentRepository.findByChatIdAndEduStreamName(chatId, eduStream);
     }
 
     public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
@@ -121,74 +125,75 @@ public class StudentService {
 
     public static IsuValidationResult validateIsu(String isuText, String eduStreamName) throws InternalException {
         try {
-            var respBuilder = IsuValidationResult.builder();
+            var resBuilder = IsuValidationResult.builder();
 
             // парсим ису
             var isu = TextParser.parseIsu(isuText);
-            respBuilder.isu(isu);
+            resBuilder.isu(isu);
 
             // проверяем что такой студент есть
             var eduStream = new EduStream(eduStreamName);
-            var studentOpt = StudentRepository.findByIsuAndEduStreamName(isu, eduStream);
-            if (studentOpt.isEmpty()) {
-                respBuilder.errorText("Студент с ИСУ %d не найден в потоке %s, попробуйте еще раз".formatted(isu, eduStreamName));
-                return respBuilder.build();
+            var studentList = StudentRepository.findAllByIsuAndEduStreamName(isu, eduStream);
+            if (studentList.isEmpty()) {
+                resBuilder.errorText("Студент с ИСУ %d не найден в потоке %s, попробуйте еще раз".formatted(isu, eduStreamName));
+                return resBuilder.build();
             }
-            var student = studentOpt.get();
-            respBuilder.student(student);
+            var student = studentList.get(1).duplicateBase();
+            resBuilder.student(student);
 
             // проверяем зарегистрирован ли он уже
             if (student.getStatus() != StudentStatus.NOT_REGISTERED) {
-                respBuilder.alreadyRegistered(true);
-                return respBuilder.build();
+                resBuilder.alreadyRegistered(true);
+                return resBuilder.build();
             }
 
-            return respBuilder.build();
+            return resBuilder.build();
         } catch (BadRequestException e) {
             return IsuValidationResult.builder().errorText(e.getMessage()).build();
         } catch (InternalException e) {
-            throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
+            log.severe("Ошибка во время валидации ИСУ: " + e.getMessage());
+            throw new InternalException("Что-то пошло не так");
         }
     }
 
     public static InnValidationResult validateInn(String inn) throws InternalException {
         try {
-            var respBuilder = InnValidationResult.builder();
+            var resBuilder = InnValidationResult.builder();
 
             // парсим инн
             long innLong;
             try {
                 innLong = TextParser.parseDoubleToLong(inn);
-                respBuilder.inn(innLong);
+                resBuilder.inn(innLong);
             } catch (BadRequestException e) {
                 return InnValidationResult.builder().errorText("ИНН должен быть числом").build();
             }
 
             // валидируем инн
             if (inn.length() != 10) {
-                respBuilder.errorText("ИНН должен состоять из 10");
-                return respBuilder.build();
+                resBuilder.errorText("ИНН должен состоять из 10");
+                return resBuilder.build();
             }
 
             // если включена опция проверки ИНН на налог.ру – пытаемся найти и проставить компанию
             if (PropertiesProvider.getInnCheck()) {
                 var companyName = NalogRuClient.getCompanyNameByInn(inn);
-                respBuilder.companyName(companyName);
+                resBuilder.companyName(companyName);
             }
 
             // если компания не найдена/опция отключена – просим заполнить компанию
-            if (respBuilder.build().getCompanyName() == null) {
-                respBuilder.userShouldProvideCompanyName(true);
-                return respBuilder.build();
+            if (resBuilder.build().getCompanyName() == null) {
+                resBuilder.userShouldProvideCompanyName(true);
+                return resBuilder.build();
             }
 
             // проставляем флаг для питерских компаний
-            respBuilder.isSPB(inn.trim().startsWith("78"));
+            resBuilder.isSPB(inn.trim().startsWith("78"));
 
             // проверяем в списке компаний с договорами
-            respBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
+            resBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
 
-            return respBuilder.build();
+            return resBuilder.build();
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }

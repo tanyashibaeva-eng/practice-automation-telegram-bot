@@ -44,6 +44,24 @@ public class StudentRepository {
         }
     }
 
+    public static void saveTransactional(Student student, Connection transactionConnection) throws SQLException {
+        try (var statement = transactionConnection.prepareStatement("""
+                    INSERT INTO student (
+                        edu_stream_name,
+                        isu,
+                        st_group,
+                        fullname
+                    ) VALUES (?, ?, ?, ?);
+                """
+        )) {
+            statement.setString(1, student.getEduStream().getName());
+            statement.setInt(2, student.getIsu());
+            statement.setString(3, student.getStGroup());
+            statement.setString(4, student.getFullName());
+            statement.executeUpdate();
+        }
+    }
+
     public static void updateChatIdTransactional(Student student, Connection transactionConnection) throws SQLException {
         try (var statement = transactionConnection.prepareStatement("""
                 UPDATE student
@@ -51,7 +69,8 @@ public class StudentRepository {
                 WHERE edu_stream_name = ?
                     AND isu = ?
                     AND st_group = ?
-                    AND fullname = ?;
+                    AND fullname = ?
+                    AND chat_id IS NULL;
                 """
         )) {
             statement.setLong(1, student.getTelegramUser().getChatId());
@@ -165,14 +184,25 @@ public class StudentRepository {
         }
     }
 
-    public static Optional<Student> findByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+    public static List<Student> findAllByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE isu = ? AND edu_stream_name = ?;"
         )) {
             statement.setInt(1, isu);
             statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
-            return mapToStudentOptional(rs);
+
+            List<Student> result = new ArrayList<>();
+
+            Student student = mapToStudent(rs);
+            while (student != null) {
+                result.add(student);
+                student = mapToStudent(rs);
+            }
+
+            result.sort(Comparator.comparing(Student::getFullName));
+
+            return result;
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);

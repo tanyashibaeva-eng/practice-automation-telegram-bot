@@ -30,16 +30,40 @@ public class TelegramUserService {
         }
     }
 
-    public static void registerUser(TelegramUser telegramUser, Student student) throws InternalException {
+    /* Здесь мы считаем, что передаваемый student существует в базе ровно в том виде, в котором он здесь представлен */
+    public static void registerUser(TelegramUser telegramUser, Student student) throws InternalException, BadRequestException {
+        boolean shouldCreateTelegramUser = false;
+        boolean shouldDuplicateStudent = false;
+
+        Optional<TelegramUser> existingUser = TelegramUserRepository.findByChatId(telegramUser.getChatId());
+
+        if (existingUser.isPresent()) {
+            if (existingUser.get().isAdmin())
+                throw new BadRequestException("Вы не можете зарегистрироваться как студент, так как вы администратор");
+        } else shouldCreateTelegramUser = true;
+
+        if (student.getTelegramUser() != null) {
+            if (student.getTelegramUser().getChatId() == telegramUser.getChatId())
+                throw new BadRequestException("Вы уже зарегистрированы");
+            shouldDuplicateStudent = true;
+        }
+
         try {
+            if (shouldCreateTelegramUser)
+                TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
+            if (shouldDuplicateStudent)
+                StudentRepository.saveTransactional(student, transactionConnection);
             student.setTelegramUser(telegramUser);
-            TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
             StudentRepository.updateChatIdTransactional(student, transactionConnection);
 
             transactionConnection.commit();
         } catch (SQLException ex) {
             log.severe("Ошибка во время выполнения транзакции регистрации студента.\nStudent: " + student + "\nException: " + ex.getMessage());
             throw new InternalException("Что-то пошло не так");
+        }
+
+        if (shouldDuplicateStudent) {
+            // TODO: somehow notify admins
         }
     }
 

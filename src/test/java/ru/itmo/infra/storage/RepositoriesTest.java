@@ -195,9 +195,9 @@ public class RepositoriesTest {
     @Test
     void findStudentByIsuAndStreamNameTest_ok() throws InternalException {
         Student st = students.get(0);
-        Assertions.assertEquals(st, StudentRepository.findByIsuAndEduStreamName(st.getIsu(), st.getEduStream()).get());
+        Assertions.assertEquals(st, StudentRepository.findAllByIsuAndEduStreamName(st.getIsu(), st.getEduStream()).get(0));
 
-        Assertions.assertFalse(StudentRepository.findByIsuAndEduStreamName(-123, st.getEduStream()).isPresent());
+        Assertions.assertTrue(StudentRepository.findAllByIsuAndEduStreamName(-123, st.getEduStream()).isEmpty());
     }
 
     @Order(5)

@@ -54,6 +54,29 @@ public class Student {
         this.status = StudentStatus.REGISTERED;
     }
 
+    public Student duplicateBase() {
+        return new Student(
+                null,
+                this.getEduStream(),
+                this.getIsu(),
+                this.getStGroup(),
+                this.getFullName(),
+                StudentStatus.NOT_REGISTERED,
+                null,
+                null,
+                PracticePlace.NOT_SPECIFIED,
+                PracticeFormat.NOT_SPECIFIED,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                false
+        );
+    }
+
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
         var errors = new ArrayList<String>();
 
