@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.studentapplicationinput;
+package ru.itmo.infra.handler.usecase.companyinfoinput.itmo;
 
 import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
@@ -6,14 +6,13 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class FacultyCommand implements Command {
-    @Override
+public class AskingITMOPracticeLeadFullNameCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new CodeAndNameSpecializationCommand());
-
+        var chatId = message.getChatId();
+        ContextHolder.setNextCommand(chatId, new InputITMOStudentLeadFullNameCommand());
         return MessageToUser.builder()
-                .text("Введите наименование вашего факультета")
+                .text("Введите ФИО научного руководителя")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();
@@ -26,6 +25,6 @@ public class FacultyCommand implements Command {
 
     @Override
     public String getName() {
-        return "/faculty";
+        return "/who_itmo";
     }
 }

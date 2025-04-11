@@ -53,10 +53,11 @@ public class PropertiesProvider {
     }
 
     private static boolean loadINNCheck() {
-        String innCheck = System.getenv("INN_CHECK");
-        if (innCheck == null)
-            throw new RuntimeException("INN_CHECK variable in .env file is not set");
-        return Boolean.parseBoolean(innCheck);
+//        String innCheck = System.getenv("INN_CHECK");
+//        if (innCheck == null)
+//            throw new RuntimeException("INN_CHECK variable in .env file is not set");
+//        return Boolean.parseBoolean(innCheck);
+        return true;
     }
 
     public static String getProperty(String propertyName) {

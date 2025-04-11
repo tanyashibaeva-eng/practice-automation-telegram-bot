@@ -13,18 +13,13 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.companyinfoinput.*;
+import ru.itmo.infra.handler.usecase.companyinfoinput.ChoosePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.createedustream.CreateEduStreamStartCommand;
 import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.ApplicationInfoTakenCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.CodeAndNameSpecializationCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.ErrorApplicationInputCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.FacultyCommand;
-import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationISUCommand;
-import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationProcessISUCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.DownloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.studentapplicationinput.UnloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
-import ru.itmo.infra.handler.usecase.studentstatus.StatusCommand;
 import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
@@ -48,21 +43,9 @@ public class Handler {
         commands.add(new ExportExcelExportCommand());
         commands.add(new CreateEduStreamStartCommand());
         commands.add(new StudentRegistrationStartCommand());
-        commands.add(new StudentRegistrationProcessISUCommand());
-        commands.add(new StudentRegistrationISUCommand());
         commands.add(new ChoosePracticePlaceCommand());
-        commands.add(new PracticeConfirmationCommand());
-        commands.add(new ITMOPracticeBossInfoCommand());
-        commands.add(new CompanyPracticeCommand());
-        commands.add(new FacultyCommand());
-        commands.add(new ApplicationInfoTakenCommand());
-        commands.add(new CodeAndNameSpecializationCommand());
-        commands.add(new ErrorApplicationInputCommand());
-        commands.add(new ErrorCompanyInputCommand());
-        commands.add(new ContractWithCompanyCommand());
-        commands.add(new ContractConfirmationCommand());
-        commands.add(new StatusCommand());
-        commands.add(new InfoTakenCommand());
+        commands.add(new DownloadApplicationCommand());
+        commands.add(new UnloadApplicationCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {

@@ -39,7 +39,7 @@ public class NalogRuClient {
             }
 
             JSONObject jsonResponse = new JSONObject(response.toString());
-            return jsonResponse.getString("key");
+            return jsonResponse.getString("t");
         }
     }
 
