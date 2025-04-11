@@ -258,7 +258,7 @@ public class StudentRepository {
                         company_lead_phone = ?,
                         company_lead_email = ?,
                         company_lead_job_title = ?
-                    WHERE chatId = ?;
+                    WHERE chat_id = ?;
                 """
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
@@ -266,7 +266,7 @@ public class StudentRepository {
             statement.setObject(3, args.getPracticeFormat(), Types.OTHER);
             statement.setLong(4, args.getInn());
             statement.setString(5, args.getCompanyName());
-            statement.setString(6, args.getCompanyLeadFullname());
+            statement.setString(6, args.getCompanyLeadFullName());
             statement.setString(7, args.getCompanyLeadPhone());
             statement.setString(8, args.getCompanyLeadEmail());
             statement.setString(9, args.getCompanyLeadJobTitle());
@@ -285,13 +285,13 @@ public class StudentRepository {
                         practice_place = ?,
                         company_name = ?,
                         company_lead_fullname = ?,
-                    WHERE chatId = ?;
+                    WHERE chat_id = ?;
                 """
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
-            statement.setObject(2, PracticePlace.ITMO_UNIVERSITY, Types.OTHER);
+            statement.setObject(2, args.getPracticePlace(), Types.OTHER);
             statement.setString(3, args.getCompanyName());
-            statement.setString(4, args.getCompanyLeadFullname());
+            statement.setString(4, args.getCompanyLeadFullName());
             statement.setLong(5, args.getChatId());
             return 1 == statement.executeUpdate();
 

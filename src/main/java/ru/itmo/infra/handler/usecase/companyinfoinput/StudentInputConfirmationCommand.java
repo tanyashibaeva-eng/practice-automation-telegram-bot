@@ -1,50 +1,42 @@
-package ru.itmo.infra.handler.usecase.studentregistration;
+package ru.itmo.infra.handler.usecase.companyinfoinput;
 
-import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
+import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationConfirmationCommand;
 
-public class StudentRegistrationConfirmationCommand implements Command {
-
+public class StudentInputConfirmationCommand implements Command {
     @Override
-    @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var args = (UserRegistrationArgs) ContextHolder.getCommandData(chatId);
-        args.setChatId(chatId);
-        args.setEduStreamName("1");
 
         switch (message.getText()) {
             case "Да":
-                TelegramUserService.registerUser(args); // TODO: check userRegistrationResult
-                ContextHolder.endCommand(chatId);
+                ContextHolder.setNextCommand(chatId, new InfoSubmittedCommand());
                 return MessageToUser.builder()
-                        .text("Вы успешно зарегистрировались!")
+                        .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .needRewriting(false)
                         .build();
             case "Нет":
-                ContextHolder.setNextCommand(chatId, new StudentRegistrationISUCommand());
+                ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
                 return MessageToUser.builder()
-                        .text("Возврат в предыдущему шагу")
+                        .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
-
             case "Вернуться в меню":
                 ContextHolder.endCommand(chatId);
                 return MessageToUser.builder()
-                        .text("Регистрация отменена")
+                        .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
             default:
                 ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
                 return MessageToUser.builder()
-                        .text("Извините, я вас не понимаю, ответьте \"Да\", \"Нет\" или \"Вернуться в меню\"")
+                        .text("Извините, я вас не понимаю, ответьте \"Да\", \"Нет\" или \"Вернуться в меню\" ")
                         .keyboardMarkup(getInlineKeyboard())
                         .build();
         }
@@ -57,6 +49,6 @@ public class StudentRegistrationConfirmationCommand implements Command {
 
     @Override
     public String getName() {
-        return "";
+        return "/student_input_confirmation";
     }
 }

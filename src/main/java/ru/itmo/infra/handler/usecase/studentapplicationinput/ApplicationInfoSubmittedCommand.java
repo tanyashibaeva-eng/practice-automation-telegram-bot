@@ -6,25 +6,23 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class CodeAndNameSpecializationCommand implements Command {
+public class ApplicationInfoSubmittedCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-// TODO валидация
-        ContextHolder.setNextCommand(message.getChatId(), new ApplicationInfoTakenCommand());
-
+        ContextHolder.endCommand(message.getChatId());
         return MessageToUser.builder()
-                .text("Введите код и наименование направления вашей специаольности (Например: 09.03.04 Программная инжинерия)")
+                .text("Спасибо за информацию! Заявка отправлена на проверку преподавателю")
                 .build();
     }
 
     @Override
     public boolean isNextCallNeeded() {
-        return false;
+        return true;
     }
 
     @Override
     public String getName() {
-        return "/code_amd_name";
+        return "/application_done";
     }
 }

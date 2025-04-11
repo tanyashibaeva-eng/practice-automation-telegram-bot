@@ -283,7 +283,7 @@ public class AuthorizationTest {
         Assertions.assertFalse(AuthorizationService.canStudentSubmitApplication(studentWithPreviousRegistrationUser.getChatId()));
         Assertions.assertFalse(AuthorizationService.canStudentSubmitApplication(studentWithRegisteredStatusUser.getChatId()));
         Assertions.assertTrue(AuthorizationService.canStudentSubmitApplication(studentWithApplicationReturnedStatusUser.getChatId()));
-        Assertions.assertFalse(AuthorizationService.canStudentSubmitApplication(studentWithApplicationWaitingSigningStatusUser.getChatId()));
+        Assertions.assertTrue(AuthorizationService.canStudentSubmitApplication(studentWithApplicationWaitingSigningStatusUser.getChatId()));
     }
 
     @Test
@@ -294,8 +294,8 @@ public class AuthorizationTest {
         Assertions.assertFalse(AuthorizationService.canStudentDownloadApplication(bannedStudentUser.getChatId()));
         Assertions.assertFalse(AuthorizationService.canStudentDownloadApplication(studentWithPreviousRegistrationUser.getChatId()));
         Assertions.assertFalse(AuthorizationService.canStudentDownloadApplication(studentWithRegisteredStatusUser.getChatId()));
-        Assertions.assertFalse(AuthorizationService.canStudentDownloadApplication(studentWithApplicationReturnedStatusUser.getChatId()));
-        Assertions.assertTrue(AuthorizationService.canStudentDownloadApplication(studentWithApplicationWaitingSigningStatusUser.getChatId()));
+        Assertions.assertTrue(AuthorizationService.canStudentDownloadApplication(studentWithApplicationReturnedStatusUser.getChatId()));
+        Assertions.assertFalse(AuthorizationService.canStudentDownloadApplication(studentWithApplicationWaitingSigningStatusUser.getChatId()));
     }
 
 

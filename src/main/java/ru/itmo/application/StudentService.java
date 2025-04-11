@@ -1,14 +1,17 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.client.NalogRuClient;
+import ru.itmo.infra.docx.DocxGenerator;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.GoogleSheetsExporter;
 import ru.itmo.infra.excel.Parser;
@@ -16,15 +19,14 @@ import ru.itmo.infra.html.ParserIsuXls;
 import ru.itmo.infra.storage.EduStreamRepository;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
+import ru.itmo.util.EduStreamChecker;
 import ru.itmo.util.PropertiesProvider;
 import ru.itmo.util.TextParser;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 @Log
 public class StudentService {
@@ -75,7 +77,8 @@ public class StudentService {
 
         var hasErrors = false;
         for (var s : students) {
-            var key = "%d-%d-%s-%s".formatted(s.getTelegramUser().getChatId(), s.getIsu(), s.getFullName(), s.getStGroup());
+//            var tgUser = s.getTelegramUser();
+            var key = "%d-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
             if (studentInfoToStudents.containsKey(key)) {
                 var d = studentInfoToStudents.get(key);
                 var errors = s.updateOrGetErrors(d);
@@ -185,7 +188,6 @@ public class StudentService {
             // если компания не найдена/опция отключена – просим заполнить компанию
             if (resBuilder.build().getCompanyName() == null) {
                 resBuilder.userShouldProvideCompanyName(true);
-                return resBuilder.build();
             }
 
             // проставляем флаг для питерских компаний
@@ -208,5 +210,80 @@ public class StudentService {
         return PracticeFormatValidationResult.builder()
                 .errorText("Для компаний не из Санкт-Петербурга формат прохождения практики может быть только дистанционным")
                 .build();
+    }
+
+    public static ApplicationFillingResult generateApplicationFileByStudent(long chatId) throws InternalException {
+        // ищем студента в активных потоках
+        var students = StudentRepository.findAllByChatId(chatId);
+        Student currStudent = null;
+        for (var student : students) {
+            if (EduStreamChecker.isActiveStream(student.getEduStream())) {
+                currStudent = student;
+                break;
+            }
+        }
+
+        var resBuilder = ApplicationFillingResult.builder();
+
+        // если не нашли – значит не генерируем заявку
+        if (currStudent == null) {
+            resBuilder.errorText("Студент с таким чат айди не найден в активных потоках");
+            return resBuilder.build();
+        }
+
+        // проверяем что студент в нужном статусе
+        if (!AuthorizationService.canStudentDownloadApplication(chatId)) {
+            resBuilder.errorText("Невозможно заполнить заявку для студента в статусе \"%s\"".formatted(currStudent.getStatus().getDisplayName()));
+            return resBuilder.build();
+        }
+
+        return resBuilder.file(generateFromTemplate(currStudent)).build();
+    }
+
+    public static ApplicationFillingResult generateApplicationFileByAdmin(int isu, String eduStreamName) throws InternalException {
+        var resBuilder = ApplicationFillingResult.builder();
+        List<Student> students;
+        try {
+            students = StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
+        } catch (BadRequestException e) {
+            resBuilder.errorText("Студент с ИСУ %d не найден в потоке %s".formatted(isu, eduStreamName));
+            return resBuilder.build();
+        }
+
+        Student currStudent = null;
+        StudentStatus status;
+        for (var student : students) {
+            status = student.getStatus();
+            if (Set.of(
+                    StudentStatus.APPLICATION_WAITING_SIGNING,
+                    StudentStatus.APPLICATION_WAITING_APPROVAL,
+                    StudentStatus.APPLICATION_RETURNED,
+                    StudentStatus.APPLICATION_SIGNED
+            ).contains(status)) {
+                currStudent = student;
+                break;
+            }
+        }
+
+        // если не нашли – значит не генерируем заявку
+        if (currStudent == null) {
+            resBuilder.errorText("Для студента с ИСУ %d в потоке %s сейчас нельзя выгрузить заявку (неверный статус)".formatted(isu, eduStreamName));
+            return resBuilder.build();
+        }
+
+        return resBuilder.file(generateFromTemplate(currStudent)).build();
+    }
+
+    private static File generateFromTemplate(Student currStudent) throws InternalException {
+        var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+        return DocxGenerator.fillApplicationTemplate(new ApplicationDTO(
+                currStudent.getFullName(),
+                currStudent.getStGroup(),
+                currStudent.getEduStream().getDateFrom().format(formatter),
+                currStudent.getEduStream().getDateTo().format(formatter),
+                currStudent.getPracticeFormat() == PracticeFormat.OFFLINE ? "Очно" : "С применением дистанционных технологий",
+                currStudent.getCompanyName()
+        ));
     }
 }
