@@ -14,7 +14,7 @@ public class DownloadApplicationCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var fileResp = StudentService.generateApplicationFileByStudent(chatId);
+        var fileResp = StudentService.generateApplicationFileByChatId(chatId);
         if (fileResp.getErrorText() != null) {
             System.out.println(fileResp.getErrorText());
         }

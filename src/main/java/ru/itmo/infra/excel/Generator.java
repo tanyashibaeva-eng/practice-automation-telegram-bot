@@ -27,6 +27,7 @@ import java.util.Map;
 @Log
 public class Generator {
     private static final String[] headersColumns = {
+            "chatID",
             "ИСУ",
             "Группа",
             "ФИО",
@@ -111,34 +112,35 @@ public class Generator {
             for (Student student : students) {
                 var row = sheet.createRow(rowNum++);
 
-                row.createCell(0).setCellValue(student.getIsu());
-                row.createCell(1).setCellValue(groupName);
+                row.createCell(0).setCellValue(student.getTelegramUser() != null ? student.getTelegramUser().getChatId() + "" : "");
+                row.createCell(1).setCellValue(student.getIsu());
+                row.createCell(2).setCellValue(groupName);
 
-                var cellFullName = row.createCell(2);
+                var cellFullName = row.createCell(3);
                 cellFullName.setCellValue(student.getFullName());
                 cellFullName.setCellStyle(createColoredCellStyle(workbook, student.getCellHexColor()));
 
-                row.createCell(3).setCellValue(student.getComments() != null ? student.getStatus().getDisplayName() : "");
-                addEnumValidation(sheet, 3, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
+                row.createCell(4).setCellValue(student.getComments() != null ? student.getStatus().getDisplayName() : "");
+                addEnumValidation(sheet, 4, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
 
-                row.createCell(4).setCellValue(student.getComments() != null ? student.getComments() : "");
-                row.createCell(5).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
-                row.createCell(6).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
-                row.createCell(7).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
-                row.createCell(8).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
-                row.createCell(9).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
-                row.createCell(10).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
-                row.createCell(11).setCellValue(student.getCompanyLeadPhone() != null ? student.getCompanyLeadPhone() : "");
-                row.createCell(12).setCellValue(student.getCompanyLeadEmail() != null ? student.getCompanyLeadEmail() : "");
-                row.createCell(13).setCellValue(student.getCompanyLeadJobTitle() != null ? student.getCompanyLeadJobTitle() : "");
+                row.createCell(5).setCellValue(student.getComments() != null ? student.getComments() : "");
+                row.createCell(6).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
+                row.createCell(7).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
+                row.createCell(8).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
+                row.createCell(9).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
+                row.createCell(10).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
+                row.createCell(11).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
+                row.createCell(12).setCellValue(student.getCompanyLeadPhone() != null ? student.getCompanyLeadPhone() : "");
+                row.createCell(13).setCellValue(student.getCompanyLeadEmail() != null ? student.getCompanyLeadEmail() : "");
+                row.createCell(14).setCellValue(student.getCompanyLeadJobTitle() != null ? student.getCompanyLeadJobTitle() : "");
             }
 
             applyConditionalFormatting(sheet, sheet.getPhysicalNumberOfRows());
 
-            sheet.setAutoFilter(new CellRangeAddress(0, sheet.getLastRowNum(), 3, 3));
+            sheet.setAutoFilter(new CellRangeAddress(0, sheet.getLastRowNum(), 4, 4));
 
-            addEnumValidation(sheet, 6, practicePlaceOptions, 1, sheet.getLastRowNum());
-            addEnumValidation(sheet, 7, practiceFormatOptions, 1, sheet.getLastRowNum());
+            addEnumValidation(sheet, 7, practicePlaceOptions, 1, sheet.getLastRowNum());
+            addEnumValidation(sheet, 8, practiceFormatOptions, 1, sheet.getLastRowNum());
 
             for (int i = 0; i < headersColumns.length; i++) {
                 sheet.autoSizeColumn(i);

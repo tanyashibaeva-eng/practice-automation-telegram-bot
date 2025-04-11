@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ParserTest {
 
     private static final String[] columns = {
+            "chatID",
             "ИСУ",
             "Группа",
             "ФИО",
@@ -36,7 +37,6 @@ public class ParserTest {
             "Почта Руководителя",
             "Должность Руководителя"
     };
-    private Parser parser;
 
     @AfterAll
     static void tearDown() throws IOException {
@@ -48,11 +48,6 @@ public class ParserTest {
 
         filePath = Paths.get("./test-file.xlsx");
         Files.deleteIfExists(filePath);
-    }
-
-    @BeforeEach
-    void setUp() {
-        parser = new Parser();
     }
 
     @Test
@@ -68,18 +63,20 @@ public class ParserTest {
 
         var dataRow = sheet.createRow(1);
         dataRow.createCell(0).setCellValue(123456);
-        dataRow.createCell(1).setCellValue("Group1");
-        dataRow.createCell(2).setCellValue("John Doe");
-        dataRow.createCell(3).setCellValue("Зарегистрирован");
-        dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("Практика в ИТМО");
-        dataRow.createCell(8).setCellValue(123456789);
-        dataRow.createCell(9).setCellValue("Company1");
-        dataRow.createCell(10).setCellValue("Jane Doe");
-        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
-        dataRow.createCell(12).setCellValue("jane.doe@example.com");
-        dataRow.createCell(13).setCellValue("Manager");
+        dataRow.createCell(1).setCellValue(123456);
+        dataRow.createCell(2).setCellValue("Group1");
+        dataRow.createCell(3).setCellValue("John Doe");
+        dataRow.createCell(4).setCellValue("Зарегистрирован");
+        dataRow.createCell(5).setCellValue("No comment");
+        dataRow.createCell(6).setCellValue("didn't answer");
+        dataRow.createCell(7).setCellValue("Практика в ИТМО");
+        dataRow.createCell(8).setCellValue("Онлайн");
+        dataRow.createCell(9).setCellValue(123456789);
+        dataRow.createCell(10).setCellValue("Company1");
+        dataRow.createCell(11).setCellValue("Jane Doe");
+        dataRow.createCell(12).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(13).setCellValue("jane.doe@example.com");
+        dataRow.createCell(14).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
