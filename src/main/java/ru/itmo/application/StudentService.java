@@ -39,6 +39,15 @@ public class StudentService {
         return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
     }
 
+    public static Optional<String> findActiveEduStreamNameByChatId(long chatId) throws InternalException {
+        List<Student> students = StudentRepository.findAllByChatId(chatId);
+        for (var student : students) {
+            if (EduStreamChecker.isActiveStream(student.getEduStream()))
+                return Optional.of(student.getEduStream().getName());
+        }
+        return Optional.empty();
+    }
+
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
        ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
