@@ -1,20 +1,18 @@
-package ru.itmo.infra.handler.usecase.studentregistration;
+package ru.itmo.infra.handler.usecase.companyinfoinput.company;
 
 import lombok.SneakyThrows;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
 
-public class StudentRegistrationStartCommand implements Command {
-    @Override
+public class AskingCompanyNameCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationISUCommand());
+        var chatId = message.getChatId();
+        ContextHolder.setNextCommand(chatId, new InputCompanyNameCommand());
         return MessageToUser.builder()
-                .text("Введите название вашего потока")
-                .keyboardMarkup(new ReplyKeyboardRemove(true))
+                .text("Введите название компании")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();
@@ -27,6 +25,6 @@ public class StudentRegistrationStartCommand implements Command {
 
     @Override
     public String getName() {
-        return "/register";
+        return "/company_name";
     }
 }

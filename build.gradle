@@ -102,7 +102,7 @@ jacocoTestCoverageVerification {
                             '**/handler/**',
                             '**/interceptor/**',
                             '**/domain/dto/**',
-                            '**/application/**',
+                            '**/application/StudentService.class',
                             '**/bot/**',
                             '**/excel/Generator.class',
                             '**/html/**',

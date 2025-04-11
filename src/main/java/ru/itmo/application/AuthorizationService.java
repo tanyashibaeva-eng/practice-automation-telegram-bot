@@ -6,8 +6,8 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.storage.StudentRepository;
 import ru.itmo.infra.storage.TelegramUserRepository;
+import ru.itmo.util.EduStreamChecker;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -39,7 +39,7 @@ public class AuthorizationService {
         for (var student : studentList) {
             /* если нашлась хотя бы одна запись, в которой практика еще не завершена, значит это активная практика,
                следовательно студент уже зарегистрирован на текущий поток */
-            if (student.getEduStream().getDateTo().isAfter(LocalDate.now()))
+            if (EduStreamChecker.isActiveStream(student.getEduStream()))
                 return false;
         }
 
@@ -51,11 +51,11 @@ public class AuthorizationService {
     }
 
     public static boolean canStudentSubmitApplication(long chatId) throws InternalException {
-        return canStudentDoActionByStatus(chatId, Set.of(StudentStatus.APPLICATION_WAITING_SUBMISSION, StudentStatus.APPLICATION_RETURNED));
+        return canStudentDoActionByStatus(chatId, Set.of(StudentStatus.APPLICATION_WAITING_SUBMISSION, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING));
     }
 
     public static boolean canStudentDownloadApplication(long chatId) throws InternalException {
-        return canStudentDoActionByStatus(chatId, Set.of(StudentStatus.APPLICATION_WAITING_SIGNING));
+        return canStudentDoActionByStatus(chatId, Set.of(StudentStatus.APPLICATION_WAITING_SUBMISSION, StudentStatus.APPLICATION_RETURNED));
     }
 
     private static boolean canStudentDoActionByStatus(long chatId, Set<StudentStatus> requiredStatusSet) throws InternalException {
@@ -69,7 +69,7 @@ public class AuthorizationService {
 
         List<Student> studentList = StudentRepository.findAllByChatId(chatId);
         for (var student : studentList) {
-            if (student.getEduStream().getDateTo().isBefore(LocalDate.now()))
+            if (!EduStreamChecker.isActiveStream(student.getEduStream()))
                 continue;
             if (requiredStatusSet.contains(student.getStatus()))
                 return true;

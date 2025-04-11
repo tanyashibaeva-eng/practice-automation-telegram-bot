@@ -26,7 +26,10 @@ public class StudentRegistrationProcessISUCommand implements Command {
         }
 
         var student = isuResp.getStudent();
-        var dto = UserRegistrationArgs.builder().isu(isuResp.getIsu()).build(); // TODO: подумать возможно класть просто студента
+        var dto = UserRegistrationArgs.builder()
+                .username(student.getFullName())
+                .isu(isuResp.getIsu())
+                .build();
         ContextHolder.setCommandData(chatId, dto);
         ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
         return MessageToUser.builder()
