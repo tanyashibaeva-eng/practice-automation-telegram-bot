@@ -109,8 +109,13 @@ public class TelegramUserService {
         return TelegramUserRepository.findByChatId(chatId);
     }
 
-    public static boolean banUser(TelegramUser telegramUser) throws InternalException, BadRequestException {
-        doesExistOrThrow(telegramUser.getChatId());
+    public static boolean banUser(long chatId) throws InternalException, BadRequestException {
+        doesExistOrThrow(chatId);
+        var tgUserOpt = TelegramUserRepository.findByChatId(chatId);
+        if (tgUserOpt.isEmpty()) {
+            return true;
+        }
+        var telegramUser = tgUserOpt.get();
         telegramUser.setBanned(true);
 
         List<EduStream> activeEduStreams = EduStreamRepository.findAll().stream().filter(EduStreamChecker::isActiveStream).toList();
@@ -133,7 +138,7 @@ public class TelegramUserService {
 
         boolean wasDeleted = true;
         if (eduStream != null)
-            wasDeleted = StudentRepository.deleteByChatIdAndEduStreamName(telegramUser.getChatId(), eduStream);
+            wasDeleted = StudentRepository.deleteByChatId(telegramUser.getChatId());
 
         return wasDeleted && TelegramUserRepository.updateByChatId(telegramUser);
     }

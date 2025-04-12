@@ -1,0 +1,62 @@
+package ru.itmo.infra.handler.usecase.admin.downloadapplication;
+
+import lombok.SneakyThrows;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
+import ru.itmo.application.ContextHolder;
+import ru.itmo.application.StudentService;
+import ru.itmo.bot.MessageDTO;
+import ru.itmo.bot.MessageToUser;
+import ru.itmo.exception.BadRequestException;
+import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.util.TextParser;
+
+public class DownloadApplicationCommand implements Command {
+    @Override
+    @SneakyThrows
+    public MessageToUser execute(MessageDTO message) {
+        try {
+            var messageText = message.getText().trim().replaceAll(" +", " ");
+            var fields = messageText.split(" ");
+            if (fields.length < 2) {
+                throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/application <studentChatId>`");
+            }
+
+            var studentChatIdStr = fields[1];
+            long studentChatId;
+            try {
+                studentChatId = TextParser.parseDoubleToLong(studentChatIdStr);
+            } catch (BadRequestException e) {
+                throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
+            }
+
+            var file = StudentService.getApplicationFile(studentChatId);
+            ContextHolder.endCommand(message.getChatId());
+            return MessageToUser.builder()
+                    .text("Заявка студента %d:".formatted(studentChatId))
+                    .document(file)
+                    .build();
+        } catch (BadRequestException e) {
+            ContextHolder.endCommand(message.getChatId());
+            return MessageToUser.builder()
+                    .text(e.getMessage())
+                    .keyboardMarkup(new ReplyKeyboardRemove(true))
+                    .needRewriting(true)
+                    .build();
+        }
+    }
+
+    @Override
+    public boolean isNextCallNeeded() {
+        return true;
+    }
+
+    @Override
+    public boolean isAdminCommand() {
+        return true;
+    }
+
+    @Override
+    public String getName() {
+        return "/application";
+    }
+}

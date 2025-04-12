@@ -17,6 +17,10 @@ public interface Command {
 
     boolean isNextCallNeeded();
 
+    default boolean isAdminCommand() {
+        return false;
+    }
+
     String getName();
 
     default ReplyKeyboard getReturnToStartMarkup() {
