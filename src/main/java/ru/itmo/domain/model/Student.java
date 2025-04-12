@@ -1,16 +1,22 @@
 package ru.itmo.domain.model;
 
 import lombok.*;
+import org.apache.poi.ss.formula.functions.T;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
+import ru.itmo.domain.dto.ForceUpdateDTO;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.BadRequestException;
+import ru.itmo.util.TextParser;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 @Getter
 @NoArgsConstructor
@@ -75,6 +81,57 @@ public class Student {
                 null,
                 false
         );
+    }
+
+    public List<String> forceUpdateOrGetErrors(ForceUpdateDTO dto) {
+        var errors = new ArrayList<String>();
+
+        try {
+            if (dto.getStatus() != null) this.status = TextParser.parseStatus(dto.getStatus());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        try {
+            if (dto.getPracticePlace() != null) this.practicePlace = TextParser.parsePracticePlace(dto.getStatus());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        try {
+            if (dto.getPracticeFormat() != null) this.practiceFormat = TextParser.parsePracticeFormat(dto.getStatus());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        try {
+            if (dto.getCompanyINN() != null) this.companyINN = TextParser.parseDoubleToLong(dto.getCompanyINN());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        if (dto.getCompanyName() != null) this.companyName = dto.getCompanyName();
+
+        if (dto.getCompanyLeadFullName() != null) this.companyLeadFullName = dto.getCompanyLeadFullName();
+
+        try {
+            if (dto.getCompanyLeadPhone() != null)
+                this.companyLeadPhone = TextParser.parsePhone(dto.getCompanyLeadPhone());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        try {
+            if (dto.getCompanyLeadEmail() != null)
+                this.companyLeadEmail = TextParser.parseEmail(dto.getCompanyLeadEmail());
+        } catch (BadRequestException e) {
+            errors.add(e.getMessage());
+        }
+
+        if (dto.getCompanyLeadJobTitle() != null) this.companyLeadJobTitle = dto.getCompanyLeadJobTitle();
+
+        this.managedManually = true;
+        return errors;
     }
 
     public List<String> updateOrGetErrors(ExcelStudentDTO dto) {
@@ -156,12 +213,13 @@ public class Student {
         }
         return this.isBaseRequiredFieldsFilled() && this.practiceFormat != null &&
                 this.practiceFormat != PracticeFormat.NOT_SPECIFIED &&
-                this.companyINN != null && this.companyName != null;
+                this.companyINN != null && this.companyName != null &&
+                this.companyLeadFullName != null &&
+                this.companyLeadPhone != null && this.companyLeadEmail != null && this.companyLeadJobTitle != null;
     }
 
     private boolean isApplicationInfoFieldsFilled() {
-        return this.isCompanyInfoFieldsFilled() && this.companyLeadFullName != null &&
-                this.companyLeadPhone != null && this.companyLeadEmail != null && this.companyLeadJobTitle != null;
+        return this.isCompanyInfoFieldsFilled();
     }
 
     private boolean isRequiredFieldsForCurrentStatusFilled() {

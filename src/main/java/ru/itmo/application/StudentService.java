@@ -3,11 +3,11 @@ package ru.itmo.application;
 import lombok.extern.java.Log;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.ForceUpdateDTO;
 import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
-import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.client.NalogRuClient;
@@ -80,14 +80,13 @@ public class StudentService {
             }
 
             for (var d : dtos) {
-                studentInfoToStudents.put("%d-%s-%s".formatted(d.getIsu(), d.getFullName(), d.getStGroup()), d);
+                studentInfoToStudents.put("%s-%d-%s-%s".formatted(d.getChatId() == null ? "" : d.getChatId(), d.getIsu(), d.getFullName(), d.getStGroup()), d);
             }
         }
 
         var hasErrors = false;
         for (var s : students) {
-//            var tgUser = s.getTelegramUser();
-            var key = "%d-%s-%s".formatted(s.getIsu(), s.getFullName(), s.getStGroup());
+            var key = "%s-%d-%s-%s".formatted(s.getTelegramUser() == null ? "" : s.getTelegramUser().getChatId(), s.getIsu(), s.getFullName(), s.getStGroup());
             if (studentInfoToStudents.containsKey(key)) {
                 var d = studentInfoToStudents.get(key);
                 var errors = s.updateOrGetErrors(d);
@@ -221,7 +220,7 @@ public class StudentService {
                 .build();
     }
 
-    public static ApplicationFillingResult generateApplicationFileByStudent(long chatId) throws InternalException {
+    public static ApplicationFillingResult generateApplicationFileByChatId(long chatId) throws InternalException {
         // ищем студента в активных потоках
         var students = StudentRepository.findAllByChatId(chatId);
         Student currStudent = null;
@@ -246,47 +245,9 @@ public class StudentService {
             return resBuilder.build();
         }
 
-        return resBuilder.file(generateFromTemplate(currStudent)).build();
-    }
-
-    public static ApplicationFillingResult generateApplicationFileByAdmin(int isu, String eduStreamName) throws InternalException {
-        var resBuilder = ApplicationFillingResult.builder();
-        List<Student> students;
-        try {
-            students = StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
-        } catch (BadRequestException e) {
-            resBuilder.errorText("Студент с ИСУ %d не найден в потоке %s".formatted(isu, eduStreamName));
-            return resBuilder.build();
-        }
-
-        Student currStudent = null;
-        StudentStatus status;
-        for (var student : students) {
-            status = student.getStatus();
-            if (Set.of(
-                    StudentStatus.APPLICATION_WAITING_SIGNING,
-                    StudentStatus.APPLICATION_WAITING_APPROVAL,
-                    StudentStatus.APPLICATION_RETURNED,
-                    StudentStatus.APPLICATION_SIGNED
-            ).contains(status)) {
-                currStudent = student;
-                break;
-            }
-        }
-
-        // если не нашли – значит не генерируем заявку
-        if (currStudent == null) {
-            resBuilder.errorText("Для студента с ИСУ %d в потоке %s сейчас нельзя выгрузить заявку (неверный статус)".formatted(isu, eduStreamName));
-            return resBuilder.build();
-        }
-
-        return resBuilder.file(generateFromTemplate(currStudent)).build();
-    }
-
-    private static File generateFromTemplate(Student currStudent) throws InternalException {
         var formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
 
-        return DocxGenerator.fillApplicationTemplate(new ApplicationDTO(
+        var file = DocxGenerator.fillApplicationTemplate(new ApplicationDTO(
                 currStudent.getFullName(),
                 currStudent.getStGroup(),
                 currStudent.getEduStream().getDateFrom().format(formatter),
@@ -294,5 +255,36 @@ public class StudentService {
                 currStudent.getPracticeFormat() == PracticeFormat.OFFLINE ? "Очно" : "С применением дистанционных технологий",
                 currStudent.getCompanyName()
         ));
+        return resBuilder.file(file).build();
     }
+
+    public static List<Student> getStudentsByChatId(long chatId) throws InternalException {
+        return StudentRepository.findAllByChatId(chatId);
+    }
+
+    public static List<String> forceUpdateStudent(ForceUpdateDTO dto) throws InternalException {
+        try {
+            var eduStreamName = EduStreamRepository.findByName(new EduStream(dto.getEduStreamName()));
+            if (eduStreamName.isEmpty()) {
+                throw new BadRequestException("Поток с именем %s не найден".formatted(dto.getEduStreamName()));
+            }
+
+            var stOpt = StudentRepository.findByChatIdAndEduStreamName(dto.getChatId(), eduStreamName.get());
+            if (stOpt.isEmpty()) {
+                throw new BadRequestException("Студент с chatId %d не найден в потоке %s".formatted(dto.getChatId(), dto.getEduStreamName()));
+            }
+
+            var student = stOpt.get();
+            var errors = student.forceUpdateOrGetErrors(dto);
+            if (!errors.isEmpty()) {
+                return errors;
+            }
+
+            // TODO: add into repo
+            return List.of();
+        } catch (BadRequestException e) {
+            return List.of(e.getMessage());
+        }
+    }
+
 }

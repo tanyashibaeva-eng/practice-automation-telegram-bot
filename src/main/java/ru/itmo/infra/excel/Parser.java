@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Log
 public class Parser {
     private static final String[] columns = {
+            "chatID",
             "ИСУ",
             "Группа",
             "ФИО",
@@ -102,7 +103,7 @@ public class Parser {
             if (row == null) continue;
 
             var count = 0;
-            for (int i : new int[]{0, 1, 2, 3}) {
+            for (int i : new int[]{1, 2, 3, 4}) {
                 if (row.getCell(i) == null) {
                     count++;
                     addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i + 1]), errorsByRows);
@@ -114,23 +115,25 @@ public class Parser {
             }
 
             try {
-                var isu = parseInt(row.getCell(0), errorsByRows, false);
-                var group = parseString(row.getCell(1), errorsByRows, false);
-                var fullName = parseString(row.getCell(2), errorsByRows, false);
-                var status = parseStatus(row.getCell(3), errorsByRows);
-                var comment = parseString(row.getCell(4), errorsByRows, true);
-                var callStatusComments = parseString(row.getCell(5), errorsByRows, true);
-                var practicePlace = parsePracticePlace(row.getCell(6), errorsByRows);
-                var practiceFormat = parsePracticeFormat(row.getCell(7), errorsByRows);
-                var companyINN = parseLong(row.getCell(8), errorsByRows, true);
-                var companyName = parseString(row.getCell(9), errorsByRows, true);
-                var leadFullName = parseString(row.getCell(10), errorsByRows, true);
-                var leadPhone = parsePhone(row.getCell(11), errorsByRows, true);
-                var leadEmail = parseEmail(row.getCell(12), errorsByRows, true);
-                var leadJobTitle = parseString(row.getCell(13), errorsByRows, true);
+                var chatId = parseLong(row.getCell(0), errorsByRows, true);
+                var isu = parseInt(row.getCell(1), errorsByRows, false);
+                var group = parseString(row.getCell(2), errorsByRows, false);
+                var fullName = parseString(row.getCell(3), errorsByRows, false);
+                var status = parseStatus(row.getCell(4), errorsByRows);
+                var comment = parseString(row.getCell(5), errorsByRows, true);
+                var callStatusComments = parseString(row.getCell(6), errorsByRows, true);
+                var practicePlace = parsePracticePlace(row.getCell(7), errorsByRows);
+                var practiceFormat = parsePracticeFormat(row.getCell(8), errorsByRows);
+                var companyINN = parseLong(row.getCell(9), errorsByRows, true);
+                var companyName = parseString(row.getCell(10), errorsByRows, true);
+                var leadFullName = parseString(row.getCell(11), errorsByRows, true);
+                var leadPhone = parsePhone(row.getCell(12), errorsByRows, true);
+                var leadEmail = parseEmail(row.getCell(13), errorsByRows, true);
+                var leadJobTitle = parseString(row.getCell(14), errorsByRows, true);
                 var cellHexColor = parseCellColor(row.getCell(2));
 
                 var studentDTO = new ExcelStudentDTO(
+                        chatId,
                         isu,
                         group,
                         fullName,
@@ -155,46 +158,6 @@ public class Parser {
         }
 
         return new StudentsWithErrors(students, errorsByRows);
-    }
-
-    private static List<ExcelStudentInfoDTO> parseCreateStudents(Iterator<Row> rowIterator, String group) throws InternalException {
-        var students = new ArrayList<ExcelStudentInfoDTO>();
-        var errorsByRows = new HashMap<Integer, List<String>>();
-
-        while (rowIterator.hasNext()) {
-            var row = rowIterator.next();
-            if (row == null) continue;
-
-            var count = 0;
-            for (int i : new int[]{1, 2}) {
-                if (row.getCell(i) == null) {
-                    count++;
-                    addErr(row.getRowNum(), "Поле \"%s\" должно быть заполнено".formatted(i == 1 ? "ИСУ" : "ФИО"), errorsByRows);
-                }
-            }
-            if (count == 2) {
-                errorsByRows.remove(row.getRowNum());
-                continue;
-            }
-
-            try {
-                var isu = parseInt(row.getCell(1), errorsByRows, false);
-                var fullName = parseString(row.getCell(2), errorsByRows, false);
-
-                var studentDTO = new ExcelStudentInfoDTO(
-                        group,
-                        isu,
-                        fullName,
-                        row.getRowNum(),
-                        errorsByRows.get(row.getRowNum())
-                );
-                students.add(studentDTO);
-            } catch (Exception e) {
-                throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
-            }
-        }
-
-        return students;
     }
 
     public static String parseCellColor(Cell cell) {
