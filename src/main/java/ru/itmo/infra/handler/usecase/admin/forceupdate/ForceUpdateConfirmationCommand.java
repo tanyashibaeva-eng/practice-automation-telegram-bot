@@ -4,11 +4,9 @@ import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
-import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.ForceUpdateDTO;
-import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.infra.handler.usecase.Command;
 
 public class ForceUpdateConfirmationCommand implements Command {

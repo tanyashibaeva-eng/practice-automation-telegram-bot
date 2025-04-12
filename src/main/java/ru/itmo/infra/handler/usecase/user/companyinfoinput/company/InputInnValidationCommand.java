@@ -60,9 +60,4 @@ public class InputInnValidationCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/company_practice";
-    }
 }

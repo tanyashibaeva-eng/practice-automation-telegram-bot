@@ -22,9 +22,4 @@ public class AskingApproveNoContractCompanyCommand implements Command {
     public boolean isNextCallNeeded() {
         return false;
     }
-
-    @Override
-    public String getName() {
-        return "/contract_with_company";
-    }
 }

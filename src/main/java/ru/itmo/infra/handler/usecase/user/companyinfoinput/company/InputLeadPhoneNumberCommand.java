@@ -5,9 +5,9 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
-
-import java.util.regex.Pattern;
+import ru.itmo.util.TextParser;
 
 public class InputLeadPhoneNumberCommand implements Command {
     @SneakyThrows
@@ -34,20 +34,20 @@ public class InputLeadPhoneNumberCommand implements Command {
     }
 
     private boolean isValidPhoneNumber(String phone) {
-        if (phone == null) {
+        if (phone == null || phone.trim().isEmpty()) {
             return false;
         }
-        Pattern PHONE_PATTERN = Pattern.compile("^(\\+7|8)[\\s\\-]?\\(?\\d{3}\\)?[\\s\\-]?\\d{3}[\\s\\-]?\\d{2}[\\s\\-]?\\d{2}$");
-        return PHONE_PATTERN.matcher(phone).matches();
+        try {
+            TextParser.parsePhone(phone);
+        } catch (BadRequestException e) {
+            return false;
+        }
+        String digitsOnly = phone.replaceAll("[^0-9]", "");
+        return digitsOnly.startsWith("+7") || digitsOnly.startsWith("8");
     }
 
     @Override
     public boolean isNextCallNeeded() {
         return true;
-    }
-
-    @Override
-    public String getName() {
-        return "";
     }
 }

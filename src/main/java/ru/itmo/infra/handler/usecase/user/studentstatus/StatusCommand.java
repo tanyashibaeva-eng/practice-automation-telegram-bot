@@ -26,4 +26,9 @@ public class StatusCommand implements Command {
     public String getName() {
         return "/status";
     }
+
+    @Override
+    public String getDescription() {
+        return "Узнать статус";
+    }
 }

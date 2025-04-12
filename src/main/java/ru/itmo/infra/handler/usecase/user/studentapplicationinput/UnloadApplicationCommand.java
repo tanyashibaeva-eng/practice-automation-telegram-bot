@@ -30,4 +30,8 @@ public class UnloadApplicationCommand implements Command {
         return "/unload_application";
     }
 
+    @Override
+    public String getDescription() {
+        return "Загрузить заявку";
+    }
 }

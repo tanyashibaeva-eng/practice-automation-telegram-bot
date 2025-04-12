@@ -21,7 +21,13 @@ public interface Command {
         return false;
     }
 
-    String getName();
+    default String getName(){
+        return "";
+    }
+
+    default String getDescription() {
+        return "";
+    }
 
     default ReplyKeyboard getReturnToStartMarkup() {
         return InlineKeyboardMarkup.builder()

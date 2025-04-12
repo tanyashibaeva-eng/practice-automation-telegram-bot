@@ -37,9 +37,4 @@ public class InputCompanyNameCommand implements Command {
     public boolean isNextCallNeeded() {
         return false;
     }
-
-    @Override
-    public String getName() {
-        return "/company_name";
-    }
 }

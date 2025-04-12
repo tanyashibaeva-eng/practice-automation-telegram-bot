@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.user.greeting;
+package ru.itmo.infra.handler.usecase.start;
 
 import lombok.NoArgsConstructor;
 import lombok.SneakyThrows;
@@ -10,13 +10,15 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
 
 @NoArgsConstructor
-public class GreetingCommand implements Command {
+public class StartCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
+        Handler.updateCommandsDropOut(message.getChatId());
         ContextHolder.endCommand(message.getChatId());
         return MessageToUser.builder()
                 .text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!")
@@ -34,6 +36,11 @@ public class GreetingCommand implements Command {
     @Override
     public String getName() {
         return "/start";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Главное меню";
     }
 
     private static ReplyKeyboard getMarkupKeyboardForStart() {

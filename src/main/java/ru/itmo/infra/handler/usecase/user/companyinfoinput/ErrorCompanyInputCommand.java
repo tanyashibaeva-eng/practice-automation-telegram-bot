@@ -23,9 +23,4 @@ public class ErrorCompanyInputCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/practice_error";
-    }
 }

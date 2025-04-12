@@ -84,7 +84,6 @@ public class TelegramUserService {
         if (shouldDuplicateStudent) {
             // TODO: somehow notify admins
         }
-
         return resultBuilder.errorText("").build();
     }
 

@@ -27,11 +27,6 @@ public class AskingPracticeFormatCommand implements Command {
         return false;
     }
 
-    @Override
-    public String getName() {
-        return "/choose_practice_place";
-    }
-
     public static ReplyKeyboard getPracticePlaceKeyboard() {
         var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
         replyKeyboardMarkupBuilder.resizeKeyboard(true);

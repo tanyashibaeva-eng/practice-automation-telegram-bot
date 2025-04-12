@@ -41,9 +41,4 @@ public class InputApproveNoContractCompanyCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/contract_confirmation";
-    }
 }

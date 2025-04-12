@@ -46,9 +46,4 @@ public class StudentInputConfirmationCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/student_input_confirmation";
-    }
 }

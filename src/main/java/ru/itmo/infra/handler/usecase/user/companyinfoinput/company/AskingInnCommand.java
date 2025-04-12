@@ -22,9 +22,4 @@ public class AskingInnCommand implements Command {
     public boolean isNextCallNeeded() {
         return false;
     }
-
-    @Override
-    public String getName() {
-        return "/where_company";
-    }
 }

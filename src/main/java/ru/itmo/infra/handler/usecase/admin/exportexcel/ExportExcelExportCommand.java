@@ -29,4 +29,9 @@ public class ExportExcelExportCommand implements Command {
     public String getName() {
         return "/export";
     }
+
+    @Override
+    public String getDescription() {
+        return "Получить excel выгрузку";
+    }
 }
