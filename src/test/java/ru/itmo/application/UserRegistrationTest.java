@@ -98,7 +98,7 @@ public class UserRegistrationTest {
 
             EduStreamRepository.save(streamA);
             EduStreamRepository.save(streamB);
-            StudentRepository.saveBatch(List.of(studentAStreamA, studentAStreamB));
+            StudentRepository.saveBaseBatch(List.of(studentAStreamA, studentAStreamB));
 
         } catch (BadRequestException | InternalException ex) {
             throw new RuntimeException(ex);

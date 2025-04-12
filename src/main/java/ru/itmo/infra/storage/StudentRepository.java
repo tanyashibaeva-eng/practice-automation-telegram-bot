@@ -22,7 +22,7 @@ public class StudentRepository {
 
     private static final Connection connection = DatabaseManager.getConnection();
 
-    public static void saveBatch(List<Student> students) throws InternalException {
+    public static void saveBaseBatch(List<Student> students) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     INSERT INTO student (
                         edu_stream_name,
@@ -246,9 +246,7 @@ public class StudentRepository {
         }
     }
 
-    @Deprecated
-    /* ^^^ помечаю, что есть баг. TODO: нужно подвязываться к eduStreamName тоже, сейчас метод работает некорректно */
-    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     UPDATE student SET
                         status = ?,
@@ -260,7 +258,7 @@ public class StudentRepository {
                         company_lead_phone = ?,
                         company_lead_email = ?,
                         company_lead_job_title = ?
-                    WHERE chat_id = ?;
+                    WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
@@ -273,6 +271,7 @@ public class StudentRepository {
             statement.setString(8, args.getCompanyLeadEmail());
             statement.setString(9, args.getCompanyLeadJobTitle());
             statement.setLong(10, args.getChatId());
+            statement.setString(11, eduStreamName);
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -280,16 +279,14 @@ public class StudentRepository {
         }
     }
 
-    @Deprecated
-    /* ^^^ помечаю, что есть баг. TODO: нужно подвязываться к eduStreamName тоже, сейчас метод работает некорректно */
-    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
+    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args, String eduStreamName) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     UPDATE student SET
                         status = ?,
                         practice_place = ?,
                         company_name = ?,
                         company_lead_fullname = ?,
-                    WHERE chat_id = ?;
+                    WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
@@ -297,6 +294,7 @@ public class StudentRepository {
             statement.setString(3, args.getCompanyName());
             statement.setString(4, args.getCompanyLeadFullName());
             statement.setLong(5, args.getChatId());
+            statement.setString(6, eduStreamName);
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {

@@ -66,8 +66,8 @@ public class Student {
                 this.getStGroup(),
                 this.getFullName(),
                 StudentStatus.NOT_REGISTERED,
-                null,
-                null,
+                "",
+                "",
                 PracticePlace.NOT_SPECIFIED,
                 PracticeFormat.NOT_SPECIFIED,
                 null,
@@ -76,7 +76,7 @@ public class Student {
                 null,
                 null,
                 null,
-                null,
+                "FFFFFF",
                 false,
                 null
         );
