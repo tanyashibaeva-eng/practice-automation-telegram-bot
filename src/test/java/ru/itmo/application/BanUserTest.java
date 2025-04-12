@@ -22,12 +22,11 @@ import java.util.List;
 import java.util.Optional;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class StudentApplicationBytesTest {
+public class BanUserTest {
 
     private static final TelegramUser telegramUser;
     private static final EduStream eduStream;
     private static final Student student;
-    private static final byte[] newBytes = new byte[]{99, 98, 97, 96};
 
     static {
         telegramUser = new TelegramUser(123, false, false, "user");
@@ -62,7 +61,7 @@ public class StudentApplicationBytesTest {
                 "manager 2",
                 "2",
                 false,
-                new byte[]{123, 98, 123, 0, 22}
+                null
         );
 
         try {
@@ -83,32 +82,22 @@ public class StudentApplicationBytesTest {
 
     @Order(1)
     @Test
-    void findAllTest() throws InternalException {
-        Assertions.assertEquals(List.of(student), StudentRepository.findAll());
+    void banUserTest() throws BadRequestException, InternalException {
+        Assertions.assertDoesNotThrow(() -> TelegramUserService.banUser(telegramUser));
+        Optional<TelegramUser> telegramUserOpt = TelegramUserService.findByChatId(telegramUser.getChatId());
+        Assertions.assertTrue(telegramUserOpt.isPresent() && telegramUserOpt.get().isBanned());
+        Assertions.assertEquals(
+                student.duplicateBase(),
+                StudentService.findAllStudentsByIsuAndEduStreamName(student.getIsu(), eduStream.getName()).get(0)
+        );
     }
 
     @Order(2)
     @Test
-    void findApplicationBytesTest() throws InternalException {
-        Optional<byte[]> bytesOpt = StudentService.findApplicationBytesByChatId(telegramUser.getChatId());
-
-        Assertions.assertTrue(bytesOpt.isPresent());
-        Assertions.assertArrayEquals(
-                student.getApplicationBytes(),
-                bytesOpt.get()
-        );
-    }
-
-    @Order(3)
-    @Test
-    void updateApplicationBytesTest() throws InternalException {
-        Assertions.assertDoesNotThrow(() ->
-                StudentService.updateApplicationBytesByChatIdAndEduStreamName(telegramUser.getChatId(), eduStream.getName(), newBytes));
-
-        List<Student> students = StudentRepository.findAll();
-
-        Assertions.assertEquals(1, students.size());
-        Assertions.assertArrayEquals(newBytes, students.get(0).getApplicationBytes());
+    void unbanUserTest() throws InternalException {
+        Assertions.assertDoesNotThrow(() -> TelegramUserService.unbanUser(telegramUser));
+        Optional<TelegramUser> telegramUserOpt = TelegramUserService.findByChatId(telegramUser.getChatId());
+        Assertions.assertTrue(telegramUserOpt.isPresent() && !telegramUserOpt.get().isBanned());
     }
 
     @AfterAll
@@ -121,4 +110,5 @@ public class StudentApplicationBytesTest {
             statement.executeUpdate();
         }
     }
+
 }
