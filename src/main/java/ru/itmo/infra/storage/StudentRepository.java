@@ -233,12 +233,11 @@ public class StudentRepository {
         }
     }
 
-    public static boolean deleteByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
+    public static boolean deleteByChatId(long chatId) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "DELETE FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
+                "DELETE FROM student WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setString(2, eduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {

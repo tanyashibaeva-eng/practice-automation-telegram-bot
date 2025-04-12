@@ -87,18 +87,6 @@ public class StudentApplicationBytesTest {
         Assertions.assertEquals(List.of(student), StudentRepository.findAll());
     }
 
-    @Order(2)
-    @Test
-    void findApplicationBytesTest() throws InternalException {
-        Optional<byte[]> bytesOpt = StudentService.findApplicationBytesByChatId(telegramUser.getChatId());
-
-        Assertions.assertTrue(bytesOpt.isPresent());
-        Assertions.assertArrayEquals(
-                student.getApplicationBytes(),
-                bytesOpt.get()
-        );
-    }
-
     @Order(3)
     @Test
     void updateApplicationBytesTest() throws InternalException {

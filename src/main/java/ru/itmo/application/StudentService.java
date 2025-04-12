@@ -1,6 +1,7 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import org.apache.commons.io.FileUtils;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
@@ -69,13 +70,23 @@ public class StudentService {
         return StudentRepository.updateITMOPracticeInfo(args, eduStreamNameOpt.get());
     }
 
-    public static Optional<byte[]> findApplicationBytesByChatId(long chatId) throws InternalException {
-        List<Student> students = StudentRepository.findAllByChatId(chatId);
-        for (var student : students) {
-            if (EduStreamChecker.isActiveStream(student.getEduStream()))
-                return Optional.of(student.getApplicationBytes());
+    public static File getApplicationFile(long chatId) throws InternalException, BadRequestException {
+        try {
+            List<Student> students = StudentRepository.findAllByChatId(chatId);
+            for (var student : students) {
+                if (EduStreamChecker.isActiveStream(student.getEduStream())) {
+                    if (student.getApplicationBytes() == null) {
+                        throw new BadRequestException("Нельзя выкачать заявку для студента %s, так как она еще не загружена".formatted(student.getFullName()));
+                    }
+                    var application = new File("Заявка - %s".formatted(student.getFullName()));
+                    FileUtils.writeByteArrayToFile(application, student.getApplicationBytes());
+                    return application;
+                }
+            }
+            throw new BadRequestException("Невозможно выкачать заявку, так как студент с chatId %d не найден".formatted(chatId));
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: заявка не может быть выгружена");
         }
-        return Optional.empty();
     }
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
@@ -302,7 +313,7 @@ public class StudentService {
                 return errors;
             }
 
-            // TODO: add into repo
+            StudentRepository.updateBatchByChatIdAndEduStreamName(List.of(student));
             return List.of();
         } catch (BadRequestException e) {
             return List.of(e.getMessage());

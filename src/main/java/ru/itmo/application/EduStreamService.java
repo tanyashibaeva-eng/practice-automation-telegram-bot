@@ -34,7 +34,7 @@ public class EduStreamService {
         return EduStreamRepository.findAll();
     }
 
-    private static void doesExistOrThrow(EduStream eduStream) throws InternalException, BadRequestException {
+    public static void doesExistOrThrow(EduStream eduStream) throws InternalException, BadRequestException {
         if (!EduStreamRepository.existsByName(eduStream))
             throw new BadRequestException("Поток с таким именем не найден");
     }

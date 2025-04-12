@@ -13,14 +13,16 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.companyinfoinput.ChoosePracticePlaceCommand;
-import ru.itmo.infra.handler.usecase.createedustream.CreateEduStreamStartCommand;
-import ru.itmo.infra.handler.usecase.exportexcel.ExportExcelExportCommand;
-import ru.itmo.infra.handler.usecase.greeting.GreetingCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.DownloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.studentapplicationinput.UnloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.studentregistration.StudentRegistrationStartCommand;
-import ru.itmo.infra.handler.usecase.uploadexcel.UploadExcelStartCommand;
+import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
+import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
+import ru.itmo.infra.handler.usecase.admin.createedustream.CreateEduStreamStartCommand;
+import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelExportCommand;
+import ru.itmo.infra.handler.usecase.user.greeting.GreetingCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelStartCommand;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -44,8 +46,10 @@ public class Handler {
         commands.add(new CreateEduStreamStartCommand());
         commands.add(new StudentRegistrationStartCommand());
         commands.add(new ChoosePracticePlaceCommand());
-        commands.add(new DownloadApplicationCommand());
+        commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
+        commands.add(new BanCommand());
+        commands.add(new DownloadApplicationCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -63,11 +67,12 @@ public class Handler {
         }
 
         var commandText = message.getText();
-        if (!commandsMap.containsKey(commandText)) {
+        var commandName = commandText.split(" ")[0];
+        if (!commandsMap.containsKey(commandName)) {
             return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи").build();
         }
 
-        var command = commandsMap.get(commandText);
+        var command = commandsMap.get(commandName);
         return executeCommand(command, message);
     }
 
