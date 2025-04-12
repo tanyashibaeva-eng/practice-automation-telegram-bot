@@ -7,7 +7,7 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.user.greeting.GreetingCommand;
+import ru.itmo.infra.handler.usecase.start.StartCommand;
 
 public class StudentDownloadApplicationCommand implements Command {
     @Override
@@ -19,7 +19,7 @@ public class StudentDownloadApplicationCommand implements Command {
             System.out.println(fileResp.getErrorText());
         }
         ContextHolder.endCommand(message.getChatId());
-        ContextHolder.setNextCommand(chatId, new GreetingCommand());
+        ContextHolder.setNextCommand(chatId, new StartCommand());
         return MessageToUser.builder()
                 .text("Скачайте и заполните заявку, затем загрузите ее обратно в бота")
                 .keyboardMarkup(new ReplyKeyboardRemove(true))
@@ -36,6 +36,11 @@ public class StudentDownloadApplicationCommand implements Command {
     @Override
     public String getName() {
         return "/download_application";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Скачать заявку";
     }
 
 }

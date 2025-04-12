@@ -20,9 +20,4 @@ public class ApplicationInfoSubmittedCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/application_done";
-    }
 }

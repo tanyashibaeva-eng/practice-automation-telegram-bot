@@ -74,9 +74,4 @@ public class PracticeConfirmationCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/confirm_place";
-    }
 }

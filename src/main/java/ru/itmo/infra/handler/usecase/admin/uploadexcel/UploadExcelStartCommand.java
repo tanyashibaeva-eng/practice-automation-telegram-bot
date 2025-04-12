@@ -22,4 +22,9 @@ public class UploadExcelStartCommand implements Command {
     public String getName() {
         return "/upload";
     }
+
+    @Override
+    public String getDescription() {
+        return "";
+    }
 }

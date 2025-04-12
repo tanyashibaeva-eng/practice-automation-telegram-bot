@@ -9,7 +9,6 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.user.greeting.GreetingCommand;
 import ru.itmo.util.TextParser;
 
 public class BanCommand implements Command {

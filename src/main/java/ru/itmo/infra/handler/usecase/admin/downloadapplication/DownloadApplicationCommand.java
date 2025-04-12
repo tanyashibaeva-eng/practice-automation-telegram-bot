@@ -19,6 +19,7 @@ public class DownloadApplicationCommand implements Command {
             var fields = messageText.split(" ");
             if (fields.length < 2) {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/application <studentChatId>`");
+                // stay_admin  <token>
             }
 
             var studentChatIdStr = fields[1];

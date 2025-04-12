@@ -34,4 +34,9 @@ public class UploadExcelUploadCommand implements Command {
     public String getName() {
         return "";
     }
+
+    @Override
+    public String getDescription() {
+        return "";
+    }
 }

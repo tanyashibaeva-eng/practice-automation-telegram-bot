@@ -54,9 +54,4 @@ public class StudentRegistrationConfirmationCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "";
-    }
 }

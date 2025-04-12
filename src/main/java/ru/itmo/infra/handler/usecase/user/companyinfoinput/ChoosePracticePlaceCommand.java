@@ -33,6 +33,11 @@ public class ChoosePracticePlaceCommand implements Command {
         return "/choose_place";
     }
 
+    @Override
+    public String getDescription() {
+        return "Выбрать практику";
+    }
+
     private static ReplyKeyboard getPracticePlaceKeyboard() {
         var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
         replyKeyboardMarkupBuilder.resizeKeyboard(true);

@@ -47,9 +47,4 @@ public class CompanyInfoConfirmationCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "";
-    }
 }

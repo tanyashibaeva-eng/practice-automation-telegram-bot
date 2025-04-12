@@ -24,9 +24,4 @@ public class StudentRegistrationStartCommand implements Command {
     public boolean isNextCallNeeded() {
         return false;
     }
-
-    @Override
-    public String getName() {
-        return "/register";
-    }
 }

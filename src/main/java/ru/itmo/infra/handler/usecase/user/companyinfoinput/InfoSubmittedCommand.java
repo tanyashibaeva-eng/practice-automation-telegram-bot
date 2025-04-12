@@ -46,9 +46,4 @@ public class InfoSubmittedCommand implements Command {
     public boolean isNextCallNeeded() {
         return true;
     }
-
-    @Override
-    public String getName() {
-        return "/practice_done";
-    }
 }

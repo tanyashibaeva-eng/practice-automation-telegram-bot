@@ -3,18 +3,14 @@ package ru.itmo.infra.handler.usecase.admin.forceupdate;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.EduStreamService;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.ForceUpdateDTO;
-import ru.itmo.domain.dto.command.BanArgs;
-import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.util.TextParser;
 
-import java.util.ArrayList;
 import java.util.Set;
 
 public class ForceUpdateCommand implements Command {

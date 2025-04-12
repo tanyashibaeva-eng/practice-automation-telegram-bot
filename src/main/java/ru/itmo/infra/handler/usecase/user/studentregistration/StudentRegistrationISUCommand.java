@@ -22,9 +22,4 @@ public class StudentRegistrationISUCommand implements Command {
     public boolean isNextCallNeeded() {
         return false;
     }
-
-    @Override
-    public String getName() {
-        return "/input_isu";
-    }
 }

@@ -22,4 +22,9 @@ public class CreateEduStreamStartCommand implements Command {
     public String getName() {
         return "/create_edu_stream";
     }
+
+    @Override
+    public String getDescription() {
+        return "Загрузить файл с потоком";
+    }
 }

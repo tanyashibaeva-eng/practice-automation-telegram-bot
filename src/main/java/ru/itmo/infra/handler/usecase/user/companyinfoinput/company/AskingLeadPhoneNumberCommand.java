@@ -22,9 +22,4 @@ import ru.itmo.infra.handler.usecase.Command;
         public boolean isNextCallNeeded() {
             return false;
         }
-
-        @Override
-        public String getName() {
-            return "";
-        }
     }
