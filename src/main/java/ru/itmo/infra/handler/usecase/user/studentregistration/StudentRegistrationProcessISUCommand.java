@@ -7,11 +7,8 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.UserRegistrationArgs;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.util.TextParser;
 
 public class StudentRegistrationProcessISUCommand implements Command {
-    public static final TextParser textParser = new TextParser();
-
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

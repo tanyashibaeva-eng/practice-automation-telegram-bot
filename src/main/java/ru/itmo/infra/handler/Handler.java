@@ -13,6 +13,7 @@ import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.addAdmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
@@ -48,6 +49,7 @@ public class Handler {
         commands.add(new ChoosePracticePlaceCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
+        commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
         commands.add(new DownloadApplicationCommand());
 
