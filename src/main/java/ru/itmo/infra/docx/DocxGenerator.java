@@ -5,7 +5,9 @@ import org.apache.poi.xwpf.usermodel.XWPFTable;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.exception.InternalException;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.List;
 
 public class DocxGenerator {

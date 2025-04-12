@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.ExcelStudentDTO;
-import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
