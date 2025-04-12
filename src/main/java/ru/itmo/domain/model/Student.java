@@ -218,7 +218,9 @@ public class Student {
     }
 
     private boolean isApplicationInfoFieldsFilled() {
-        return this.isCompanyInfoFieldsFilled();
+        return this.applicationBytes != null
+                && this.applicationBytes.length != 0
+                && this.isCompanyInfoFieldsFilled();
     }
 
     private boolean isRequiredFieldsForCurrentStatusFilled() {
