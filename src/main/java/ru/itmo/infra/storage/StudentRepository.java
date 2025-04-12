@@ -246,6 +246,8 @@ public class StudentRepository {
         }
     }
 
+    @Deprecated
+    /* ^^^ помечаю, что есть баг. TODO: нужно подвязываться к eduStreamName тоже, сейчас метод работает некорректно */
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     UPDATE student SET
@@ -278,6 +280,8 @@ public class StudentRepository {
         }
     }
 
+    @Deprecated
+    /* ^^^ помечаю, что есть баг. TODO: нужно подвязываться к eduStreamName тоже, сейчас метод работает некорректно */
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
         try (var statement = connection.prepareStatement("""
                     UPDATE student SET
@@ -318,7 +322,8 @@ public class StudentRepository {
                         company_lead_email = ?,
                         company_lead_job_title = ?,
                         cell_hex_color = ?,
-                        managed_manually = ?
+                        managed_manually = ?,
+                        application_bytes = ?
                     WHERE (chat_id = ? OR (chat_id IS NULL AND ? IS NULL)) AND isu = ? AND edu_stream_name = ?;
                 """
         )) {
@@ -345,21 +350,37 @@ public class StudentRepository {
                 statement.setString(14, student.getCompanyLeadJobTitle());
                 statement.setString(15, student.getCellHexColor());
                 statement.setBoolean(16, student.isManagedManually());
+                statement.setBytes(17, student.getApplicationBytes());
 
                 if (student.getTelegramUser() != null) {
-                    statement.setLong(17, (student.getTelegramUser().getChatId()));
-                    statement.setLong(18, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
+                    statement.setLong(18, student.getTelegramUser().getChatId());
+                    statement.setLong(19, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
                 } else {
-                    statement.setNull(17, Types.BIGINT);
-                    statement.setNull(18, Types.BIGINT); // второй параметр для проверки на NULL
+                    statement.setNull(18, Types.BIGINT);
+                    statement.setNull(19, Types.BIGINT); // второй параметр для проверки на NULL
                 }
 
-                statement.setInt(19, student.getIsu());
-                statement.setString(20, student.getEduStream().getName());
+                statement.setInt(20, student.getIsu());
+                statement.setString(21, student.getEduStream().getName());
+
                 updated.add(statement.executeUpdate());
             }
 
             return updated.stream().mapToInt(i -> i).toArray();
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "UPDATE student SET application_bytes = ? WHERE chat_id = ? AND edu_stream_name = ?;"
+        )) {
+            statement.setBytes(1, newBytes);
+            statement.setLong(2, chatId);
+            statement.setString(3, eduStreamName);
+            return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -407,7 +428,8 @@ public class StudentRepository {
                     rs.getString("company_lead_email"),
                     rs.getString("company_lead_job_title"),
                     rs.getString("cell_hex_color"),
-                    rs.getBoolean("managed_manually")
+                    rs.getBoolean("managed_manually"),
+                    rs.getBytes("application_bytes")
             );
         }
         return null;

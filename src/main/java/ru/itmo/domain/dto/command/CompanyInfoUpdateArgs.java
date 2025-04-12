@@ -1,6 +1,9 @@
 package ru.itmo.domain.dto.command;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import ru.itmo.domain.type.PracticeFormat;
 
 @AllArgsConstructor

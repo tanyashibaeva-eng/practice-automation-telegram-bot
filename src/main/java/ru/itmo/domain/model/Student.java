@@ -1,7 +1,6 @@
 package ru.itmo.domain.model;
 
 import lombok.*;
-import org.apache.poi.ss.formula.functions.T;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
@@ -11,12 +10,10 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.util.TextParser;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 @Getter
 @NoArgsConstructor
@@ -51,6 +48,7 @@ public class Student {
     private String companyLeadJobTitle;
     private String cellHexColor;
     private boolean managedManually;
+    private byte[] applicationBytes;
 
     public Student(ExcelStudentInfoDTO s, EduStream eduStream) {
         this.eduStream = eduStream;
@@ -79,7 +77,8 @@ public class Student {
                 null,
                 null,
                 null,
-                false
+                false,
+                null
         );
     }
 
@@ -219,7 +218,9 @@ public class Student {
     }
 
     private boolean isApplicationInfoFieldsFilled() {
-        return this.isCompanyInfoFieldsFilled();
+        return this.applicationBytes != null
+                && this.applicationBytes.length != 0
+                && this.isCompanyInfoFieldsFilled();
     }
 
     private boolean isRequiredFieldsForCurrentStatusFilled() {
