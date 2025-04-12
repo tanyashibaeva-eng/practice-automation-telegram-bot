@@ -9,6 +9,7 @@ import ru.itmo.domain.type.StudentStatus;
 @Getter
 @AllArgsConstructor
 public class ExcelStudentDTO {
+    private Long chatId;
     private Integer isu;
     private String stGroup;
     private String fullName;

@@ -209,6 +209,7 @@ public class RepositoriesTest {
     @Test
     void updateTest_ok() throws InternalException {
         List<ExcelStudentDTO> dtoList = students.stream().map(student -> new ExcelStudentDTO(
+                123L,
                 student.getIsu(),
                 "G99",
                 student.getFullName(),
