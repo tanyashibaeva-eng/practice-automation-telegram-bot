@@ -26,7 +26,10 @@ import ru.itmo.util.TextParser;
 import java.io.File;
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
 
 @Log
 public class StudentService {
@@ -58,6 +61,19 @@ public class StudentService {
        название подразделения и ФИО руководителя валидны */
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
         return StudentRepository.updateITMOPracticeInfo(args);
+    }
+
+    public static Optional<byte[]> findApplicationBytesByChatId(long chatId) throws InternalException {
+        List<Student> students = StudentRepository.findAllByChatId(chatId);
+        for (var student : students) {
+            if (EduStreamChecker.isActiveStream(student.getEduStream()))
+                return Optional.of(student.getApplicationBytes());
+        }
+        return Optional.empty();
+    }
+
+    public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
+        return StudentRepository.updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, newBytes);
     }
 
     public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {

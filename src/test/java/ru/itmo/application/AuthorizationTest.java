@@ -75,7 +75,8 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
-                    false
+                    false,
+                    null
             );
             studentWithPreviousRegistrationPrevious = new Student(
                     studentWithPreviousRegistrationUser,
@@ -95,7 +96,8 @@ public class AuthorizationTest {
                     "email@domain.com",
                     "manager",
                     "123123",
-                    false
+                    false,
+                    null
             );
             studentWithPreviousRegistrationCurrent = new Student(
                     null,
@@ -115,7 +117,8 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
-                    false
+                    false,
+                    null
             );
             studentWithRegisteredStatusPrevious = new Student(
                     studentWithRegisteredStatusUser,
@@ -135,7 +138,8 @@ public class AuthorizationTest {
                     "email@domain.com",
                     "manager",
                     "123123",
-                    false
+                    false,
+                    null
             );
             studentWithRegisteredStatus = new Student(
                     studentWithRegisteredStatusUser,
@@ -155,7 +159,8 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
-                    false
+                    false,
+                    null
             );
             studentWithApplicationReturnedStatus = new Student(
                     studentWithApplicationReturnedStatusUser,
@@ -175,7 +180,8 @@ public class AuthorizationTest {
                     "email@domain.com",
                     "manager",
                     "123123",
-                    false
+                    false,
+                    null
             );
             studentWithApplicationWaitingSigningStatus = new Student(
                     studentWithApplicationWaitingSigningStatusUser,
@@ -195,7 +201,8 @@ public class AuthorizationTest {
                     "email@domain.com",
                     "manager",
                     "123123",
-                    false
+                    false,
+                    null
             );
         } catch (BadRequestException ex) {
             throw new RuntimeException(ex);

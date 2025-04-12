@@ -73,7 +73,8 @@ public class RepositoriesTest {
                     "email 1",
                     "manager 1",
                     "1",
-                    false
+                    false,
+                    null
             ),
             new Student(
                     null,
@@ -93,7 +94,8 @@ public class RepositoriesTest {
                     "email 2",
                     "manager 2",
                     "2",
-                    false
+                    false,
+                    new byte[]{123, 98, 123, 0, 22}
             ),
             new Student(
                     null,
@@ -113,7 +115,8 @@ public class RepositoriesTest {
                     "email 3",
                     "manager 3",
                     "3",
-                    false
+                    false,
+                    new byte[]{0x14}
             )
     );
 
@@ -282,8 +285,9 @@ public class RepositoriesTest {
                         company_lead_email,
                         company_lead_job_title,
                         cell_hex_color,
-                        managed_manually
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        managed_manually,
+                        application_bytes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """
         )) {
             for (var student : students) {
@@ -309,6 +313,7 @@ public class RepositoriesTest {
                 statement.setString(15, student.getCompanyLeadJobTitle());
                 statement.setString(16, student.getCellHexColor());
                 statement.setBoolean(17, student.isManagedManually());
+                statement.setBytes(18, student.getApplicationBytes());
                 statement.addBatch();
             }
             statement.executeBatch();
