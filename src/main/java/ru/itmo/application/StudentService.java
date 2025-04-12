@@ -34,7 +34,7 @@ import java.util.Optional;
 @Log
 public class StudentService {
 
-    public static List<Student> findStudentByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
+    public static List<Student> findAllStudentsByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
         return StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
     }
 
@@ -53,14 +53,20 @@ public class StudentService {
 
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
        ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
-    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException {
-        return StudentRepository.updateCompanyInfo(args);
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(args.getChatId());
+        if (eduStreamNameOpt.isEmpty())
+            throw new BadRequestException("Студент не находится ни в одном активном потоке");
+        return StudentRepository.updateCompanyInfo(args, eduStreamNameOpt.get());
     }
 
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о практике в ИТМО (статус соответствует),
        название подразделения и ФИО руководителя валидны */
-    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException {
-        return StudentRepository.updateITMOPracticeInfo(args);
+    public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(args.getChatId());
+        if (eduStreamNameOpt.isEmpty())
+            throw new BadRequestException("Студент не находится ни в одном активном потоке");
+        return StudentRepository.updateITMOPracticeInfo(args, eduStreamNameOpt.get());
     }
 
     public static Optional<byte[]> findApplicationBytesByChatId(long chatId) throws InternalException {
@@ -137,7 +143,7 @@ public class StudentService {
             return errors.toString();
         }
 
-        StudentRepository.saveBatch(studentsToCreate);
+        StudentRepository.saveBaseBatch(studentsToCreate);
         return "";
     }
 

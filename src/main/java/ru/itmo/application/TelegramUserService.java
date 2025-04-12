@@ -9,10 +9,8 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.storage.AdminTokenRepository;
-import ru.itmo.infra.storage.DatabaseManager;
-import ru.itmo.infra.storage.StudentRepository;
-import ru.itmo.infra.storage.TelegramUserRepository;
+import ru.itmo.infra.storage.*;
+import ru.itmo.util.EduStreamChecker;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -111,11 +109,33 @@ public class TelegramUserService {
         return TelegramUserRepository.findByChatId(chatId);
     }
 
-    public static boolean banUser(TelegramUser telegramUser, EduStream eduStream) throws InternalException, BadRequestException {
+    public static boolean banUser(TelegramUser telegramUser) throws InternalException, BadRequestException {
         doesExistOrThrow(telegramUser.getChatId());
         telegramUser.setBanned(true);
-        boolean wasUpdated = TelegramUserRepository.updateByChatId(telegramUser);
-        return wasUpdated && StudentRepository.deleteByChatIdAndEduStreamName(telegramUser.getChatId(), eduStream);
+
+        List<EduStream> activeEduStreams = EduStreamRepository.findAll().stream().filter(EduStreamChecker::isActiveStream).toList();
+
+        Student student = null;
+        EduStream eduStream = null;
+        for (var es : activeEduStreams) {
+            Optional<Student> studentOpt = StudentRepository.findByChatIdAndEduStreamName(telegramUser.getChatId(), es);
+            if (studentOpt.isPresent()) {
+                student = studentOpt.get();
+                eduStream = es;
+                break;
+            }
+        }
+
+        // продублировать запись о студенте, если она единственная в базе
+        if (student != null
+                && StudentRepository.findAllByIsuAndEduStreamName(student.getIsu(), eduStream).size() == 1)
+            StudentRepository.saveBaseBatch(List.of(student));
+
+        boolean wasDeleted = true;
+        if (eduStream != null)
+            wasDeleted = StudentRepository.deleteByChatIdAndEduStreamName(telegramUser.getChatId(), eduStream);
+
+        return wasDeleted && TelegramUserRepository.updateByChatId(telegramUser);
     }
 
     public static boolean unbanUser(TelegramUser telegramUser) throws InternalException, BadRequestException {
@@ -126,7 +146,7 @@ public class TelegramUserService {
 
     private static void doesExistOrThrow(long chatId) throws InternalException, BadRequestException {
         if (!TelegramUserRepository.existsByChatId(chatId))
-            throw new BadRequestException("Пользователь с таким chatId не найден");
+            throw new BadRequestException("Пользователь с chatId %d не найден".formatted(chatId));
     }
 
 }
