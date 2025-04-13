@@ -25,6 +25,7 @@ import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
+import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
@@ -61,6 +62,7 @@ public class Handler {
         commands.add(new ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand());
         commands.add(new StatusCommand());
         commands.add(new BanCommand());
+        commands.add(new FillEduStreamCommand());
         commands.add(new DownloadApplicationCommand());
         commands.add(new DeleteStreamCommand());
         commands.add(new InitEduStreamCommand());
