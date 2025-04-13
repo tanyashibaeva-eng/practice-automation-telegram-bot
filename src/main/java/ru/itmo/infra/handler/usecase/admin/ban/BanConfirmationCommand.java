@@ -8,8 +8,9 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
-public class BanConfirmationCommand implements Command {
+public class BanConfirmationCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -48,10 +49,5 @@ public class BanConfirmationCommand implements Command {
     @Override
     public String getName() {
         return "";
-    }
-
-    @Override
-    public boolean isAdminCommand() {
-        return true;
     }
 }

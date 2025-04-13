@@ -6,9 +6,9 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.Handler;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
-public class UploadExcelUploadCommand implements Command {
+public class UploadExcelHandleCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -28,15 +28,5 @@ public class UploadExcelUploadCommand implements Command {
     @Override
     public boolean isNextCallNeeded() {
         return true;
-    }
-
-    @Override
-    public String getName() {
-        return "";
-    }
-
-    @Override
-    public String getDescription() {
-        return "";
     }
 }

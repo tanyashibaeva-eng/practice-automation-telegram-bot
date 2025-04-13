@@ -243,4 +243,3 @@ public class StartCommand implements Command {
         return markupBuilder.build();
     }
 }
-

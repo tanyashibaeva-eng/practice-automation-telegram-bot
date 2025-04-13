@@ -10,7 +10,6 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.application.AuthorizationService;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.EduStreamService;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
@@ -22,14 +21,13 @@ import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
-import ru.itmo.infra.handler.usecase.admin.createedustream.CreateEduStreamStartCommand;
+import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelExportCommand;
+import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
-import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
-import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelStartCommand;
+import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
+import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
@@ -55,20 +53,18 @@ public class Handler {
     static {
         commands.add(new StartCommand());
         commands.add(new StudentRegistrationStartCommand());
-        commands.add(new UploadExcelStartCommand());
-        commands.add(new ExportExcelExportCommand());
-        commands.add(new CreateEduStreamStartCommand());
-        commands.add(new StudentRegistrationStartCommand());
+        commands.add(new UploadExcelCommand());
+        commands.add(new ExportExcelCommand());
         commands.add(new ChoosePracticePlaceCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
-
-        commands.add(new CreateAdminFromUserCommand());
-        commands.add(new InitEduStreamCommand());
-        commands.add(new AddAdminCommand());
+        commands.add(new ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand());
         commands.add(new StatusCommand());
         commands.add(new BanCommand());
         commands.add(new DownloadApplicationCommand());
+        commands.add(new DeleteStreamCommand());
+        commands.add(new InitEduStreamCommand());
+        commands.add(new HelpCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -148,7 +144,7 @@ public class Handler {
 
     private static void tryToSetEduStream(long chatId) throws InternalException {
         var isAdmin = AuthorizationService.canDoAdminActions(chatId);
-        if (!isAdmin) {
+        if (isAdmin) {
             return;
         }
 
@@ -165,7 +161,7 @@ public class Handler {
         if (callbackData.getKey() != null) {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
-        return commandsMap.get(callbackData.getCommand()).execute(message);
+        return executeCommand(commandsMap.get(callbackData.getCommand()), message);
     }
 
     public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, InvalidMessageException {
@@ -201,7 +197,7 @@ public class Handler {
 
     private static void updateCommandsDropOut(long chatId) {
         try {
-            List<BotCommand> userCommands = new ArrayList<>();
+            List<BotCommand> userCommands;
 
             var isAdmin = AuthorizationService.canDoAdminActions(chatId);
             if (isAdmin) {
@@ -224,6 +220,7 @@ public class Handler {
             List<BotCommand> userCommands = new ArrayList<>();
             addCommandIfExists(userCommands, new StartCommand());
             setCommandsForUser(chatId, userCommands);
+        } catch (BadRequestException ignored) {
         } catch (Exception e) {
             log.warning("Ошибка обновления команд для " + chatId + ": " + e.getMessage());
         }
@@ -253,10 +250,23 @@ public class Handler {
     private static List<BotCommand> getAdminCommandsDropOut() {
         List<BotCommand> resultCommands = new ArrayList<>();
 
-        addCommandIfExists(resultCommands, new StartCommand());
-        addCommandIfExists(resultCommands, new ExportExcelExportCommand());
+        for (var cmd : getAdminCommands()) {
+            addCommandIfExists(resultCommands, cmd);
+        }
 
         return resultCommands;
+    }
+
+    public static List<Command> getAdminCommands() {
+        return List.of(
+                new HelpCommand(),
+                new StartCommand(),
+                new ExportExcelCommand(),
+                new UploadExcelCommand(),
+                new InitEduStreamCommand(),
+                new DownloadApplicationCommand(),
+                new DeleteStreamCommand()
+        );
     }
 
     private static void addCommandIfExists(List<BotCommand> commands, Command command) {

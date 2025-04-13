@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler.usecase.admin.mentor;
 
 import lombok.SneakyThrows;
+import org.checkerframework.checker.units.qual.A;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
@@ -10,10 +11,11 @@ import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 import java.util.Optional;
 
-public class CreateAdminFromUserCommand implements Command {
+public class CreateAdminFromUserCommand implements AdminCommand {
 
     @Override
     @SneakyThrows
@@ -23,7 +25,7 @@ public class CreateAdminFromUserCommand implements Command {
             if (parts.length < 2 || parts[1].isEmpty()) {
                 throw new BadRequestException(
                         "Неверный формат команды. Используйте:\n" +
-                                "/stay_admin <ваш_токен>\n\n" +
+                                "/stay_admin <токен>\n\n" +
                                 "Пример: /stay_admin 550e8400-e29b-41d4-a716-446655440000"
                 );
             }
@@ -58,15 +60,15 @@ public class CreateAdminFromUserCommand implements Command {
                 TelegramUserService.registerAdmin(user, adminToken);
             } catch (BadRequestException e) {
                 throw new BadRequestException(
-                        "Не удалось активировать права администратора:\n" +
+                        "Не удалось стать администратором:\n" +
                                 e.getMessage() + "\n\n" +
                                 "Возможно, токен недействителен или уже был использован."
                 );
             }
 
             return MessageToUser.builder()
-                    .text("Вы успешно получили права администратора!\n\n" +
-                            "Теперь вам доступны специальные команды.")
+                    .text("Права администратора получены!\n\n" +
+                            "Теперь вам доступны специальные команды (`/start` для входа в меню)")
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .build();
 
