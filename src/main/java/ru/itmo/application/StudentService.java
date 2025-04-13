@@ -26,6 +26,7 @@ import ru.itmo.util.TextParser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -87,6 +88,19 @@ public class StudentService {
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: заявка не может быть выгружена");
         }
+    }
+
+    public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, File application) throws InternalException {
+        byte[] applicationBytes;
+
+        try {
+            applicationBytes = Files.readAllBytes(application.toPath());
+        } catch (IOException ex) {
+            log.severe("Ошибка чтения файла: " + ex.getMessage());
+            throw new InternalException("Что-то пошло не так");
+        }
+
+        return updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, applicationBytes);
     }
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
