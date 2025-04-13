@@ -35,10 +35,11 @@ import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.*;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.*;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.*;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.*;
+import ru.itmo.infra.handler.usecase.user.studentregistration.*;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
 import java.io.File;
@@ -57,15 +58,49 @@ public class Handler {
     private static final Map<String, Command> commandsMap = new HashMap<>();
 
     static {
+        // общие
         commands.add(new StartCommand());
         commands.add(new HelpCommand());
 
-        commands.add(new StudentRegistrationStartCommand());
+        // для студентов
+        commands.add(new AskingApproveNoContractCompanyCommand());
+        commands.add(new AskingCompanyNameCommand());
+        commands.add(new AskingCorporateEmailCommand());
+        commands.add(new AskingInnCommand());
+        commands.add(new AskingLeadPhoneNumberCommand());
+        commands.add(new AskingPracticeFormatCommand());
+        commands.add(new CompanyInfoConfirmationCommand());
+        commands.add(new CompanyInfoSummaryCommand());
+        commands.add(new InputCompanyNameCommand());
+        commands.add(new InputCorporateEmailCommand());
+        commands.add(new InputInnValidationCommand());
+        commands.add(new InputLeadPhoneNumberCommand());
+        commands.add(new InputPracticeFormatCommand());
+
+        commands.add(new AskingITMOPracticeDepartmentCommand());
+        commands.add(new AskingITMOPracticeLeadFullNameCommand());
+        commands.add(new InputITMOStudentDepartmentCommand());
+        commands.add(new InputITMOStudentLeadFullNameCommand());
+
         commands.add(new ChoosePracticePlaceCommand());
+        commands.add(new ErrorCompanyInputCommand());
+        commands.add(new InfoSubmittedCommand());
+        commands.add(new PracticeConfirmationCommand());
+        commands.add(new StudentInputConfirmationCommand());
+
+        commands.add(new ApplicationInfoSubmittedCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
+
+        commands.add(new StudentRegistrationConfirmationCommand());
+        commands.add(new StudentRegistrationISUCommand());
+//        commands.add(new StudentRegistrationProcessFlowCommand()); // TODO: uncomment
+        commands.add(new StudentRegistrationProcessISUCommand());
+        commands.add(new StudentRegistrationStartCommand());
+
         commands.add(new StatusCommand());
 
+        // для админов
         commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
         commands.add(new DeleteStreamCommand());
