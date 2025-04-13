@@ -53,6 +53,24 @@ public class StudentService {
         return Optional.empty();
     }
 
+    public static Optional<String> getNewestStudentEduStreamNameByChatId(long chatId) throws InternalException {
+        List<Student> students = StudentRepository.findAllByChatId(chatId);
+        EduStream curr = null;
+        for (var student : students) {
+            if (curr == null) {
+                curr = student.getEduStream();
+                continue;
+            }
+            if (student.getEduStream().getDateTo().isAfter(curr.getDateTo())) {
+                curr = student.getEduStream();
+            }
+        }
+        if (curr != null) {
+            return Optional.of(curr.getName());
+        }
+        return Optional.empty();
+    }
+
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
        ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException, BadRequestException {

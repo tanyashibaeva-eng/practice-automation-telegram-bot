@@ -13,7 +13,7 @@ public class CallbackData {
     private String value;
 
     public CallbackData(String callbackDataString) {
-        var fields = callbackDataString.split("_");
+        var fields = callbackDataString.split("#");
         if (fields.length > 0) {
             command = fields[0];
         }
@@ -26,6 +26,6 @@ public class CallbackData {
     }
 
     public String toString() {
-        return command + "_" + key + "_" + value;
+        return command + "#" + (key == null ? "" : key) + "#" + (value == null ? "" : value);
     }
 }

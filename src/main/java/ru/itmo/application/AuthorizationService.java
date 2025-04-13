@@ -4,6 +4,7 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
+import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.storage.StudentRepository;
 import ru.itmo.infra.storage.TelegramUserRepository;
 import ru.itmo.util.EduStreamChecker;
@@ -16,6 +17,11 @@ public class AuthorizationService {
 
     public static boolean canRegisterAsAdmin(long chatId) throws InternalException {
         return true;
+    }
+
+    public static boolean isBanned(long chatId) throws InternalException {
+        Optional<TelegramUser> telegramUserOpt = TelegramUserRepository.findByChatId(chatId);
+        return telegramUserOpt.isPresent() && telegramUserOpt.get().isBanned();
     }
 
     public static boolean canDoAdminActions(long chatId) throws InternalException {

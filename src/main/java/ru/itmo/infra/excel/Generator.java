@@ -207,7 +207,7 @@ public class Generator {
             pattern.setFillBackgroundColor(HSSFColor.BLUE.index);
             pattern.setFillBackgroundColor(status.getColorForStatus());
 
-            CellRangeAddress[] regions = {CellRangeAddress.valueOf("D2:D" + (numberOfRows + 1))};
+            CellRangeAddress[] regions = {CellRangeAddress.valueOf("E2:E" + (numberOfRows + 1))};
             sheet.getSheetConditionalFormatting().addConditionalFormatting(regions, rule);
         }
     }

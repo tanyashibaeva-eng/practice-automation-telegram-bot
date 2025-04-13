@@ -20,13 +20,13 @@ public class ForceUpdateCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = message.getText().trim().replaceAll(" +", " ");
-            var fields = messageText.split(" ");
+            var messageText = message.getText().trim().replaceAll(" +", "");
+            var fields = messageText.split(" \"");
             if (fields.length < 5 && fields.length % 2 != 0) {
-                throw new BadRequestException("Неверный формат команды, пример: `/forceupdate <chatId> <eduStreamName> <fieldName1> <fieldValue1>, ...,  <fieldNameN> <fieldValueN>`");
+                throw new BadRequestException("Неверный формат команды, пример (кавычки обязательны): `/forceupdate <chatId> \"<eduStreamName>\" \"<fieldName1>\" \"<fieldValue1>\", ...,  \"<fieldNameN>\" \"<fieldValueN>\"`");
             }
 
-            var studentChatIdStr = fields[1];
+            var studentChatIdStr = fields[0].replace("/forceupdate ", "").trim();
             long studentChatId;
             try {
                 studentChatId = TextParser.parseDoubleToLong(studentChatIdStr);
@@ -34,7 +34,7 @@ public class ForceUpdateCommand implements Command {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
 
-            var eduStreamName = fields[2];
+            var eduStreamName = fields[2].replace("\"", "").replaceAll(" +", "").trim();
 
             var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(studentChatId, eduStreamName);
             if (studentOpt.isEmpty()) {
@@ -46,8 +46,8 @@ public class ForceUpdateCommand implements Command {
             dtoBuilder.eduStreamName(eduStreamName);
 
             for (int i = 0; i < fields.length; i += 2) {
-                var fieldName = fields[i];
-                var fieldValue = fields[i + 1];
+                var fieldName = fields[i].replace("\"", "").replaceAll(" +", "").trim();
+                var fieldValue = fields[i + 1].replace("\"", "").replaceAll(" +", "").trim();
 
                 if (!fieldNames.contains(fieldName)) {
                     throw new BadRequestException("Неизвестное поле \"%s\", список полей доступных для обновления: ".formatted(fieldName) + fieldNames.stream().map(v -> "\"" + v + "\""));
