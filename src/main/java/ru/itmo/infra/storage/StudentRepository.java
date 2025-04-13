@@ -284,7 +284,7 @@ public class StudentRepository {
                         status = ?,
                         practice_place = ?,
                         company_name = ?,
-                        company_lead_fullname = ?,
+                        company_lead_fullname = ?
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {

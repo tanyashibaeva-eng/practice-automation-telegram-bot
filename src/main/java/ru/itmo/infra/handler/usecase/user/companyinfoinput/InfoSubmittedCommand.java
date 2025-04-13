@@ -20,10 +20,6 @@ public class InfoSubmittedCommand implements Command {
         if (dto instanceof ITMOPracticeInfoUpdateArgs) {
             res = StudentService.updateITMOPracticeInfo((ITMOPracticeInfoUpdateArgs) dto);
         } else {
-//            var hardcode = (CompanyInfoUpdateArgs) dto;
-//            hardcode.setCompanyLeadEmail("biba@biba.ru");
-//            hardcode.setCompanyLeadPhone("+7 925 555 12 34");
-//            hardcode.setCompanyLeadJobTitle("GIGACHAD");
             res = StudentService.updateCompanyInfo((CompanyInfoUpdateArgs) dto);
         }
 
