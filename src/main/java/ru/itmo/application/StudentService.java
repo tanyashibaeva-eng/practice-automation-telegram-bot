@@ -97,7 +97,7 @@ public class StudentService {
                     if (student.getApplicationBytes() == null) {
                         throw new BadRequestException("Нельзя выкачать заявку для студента %s, так как она еще не загружена".formatted(student.getFullName()));
                     }
-                    var application = new File("Заявка - %s".formatted(student.getFullName()));
+                    var application = new File("Заявка - %s.docx".formatted(student.getFullName()));
                     FileUtils.writeByteArrayToFile(application, student.getApplicationBytes());
                     return application;
                 }
