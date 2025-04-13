@@ -288,7 +288,7 @@ public class StudentRepository {
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
-            statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
+            statement.setObject(1, (args.getPracticePlace() == PracticePlace.ITMO_MARKINA ? StudentStatus.PRACTICE_IN_ITMO_MARKINA : StudentStatus.COMPANY_INFO_WAITING_APPROVAL), Types.OTHER);
             statement.setObject(2, args.getPracticePlace(), Types.OTHER);
             statement.setString(3, args.getCompanyName());
             statement.setString(4, args.getCompanyLeadFullName());
