@@ -28,6 +28,7 @@ import ru.itmo.infra.handler.usecase.admin.createedustream.CreateEduStreamStartC
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelExportCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelStartCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
@@ -62,6 +63,7 @@ public class Handler {
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
 
+        commands.add(new CreateAdminFromUserCommand());
         commands.add(new InitEduStreamCommand());
         commands.add(new AddAdminCommand());
         commands.add(new StatusCommand());
