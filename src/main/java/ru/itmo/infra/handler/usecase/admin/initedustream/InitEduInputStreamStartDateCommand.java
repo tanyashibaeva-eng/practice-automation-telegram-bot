@@ -8,11 +8,12 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.EduStreamCreationArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
 import java.time.LocalDate;
 
-public class InitEduInputStreamStartDateCommand implements Command {
+public class InitEduInputStreamStartDateCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -51,10 +52,5 @@ public class InitEduInputStreamStartDateCommand implements Command {
     @Override
     public boolean isNextCallNeeded() {
         return false;
-    }
-
-    @Override
-    public String getName() {
-        return "";
     }
 }

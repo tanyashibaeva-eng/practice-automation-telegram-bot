@@ -19,6 +19,8 @@ public class StudentRegistrationProcessISUCommand implements Command {
             ContextHolder.setNextCommand(chatId, new StudentRegistrationISUCommand());
             return MessageToUser.builder()
                     .text(isuResp.getErrorText())
+                    .keyboardMarkup(getReturnToStartMarkup())
+                    .needRewriting(true)
                     .build();
         }
 

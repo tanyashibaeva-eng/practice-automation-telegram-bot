@@ -3,7 +3,7 @@ package ru.itmo.exception;
 public class InvalidMessageException extends Exception {
 
     public InvalidMessageException(String message) {
-        super(message + "\nПопробуйте еще раз или вернитесь назад");
+        super(message + " Попробуйте еще раз или вернитесь назад");
     }
 
     public InvalidMessageException() {

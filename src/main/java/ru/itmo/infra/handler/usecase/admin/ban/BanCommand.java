@@ -9,9 +9,10 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
-public class BanCommand implements Command {
+public class BanCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -69,10 +70,5 @@ public class BanCommand implements Command {
     @Override
     public String getName() {
         return "/ban";
-    }
-
-    @Override
-    public boolean isAdminCommand() {
-        return true;
     }
 }

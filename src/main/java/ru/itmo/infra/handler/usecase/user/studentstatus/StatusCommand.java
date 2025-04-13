@@ -11,7 +11,7 @@ public class StatusCommand implements Command {
     public MessageToUser execute(MessageDTO message) {
 
         return MessageToUser.builder()
-                .text("Информация о стутусе студента")
+                .text("Информация о статусе студента")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();

@@ -9,11 +9,12 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.ForceUpdateDTO;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
 import java.util.Set;
 
-public class ForceUpdateCommand implements Command {
+public class ForceUpdateCommand implements AdminCommand {
     private final Set<String> fieldNames = Set.of("статус", "место_практики", "формат_практики", "инн_компании", "имя_компании", "фио_руководителя", "телефон_руководителя", "почта_руководителя", "должность_руководителя");
 
     @Override
@@ -145,7 +146,7 @@ public class ForceUpdateCommand implements Command {
     }
 
     @Override
-    public boolean isAdminCommand() {
-        return true;
+    public String getDescription() {
+        return "Вручную обновить состояние студента (в обход валидаций). Пример: `/forceupdate 12345 \"Бакалавры 2025\" \"статус\" \"Практика согласована\" \"фио_руководителя\" \"Иванов Иван Иванович\"`";
     }
 }

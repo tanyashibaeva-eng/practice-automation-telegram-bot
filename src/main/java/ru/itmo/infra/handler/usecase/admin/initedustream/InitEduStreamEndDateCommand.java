@@ -9,12 +9,13 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.EduStreamCreationArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
 import java.time.LocalDate;
 import java.time.Year;
 
-public class InitEduStreamEndDateCommand implements Command {
+public class InitEduStreamEndDateCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

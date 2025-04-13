@@ -8,9 +8,10 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
-public class DownloadApplicationCommand implements Command {
+public class DownloadApplicationCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -19,7 +20,6 @@ public class DownloadApplicationCommand implements Command {
             var fields = messageText.split(" ");
             if (fields.length < 2) {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/application <studentChatId>`");
-                // stay_admin  <token>
             }
 
             var studentChatIdStr = fields[1];
@@ -52,12 +52,12 @@ public class DownloadApplicationCommand implements Command {
     }
 
     @Override
-    public boolean isAdminCommand() {
-        return true;
+    public String getName() {
+        return "/application";
     }
 
     @Override
-    public String getName() {
-        return "/application";
+    public String getDescription() {
+        return "Получить заявку, загруженную студентом. Пример: `/application 123762`";
     }
 }

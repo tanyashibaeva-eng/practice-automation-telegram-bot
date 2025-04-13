@@ -41,7 +41,7 @@ public class TextParser {
 
         String phoneRegex = "^\\+?(?:[0-9] ?){6,14}[0-9]$";
         if (!text.matches(phoneRegex)) {
-            throw new BadRequestException("неверный формат номера телефона");
+            throw new BadRequestException("Неверный формат номера телефона");
         }
         return text.trim();
     }
@@ -52,7 +52,7 @@ public class TextParser {
         }
         String emailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
         if (!text.matches(emailRegex)) {
-            throw new BadRequestException("неверный формат email");
+            throw new BadRequestException("Неверный формат email");
         }
         return text.trim();
     }
@@ -91,7 +91,7 @@ public class TextParser {
         try {
             return LocalDate.parse(text.trim(), formatter);
         } catch (DateTimeParseException e) {
-            throw new BadRequestException("неверный формат даты. Ожидается чч.мм.гггг");
+            throw new BadRequestException("Неверный формат даты. Ожидается чч.мм.гггг");
         }
     }
 }
