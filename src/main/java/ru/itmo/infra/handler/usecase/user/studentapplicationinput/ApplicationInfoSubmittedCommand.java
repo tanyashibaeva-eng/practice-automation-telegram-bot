@@ -12,6 +12,7 @@ public class ApplicationInfoSubmittedCommand implements Command {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
+        System.out.println("HERE" + message.getDocument().toString());
         // TODO:
         StudentService.updateApplicationBytesByChatIdAndEduStreamName(
                 message.getChatId(),
