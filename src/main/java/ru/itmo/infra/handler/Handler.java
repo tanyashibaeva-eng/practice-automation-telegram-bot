@@ -166,7 +166,7 @@ public class Handler {
             ContextHolder.setNextCommand(message.getChatId(), nextCommand);
         }
 
-        if (command.isNextCallNeeded() && nextCommand != null && !command.getName().equals(nextCommand.getName())) {
+        if (command.isNextCallNeeded() && nextCommand != null && (!command.getName().equals(nextCommand.getName()) || command.getName().isEmpty())) {
             PracticeAutomationBot.sendToUser(response, message.getChatId(), false);
             response = executeCommand(nextCommand, message);
         }
