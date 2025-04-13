@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler;
 
 import lombok.extern.java.Log;
+import org.checkerframework.checker.units.qual.Force;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -21,12 +22,16 @@ import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateCommand;
+import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
@@ -53,20 +58,25 @@ public class Handler {
 
     static {
         commands.add(new StartCommand());
+        commands.add(new HelpCommand());
+
         commands.add(new StudentRegistrationStartCommand());
-        commands.add(new UploadExcelCommand());
-        commands.add(new ExportExcelCommand());
         commands.add(new ChoosePracticePlaceCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UnloadApplicationCommand());
-        commands.add(new ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand());
         commands.add(new StatusCommand());
+
+        commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
-        commands.add(new FillEduStreamCommand());
-        commands.add(new DownloadApplicationCommand());
         commands.add(new DeleteStreamCommand());
+        commands.add(new DownloadApplicationCommand());
+        commands.add(new ExportExcelCommand());
+        commands.add(new FillEduStreamCommand());
+        commands.add(new ForceUpdateCommand());
+        commands.add(new GotoStreamCommand());
         commands.add(new InitEduStreamCommand());
-        commands.add(new HelpCommand());
+        commands.add(new CreateAdminFromUserCommand());
+        commands.add(new UploadExcelCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
