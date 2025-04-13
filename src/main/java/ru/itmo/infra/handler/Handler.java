@@ -22,7 +22,7 @@ import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.admin.addAdmin.AddAdminCommand;
+import ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.createedustream.CreateEduStreamStartCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;

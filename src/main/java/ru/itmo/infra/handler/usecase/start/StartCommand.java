@@ -9,19 +9,31 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.itmo.application.AuthorizationService;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.application.EduStreamService;
+import ru.itmo.application.StudentService;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.model.Student;
+import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor
 public class StartCommand implements Command {
+    public static final String helpIcon = "\uD83D\uDCA1";
+    public static final String registerIcon = "\uD83C\uDD95";
+
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -31,15 +43,12 @@ public class StartCommand implements Command {
             return bannedStartCommand(message);
         }
 
-        if (!AuthorizationService.canDoAdminActions(message.getChatId())) {
+        if (AuthorizationService.canDoAdminActions(message.getChatId())) {
             return adminStartCommand(message);
         }
 
-        return MessageToUser.builder()
-                .text("Привет, ты на стартовой странице, тут будут кнопочки для навигации!")
-                .keyboardMarkup(getMarkupKeyboardForStart())
-                .needRewriting(true)
-                .build();
+        return userStartCommand(message);
+
     }
 
     private MessageToUser bannedStartCommand(MessageDTO message) {
@@ -63,6 +72,31 @@ public class StartCommand implements Command {
                 .needRewriting(true)
                 .build();
     }
+
+    private MessageToUser userStartCommand(MessageDTO message) {
+        StudentStatus status = null;
+        try {
+            Optional<String> activeEduStreamOpt = StudentService.findActiveEduStreamNameByChatId(message.getChatId());
+
+            if (activeEduStreamOpt.isPresent()) {
+                Optional<Student> studentOpt = StudentService.findStudentByChatIdAndEduStreamName(
+                        message.getChatId(),
+                        activeEduStreamOpt.get()
+                );
+                if (studentOpt.isPresent()) {
+                    status = studentOpt.get().getStatus();
+                }
+            }
+        } catch (InternalException | BadRequestException e) {
+        }
+
+        return MessageToUser.builder()
+                .text("Главное меню студента\n\nЗдесь вы можете управлять своей практикой")
+                .keyboardMarkup(getUserKeyboard(status))
+                .needRewriting(true)
+                .build();
+    }
+
 
     @Override
     public boolean isNextCallNeeded() {
@@ -89,7 +123,7 @@ public class StartCommand implements Command {
                     .build();
             var keyboardRow = new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text(streamName)
+                            .text("🧑‍🎓 " + streamName)
                             .callbackData(callbackData.toString())
                             .build()
             );
@@ -101,7 +135,7 @@ public class StartCommand implements Command {
                 .build();
         markupBuilder.keyboardRow(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
-                        .text("Добавить новый поток")
+                        .text(registerIcon + " Добавить новый поток")
                         .callbackData(initStreamCallbackData.toString())
                         .build()
         ));
@@ -111,7 +145,7 @@ public class StartCommand implements Command {
                 .build();
         markupBuilder.keyboardRow(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
-                        .text("Справка с командами")
+                        .text(helpIcon + " Справка с командами")
                         .callbackData(helpCallbackData.toString())
                         .build()
         ));
@@ -124,7 +158,7 @@ public class StartCommand implements Command {
                 .keyboardRow(
                         new InlineKeyboardRow(
                                 InlineKeyboardButton.builder()
-                                        .text("Регистрация")
+                                        .text(registerIcon + " Регистрация")
                                         .callbackData(
                                                 CallbackData.builder()
                                                         .command("/register")
@@ -133,4 +167,80 @@ public class StartCommand implements Command {
                                         ).build()
                         )).build();
     }
+
+    private static ReplyKeyboard getUserKeyboard(StudentStatus status) {
+        var markupBuilder = InlineKeyboardMarkup.builder();
+
+        // Кнопка статуса всегда доступна
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("Мой статус")
+                        .callbackData(
+                                CallbackData.builder()
+                                        .command(new StatusCommand().getName())
+                                        .build()
+                                        .toString()
+                        ).build()
+        ));
+        if (status != null) {
+            switch (status) {
+                case REGISTERED:
+                case COMPANY_INFO_RETURNED:
+                    markupBuilder.keyboardRow(new InlineKeyboardRow(
+                            InlineKeyboardButton.builder()
+                                    .text("Выбор места практики")
+                                    .callbackData(
+                                            CallbackData.builder()
+                                                    .command(new ChoosePracticePlaceCommand().getName())
+                                                    .build()
+                                                    .toString()
+                                    ).build()
+                    ));
+                    break;
+
+                case COMPANY_INFO_WAITING_APPROVAL:
+                case PRACTICE_APPROVED:
+                case APPLICATION_WAITING_SUBMISSION:
+                case APPLICATION_RETURNED:
+                    markupBuilder.keyboardRow(new InlineKeyboardRow(
+                            InlineKeyboardButton.builder()
+                                    .text("Скачать заявку")
+                                    .callbackData(
+                                            CallbackData.builder()
+                                                    .command(new DownloadApplicationCommand().getName())
+                                                    .build()
+                                                    .toString()
+                                    ).build()
+                    ));
+                    break;
+
+                case APPLICATION_SIGNED:
+                    markupBuilder.keyboardRow(new InlineKeyboardRow(
+                            InlineKeyboardButton.builder()
+                                    .text("Загрузить заявку")
+                                    .callbackData(
+                                            CallbackData.builder()
+                                                    .command(new UnloadApplicationCommand().getName())
+                                                    .build()
+                                                    .toString()
+                                    ).build()
+                    ));
+                    break;
+            }
+        } else {
+            markupBuilder.keyboardRow(new InlineKeyboardRow(
+                    InlineKeyboardButton.builder()
+                            .text("Регистрация")
+                            .callbackData(
+                                    CallbackData.builder()
+                                            .command(new StudentRegistrationStartCommand().getName())
+                                            .build()
+                                            .toString()
+                            ).build()
+            ));
+        }
+
+        return markupBuilder.build();
+    }
 }
+

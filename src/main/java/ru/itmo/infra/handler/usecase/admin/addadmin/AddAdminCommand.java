@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.admin.addAdmin;
+package ru.itmo.infra.handler.usecase.admin.addadmin;
 
 import lombok.SneakyThrows;
 import ru.itmo.application.AdminTokenService;
