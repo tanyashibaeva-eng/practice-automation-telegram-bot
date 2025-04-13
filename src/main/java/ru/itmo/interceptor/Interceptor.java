@@ -19,14 +19,11 @@ public class Interceptor {
         try {
             return Handler.handleMessage(message);
         } catch (InvalidMessageException | BadRequestException e) {
-            // TODO: вызывать команду на обработку ошибки
             return MessageToUser.builder().text(e.getMessage()).build();
         } catch (InternalException e) {
-            // TODO: вызывать команду на обработку ошибки
             log.severe(e.getCause().getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         } catch (TelegramApiException | IOException ex) {
-            // TODO: вызывать команду на обработку ошибки
             log.severe(ex.getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         }
@@ -37,14 +34,11 @@ public class Interceptor {
         try {
             return Handler.handleCallback(message, callbackData);
         } catch (InvalidMessageException | BadRequestException e) {
-            // TODO: вызывать команду на обработку ошибки
             return MessageToUser.builder().text(e.getMessage()).build();
         } catch (InternalException e) {
-            // TODO: вызывать команду на обработку ошибки
             log.severe(e.getCause().getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         } catch (TelegramApiException | IOException ex) {
-            // TODO: вызывать команду на обработку ошибки
             log.severe(ex.getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         }
