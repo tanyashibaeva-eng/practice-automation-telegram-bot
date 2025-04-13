@@ -23,7 +23,7 @@ public class ForceUpdateCommand implements AdminCommand {
         try {
             var messageText = message.getText().trim().replaceAll(" +", "");
             var fields = messageText.split(" \"");
-            if (fields.length < 5 && fields.length % 2 != 0) {
+            if (fields.length < 5 && fields.length % 2 == 0) {
                 throw new BadRequestException("Неверный формат команды, пример (кавычки обязательны): `/forceupdate <chatId> \"<eduStreamName>\" \"<fieldName1>\" \"<fieldValue1>\", ...,  \"<fieldNameN>\" \"<fieldValueN>\"`");
             }
 
