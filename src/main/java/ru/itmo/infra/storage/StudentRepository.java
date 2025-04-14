@@ -372,11 +372,12 @@ public class StudentRepository {
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "UPDATE student SET application_bytes = ? WHERE chat_id = ? AND edu_stream_name = ?;"
+                "UPDATE student SET application_bytes = ?, status = ? WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setBytes(1, newBytes);
-            statement.setLong(2, chatId);
-            statement.setString(3, eduStreamName);
+            statement.setObject(2, StudentStatus.APPLICATION_WAITING_APPROVAL, Types.OTHER);
+            statement.setLong(3, chatId);
+            statement.setString(4, eduStreamName);
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {

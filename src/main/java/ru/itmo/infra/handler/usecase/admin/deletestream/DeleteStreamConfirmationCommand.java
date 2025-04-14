@@ -18,10 +18,10 @@ public class DeleteStreamConfirmationCommand implements AdminCommand {
         try {
             String response = message.getText();
             var streamName = getEduStreamNameOrThrow(message);
-            EduStream stream = new EduStream(streamName);
 
             switch (response) {
                 case "Да":
+                    EduStream stream = new EduStream(streamName);
                     EduStreamService.deleteEduStream(stream);
                     ContextHolder.endCommand(message.getChatId());
                     return MessageToUser.builder()

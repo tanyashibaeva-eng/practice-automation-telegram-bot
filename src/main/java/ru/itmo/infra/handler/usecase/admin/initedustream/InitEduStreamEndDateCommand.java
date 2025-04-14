@@ -57,8 +57,4 @@ public class InitEduStreamEndDateCommand implements AdminCommand {
         return true;
     }
 
-    @Override
-    public String getName() {
-        return "";
-    }
 }

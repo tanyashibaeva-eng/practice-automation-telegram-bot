@@ -8,6 +8,7 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 public class DeleteStreamCommand implements AdminCommand {
@@ -34,12 +35,15 @@ public class DeleteStreamCommand implements AdminCommand {
                     .text("Ошибка: " + e.getMessage())
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .build();
+        } catch (UnknownUserException e) {
+            return returnToMainMenuWithError(message.getChatId(),
+                    "Из-за внешних обстоятельств контекст был утерян. Пожалуйста, повторите действие еще раз");
         }
     }
 
     @Override
     public boolean isNextCallNeeded() {
-        return false;
+        return true;
     }
 
     @Override
@@ -49,6 +53,6 @@ public class DeleteStreamCommand implements AdminCommand {
 
     @Override
     public String getDescription() {
-        return "Удалить поток поток. Пример: `/delete_stream Бакалавры 2025`";
+        return "Удалить поток. Пример: `/delete_stream Бакалавры 2025`";
     }
 }

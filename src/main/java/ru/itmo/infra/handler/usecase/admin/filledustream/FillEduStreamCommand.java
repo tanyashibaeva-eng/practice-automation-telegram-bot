@@ -17,7 +17,6 @@ public class FillEduStreamCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         try {
             var streamName = getEduStreamNameOrThrow(message);
-            ContextHolder.setEduStreamName(message.getChatId(), streamName);
             EduStream stream = new EduStream(streamName);
 
             if (EduStreamService.findEduStreamByName(stream).isEmpty()) {

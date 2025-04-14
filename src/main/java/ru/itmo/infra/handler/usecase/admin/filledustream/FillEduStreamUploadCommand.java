@@ -33,7 +33,7 @@ public class FillEduStreamUploadCommand implements AdminCommand {
                 throw new BadRequestException("В загруженном файле содержатся ошибки:\n" + errors);
             }
 
-            ContextHolder.setNextCommand(message.getChatId(), new ru.itmo.infra.handler.usecase.admin.createedustream.FillEduStreamMoreFilesCommand());
+            ContextHolder.setNextCommand(message.getChatId(), new FillEduStreamMoreFilesCommand());
             return MessageToUser.builder()
                     .text("Группа была добавлена в поток \"%s\". Хотите загрузить еще один файл?".formatted(streamName))
                     .keyboardMarkup(getConfirmationKeyboard())

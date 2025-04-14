@@ -19,7 +19,7 @@ public class CreateAdminFromUserCommand implements AdminCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            String[] parts = message.getText().trim().split("\\s+", 2);
+            String[] parts = message.getText().trim().split(" +", 2);
             if (parts.length < 2 || parts[1].isEmpty()) {
                 throw new BadRequestException(
                         "Неверный формат команды. Используйте:\n" +
@@ -28,7 +28,7 @@ public class CreateAdminFromUserCommand implements AdminCommand {
                 );
             }
 
-            String token = parts[1];
+            String token = parts[1].trim();
             long chatId = message.getChatId();
 
             Optional<TelegramUser> userOpt = TelegramUserService.findByChatId(chatId);
@@ -86,7 +86,7 @@ public class CreateAdminFromUserCommand implements AdminCommand {
 
     @Override
     public boolean isNextCallNeeded() {
-        return false;
+        return true;
     }
 
     @Override

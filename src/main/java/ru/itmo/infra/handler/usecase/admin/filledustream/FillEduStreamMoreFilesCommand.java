@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.admin.createedustream;
+package ru.itmo.infra.handler.usecase.admin.filledustream;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -7,7 +7,6 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamUploadCommand;
 
 public class FillEduStreamMoreFilesCommand implements AdminCommand {
     @Override

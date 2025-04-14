@@ -24,7 +24,7 @@ public interface AdminCommand extends Command {
     }
 
     default Optional<String> getEduStreamNameFromMessage(String message) {
-        var pattern = Pattern.compile("^/export\\s+(.+?)$");
+        var pattern = Pattern.compile("^/[a-z_]+ +(.+?)$");
         var matcher = pattern.matcher(message);
 
         if (matcher.matches()) {
@@ -36,9 +36,11 @@ public interface AdminCommand extends Command {
     default String getEduStreamNameOrThrow(MessageDTO message) throws BadRequestException, UnknownUserException {
         var streamNameOpt = getEduStreamNameFromMessage(message.getText());
         if (streamNameOpt.isPresent()) {
-            return streamNameOpt.get();
+            String streamName = streamNameOpt.get();
+            ContextHolder.setEduStreamName(message.getChatId(), streamName);
+            return streamName;
         } else if (message.getText().trim().replace(getName(), "").isEmpty()) {
-            throw new BadRequestException("Неверный формат команды, не указан streamName, формат: `/export <streamName>`, либо используйте кнопки навигации");
+            throw new BadRequestException("Неверный формат команды: %s".formatted(getDescription()));
         } else {
            return ContextHolder.getEduStreamName(message.getChatId());
         }
