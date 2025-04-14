@@ -1,5 +1,6 @@
 package ru.itmo.application;
 
+import ru.itmo.domain.dto.command.EduStreamCreationArgs;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
@@ -10,7 +11,8 @@ import java.util.Optional;
 
 public class EduStreamService {
 
-    public static void createEduStream(EduStream eduStream) throws BadRequestException, InternalException {
+    public static void createEduStream(EduStreamCreationArgs eduStreamDTO) throws BadRequestException, InternalException {
+        var eduStream = new EduStream(eduStreamDTO.getName(), eduStreamDTO.getYear(), eduStreamDTO.getDateFrom(), eduStreamDTO.getDateTo());
         if (EduStreamRepository.existsByName(eduStream))
             throw new BadRequestException("Поток с таким именем уже существует");
         EduStreamRepository.save(eduStream);
@@ -34,7 +36,7 @@ public class EduStreamService {
         return EduStreamRepository.findAll();
     }
 
-    private static void doesExistOrThrow(EduStream eduStream) throws InternalException, BadRequestException {
+    public static void doesExistOrThrow(EduStream eduStream) throws InternalException, BadRequestException {
         if (!EduStreamRepository.existsByName(eduStream))
             throw new BadRequestException("Поток с таким именем не найден");
     }

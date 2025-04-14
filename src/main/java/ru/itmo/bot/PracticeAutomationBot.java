@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.itmo.application.ContextHolder;
@@ -37,7 +38,6 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         boolean isCallback = false;
 
         if (update.hasCallbackQuery()) {
-            isCallback = true;
             String callbackDataString = update.getCallbackQuery().getData();
             chatId = update.getCallbackQuery().getMessage().getChatId();
             MessageDTO messageDTO = MessageDTO.builder()
@@ -45,6 +45,8 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                     .text(callbackDataString)
                     .build();
             response = Interceptor.processCallback(messageDTO, callbackDataString);
+
+            isCallback = !(response.getKeyboardMarkup() instanceof ReplyKeyboardMarkup || response.getDocument() != null);
         }
         if (update.hasMessage()) {
             Message message = update.getMessage();
@@ -114,7 +116,11 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             telegramClient.execute(editMessage);
             ContextHolder.setLastMessageId(chatId, !message.isNeedRewriting() ? 0 : messageId);
         } catch (TelegramApiException ex) {
-            log.severe("Не удалось изменить сообщение: " + ex.getMessage());
+            if (message.getDocument() != null) {
+                sendDocument(message, chatId);
+            } else {
+                sendMessage(message, chatId);
+            }
         }
     }
 }

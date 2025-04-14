@@ -3,11 +3,11 @@ package ru.itmo.exception;
 public class InvalidMessageException extends Exception {
 
     public InvalidMessageException(String message) {
-        super(message + " Попробуйте еще раз или вернитесь назад, используя команду \"/drop\"");
+        super(message + " Попробуйте еще раз или вернитесь назад");
     }
 
     public InvalidMessageException() {
-        super("Я не понимаю вас. Попробуйте еще раз или вернитесь назад, используя команду \"/drop\"");
+        super("Я не понимаю вас. Попробуйте еще раз или вернитесь назад");
     }
 
     public static void ThrowMessageException() throws InvalidMessageException {

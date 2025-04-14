@@ -37,12 +37,12 @@ public class TextParserTest {
         var exception = assertThrows(BadRequestException.class, () -> {
             TextParser.parsePhone("12345");
         });
-        assertEquals("неверный формат номера телефона", exception.getMessage());
+        assertEquals("Неверный формат номера телефона", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
             TextParser.parsePhone("+7 (925) 123 45 67");
         });
-        assertEquals("неверный формат номера телефона", exception.getMessage());
+        assertEquals("Неверный формат номера телефона", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
             TextParser.parsePhone("   ");
@@ -60,7 +60,7 @@ public class TextParserTest {
         var exception = assertThrows(BadRequestException.class, () -> {
             TextParser.parseEmail("example@com");
         });
-        assertEquals("неверный формат email", exception.getMessage());
+        assertEquals("Неверный формат email", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
             TextParser.parseEmail("   ");

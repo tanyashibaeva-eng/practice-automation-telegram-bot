@@ -233,12 +233,11 @@ public class StudentRepository {
         }
     }
 
-    public static boolean deleteByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
+    public static boolean deleteByChatId(long chatId) throws InternalException {
         try (var statement = connection.prepareStatement(
-                "DELETE FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
+                "DELETE FROM student WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
-            statement.setString(2, eduStream.getName());
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -285,11 +284,11 @@ public class StudentRepository {
                         status = ?,
                         practice_place = ?,
                         company_name = ?,
-                        company_lead_fullname = ?,
+                        company_lead_fullname = ?
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
-            statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
+            statement.setObject(1, (args.getPracticePlace() == PracticePlace.ITMO_MARKINA ? StudentStatus.PRACTICE_IN_ITMO_MARKINA : StudentStatus.COMPANY_INFO_WAITING_APPROVAL), Types.OTHER);
             statement.setObject(2, args.getPracticePlace(), Types.OTHER);
             statement.setString(3, args.getCompanyName());
             statement.setString(4, args.getCompanyLeadFullName());

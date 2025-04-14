@@ -12,19 +12,31 @@ import ru.itmo.bot.MessageToUser;
 
 import java.util.ArrayList;
 
+import static ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand.returnIcon;
+
 public interface Command {
     MessageToUser execute(MessageDTO message);
 
     boolean isNextCallNeeded();
 
-    String getName();
+    default boolean isAdminCommand() {
+        return false;
+    }
+
+    default String getName(){
+        return "";
+    }
+
+    default String getDescription() {
+        return "";
+    }
 
     default ReplyKeyboard getReturnToStartMarkup() {
         return InlineKeyboardMarkup.builder()
                 .keyboardRow(
                         new InlineKeyboardRow(
                                 InlineKeyboardButton.builder()
-                                        .text("Вернуться в меню")
+                                        .text(returnIcon + " Вернуться в меню")
                                         .callbackData(
                                                 CallbackData.builder()
                                                         .command("/start")
@@ -46,7 +58,7 @@ public interface Command {
         keyboard.add(keyboardFirstRow);
 
         var keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add("Вернуться в меню");
+        keyboardSecondRow.add(returnIcon + " Вернуться в меню");
         keyboard.add(keyboardSecondRow);
         replyKeyboardMarkupBuilder.keyboard(keyboard);
 

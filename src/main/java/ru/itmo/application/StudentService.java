@@ -1,6 +1,7 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
+import org.apache.commons.io.FileUtils;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
@@ -25,6 +26,7 @@ import ru.itmo.util.TextParser;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -51,6 +53,24 @@ public class StudentService {
         return Optional.empty();
     }
 
+    public static Optional<String> getNewestStudentEduStreamNameByChatId(long chatId) throws InternalException {
+        List<Student> students = StudentRepository.findAllByChatId(chatId);
+        EduStream curr = null;
+        for (var student : students) {
+            if (curr == null) {
+                curr = student.getEduStream();
+                continue;
+            }
+            if (student.getEduStream().getDateTo().isAfter(curr.getDateTo())) {
+                curr = student.getEduStream();
+            }
+        }
+        if (curr != null) {
+            return Optional.of(curr.getName());
+        }
+        return Optional.empty();
+    }
+
     /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
        ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException, BadRequestException {
@@ -69,13 +89,36 @@ public class StudentService {
         return StudentRepository.updateITMOPracticeInfo(args, eduStreamNameOpt.get());
     }
 
-    public static Optional<byte[]> findApplicationBytesByChatId(long chatId) throws InternalException {
-        List<Student> students = StudentRepository.findAllByChatId(chatId);
-        for (var student : students) {
-            if (EduStreamChecker.isActiveStream(student.getEduStream()))
-                return Optional.of(student.getApplicationBytes());
+    public static File getApplicationFile(long chatId) throws InternalException, BadRequestException {
+        try {
+            List<Student> students = StudentRepository.findAllByChatId(chatId);
+            for (var student : students) {
+                if (EduStreamChecker.isActiveStream(student.getEduStream())) {
+                    if (student.getApplicationBytes() == null) {
+                        throw new BadRequestException("Нельзя выкачать заявку для студента %s, так как она еще не загружена".formatted(student.getFullName()));
+                    }
+                    var application = new File("Заявка - %s.docx".formatted(student.getFullName()));
+                    FileUtils.writeByteArrayToFile(application, student.getApplicationBytes());
+                    return application;
+                }
+            }
+            throw new BadRequestException("Невозможно выкачать заявку, так как студент с chatId %d не найден".formatted(chatId));
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: заявка не может быть выгружена");
         }
-        return Optional.empty();
+    }
+
+    public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, File application) throws InternalException {
+        byte[] applicationBytes;
+
+        try {
+            applicationBytes = Files.readAllBytes(application.toPath());
+        } catch (IOException ex) {
+            log.severe("Ошибка чтения файла: " + ex.getMessage());
+            throw new InternalException("Что-то пошло не так");
+        }
+
+        return updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, applicationBytes);
     }
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
@@ -302,7 +345,7 @@ public class StudentService {
                 return errors;
             }
 
-            // TODO: add into repo
+            StudentRepository.updateBatchByChatIdAndEduStreamName(List.of(student));
             return List.of();
         } catch (BadRequestException e) {
             return List.of(e.getMessage());
