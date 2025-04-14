@@ -1,7 +1,6 @@
 package ru.itmo.infra.handler.usecase.admin.mentor;
 
 import lombok.SneakyThrows;
-import org.checkerframework.checker.units.qual.A;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
@@ -10,7 +9,6 @@ import ru.itmo.domain.model.AdminToken;
 import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 import java.util.Optional;
@@ -25,8 +23,8 @@ public class CreateAdminFromUserCommand implements AdminCommand {
             if (parts.length < 2 || parts[1].isEmpty()) {
                 throw new BadRequestException(
                         "Неверный формат команды. Используйте:\n" +
-                                "/stay_admin <токен>\n\n" +
-                                "Пример: /stay_admin 550e8400-e29b-41d4-a716-446655440000"
+                                "/register_as_admin <токен>\n\n" +
+                                "Пример: /register_as_admin 550e8400-e29b-41d4-a716-446655440000"
                 );
             }
 
@@ -98,7 +96,7 @@ public class CreateAdminFromUserCommand implements AdminCommand {
 
     @Override
     public String getName() {
-        return "/stay_admin";
+        return "/register_as_admin";
     }
 
     @Override

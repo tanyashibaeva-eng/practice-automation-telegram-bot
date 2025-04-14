@@ -4,7 +4,6 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.storage.StudentRepository;
 import ru.itmo.infra.storage.TelegramUserRepository;
 import ru.itmo.util.EduStreamChecker;
