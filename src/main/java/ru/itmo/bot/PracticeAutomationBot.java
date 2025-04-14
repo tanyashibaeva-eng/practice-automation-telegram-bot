@@ -28,8 +28,8 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     @Override
     public void consume(Update update) {
         MessageToUser response = null;
+        String username = (update.getMessage() == null) ? null : update.getMessage().getChat().getUserName();
         long chatId = 0;
-        String username = update.getMessage().getChat().getUserName();
         boolean isCallback = false;
 
         if (update.hasCallbackQuery()) {
