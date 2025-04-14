@@ -33,7 +33,7 @@ public class CreateAdminFromUserCommand implements AdminCommand {
 
             Optional<TelegramUser> userOpt = TelegramUserService.findByChatId(chatId);
             TelegramUser user = userOpt.orElseGet(() ->
-                    new TelegramUser(chatId, false, false, null) // username можно установить позже
+                    new TelegramUser(chatId, false, false, message.getUsername())
             );
 
             if (user.isAdmin()) {
