@@ -16,7 +16,7 @@ public class AddAdminCommand implements AdminCommand {
         ContextHolder.endCommand(message.getChatId());
         AdminToken token = AdminTokenService.generateToken();
         return MessageToUser.builder()
-                .text("Токен для добавления админа сгенерирован (Не сообщать студентам): " + token.getToken()).build();
+                .text("Токен для добавления админа сгенерирован (не сообщать студентам): " + token.getToken()).build();
     }
 
     @Override

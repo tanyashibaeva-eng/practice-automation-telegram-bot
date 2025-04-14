@@ -22,7 +22,7 @@ public class StudentRepository {
 
     private static final Connection connection = DatabaseManager.getConnection();
 
-    public static void saveBaseBatch(List<Student> students) throws InternalException {
+    public static void saveBaseBatch(List<Student> students) throws InternalException, BadRequestException {
         try (var statement = connection.prepareStatement("""
                     INSERT INTO student (
                         edu_stream_name,
@@ -42,6 +42,10 @@ public class StudentRepository {
             statement.executeBatch();
 
         } catch (SQLException ex) {
+            /* violates index "idx_isu_edu_stream_name_student" constraint */
+            if (ex.getSQLState().equals("23505")) {
+                throw new BadRequestException("Некоторые из переданных в файле студентов уже существуют в потоке");
+            }
             throw handleAndWrapSQLException(ex);
         }
     }
@@ -89,15 +93,7 @@ public class StudentRepository {
                 "SELECT * FROM student;"
         )) {
             var rs = statement.executeQuery();
-            List<Student> result = new ArrayList<>();
-
-            Student student = mapToStudent(rs);
-            while (student != null) {
-                result.add(student);
-                student = mapToStudent(rs);
-            }
-
-            return result;
+            return mapToStudentList(rs);
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -114,16 +110,8 @@ public class StudentRepository {
 
         try (var statement = connection.prepareStatement(query)) {
             var rs = statement.executeQuery();
-            List<Student> result = new ArrayList<>();
-
-            Student student = mapToStudent(rs);
-            while (student != null) {
-                result.add(student);
-                student = mapToStudent(rs);
-            }
-
+            List<Student> result = mapToStudentList(rs);
             result.sort(Comparator.comparing(Student::getFullName));
-
             return result;
 
         } catch (SQLException ex) {
@@ -178,16 +166,7 @@ public class StudentRepository {
         )) {
             statement.setLong(1, chatId);
             var rs = statement.executeQuery();
-
-            List<Student> result = new ArrayList<>();
-
-            Student student = mapToStudent(rs);
-            while (student != null) {
-                result.add(student);
-                student = mapToStudent(rs);
-            }
-
-            return result;
+            return mapToStudentList(rs);
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -216,16 +195,8 @@ public class StudentRepository {
             statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
 
-            List<Student> result = new ArrayList<>();
-
-            Student student = mapToStudent(rs);
-            while (student != null) {
-                result.add(student);
-                student = mapToStudent(rs);
-            }
-
+            List<Student> result = mapToStudentList(rs);
             result.sort(Comparator.comparing(Student::getFullName));
-
             return result;
 
         } catch (SQLException ex) {
@@ -256,7 +227,8 @@ public class StudentRepository {
                         company_lead_fullname = ?,
                         company_lead_phone = ?,
                         company_lead_email = ?,
-                        company_lead_job_title = ?
+                        company_lead_job_title = ?,
+                        updated_at = now()
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
@@ -284,7 +256,8 @@ public class StudentRepository {
                         status = ?,
                         practice_place = ?,
                         company_name = ?,
-                        company_lead_fullname = ?
+                        company_lead_fullname = ?,
+                        updated_at = now()
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
         )) {
@@ -295,6 +268,25 @@ public class StudentRepository {
             statement.setLong(5, args.getChatId());
             statement.setString(6, eduStreamName);
             return 1 == statement.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<Student> exportAll(EduStream eduStream) throws InternalException {
+        try (var statement = connection.prepareStatement("""
+                UPDATE student
+                SET exported_at = now()
+                WHERE edu_stream_name = ?
+                RETURNING *;
+                """
+        )) {
+            statement.setString(1, eduStream.getName());
+            var rs = statement.executeQuery();
+            List<Student> result = mapToStudentList(rs);
+            result.sort(Comparator.comparing(Student::getFullName));
+            return result;
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -320,7 +312,8 @@ public class StudentRepository {
                         company_lead_job_title = ?,
                         cell_hex_color = ?,
                         managed_manually = ?,
-                        application_bytes = ?
+                        application_bytes = ?,
+                        updated_at = now()
                     WHERE (chat_id = ? OR (chat_id IS NULL AND ? IS NULL)) AND isu = ? AND edu_stream_name = ?;
                 """
         )) {
@@ -391,6 +384,18 @@ public class StudentRepository {
         return Optional.of(student);
     }
 
+    private static List<Student> mapToStudentList(ResultSet rs) throws SQLException, InternalException {
+        List<Student> result = new ArrayList<>();
+
+        Student student = mapToStudent(rs);
+        while (student != null) {
+            result.add(student);
+            student = mapToStudent(rs);
+        }
+
+        return result;
+    }
+
     private static Student mapToStudent(ResultSet rs) throws SQLException, InternalException {
         if (rs.next()) {
             long chatId = rs.getLong("chat_id");
@@ -427,7 +432,10 @@ public class StudentRepository {
                     rs.getString("company_lead_job_title"),
                     rs.getString("cell_hex_color"),
                     rs.getBoolean("managed_manually"),
-                    rs.getBytes("application_bytes")
+                    rs.getTimestamp("exported_at"),
+                    rs.getTimestamp("updated_at"),
+                    rs.getBytes("application_bytes"),
+                    false
             );
         }
         return null;

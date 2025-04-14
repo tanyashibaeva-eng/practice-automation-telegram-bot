@@ -167,6 +167,9 @@ public class StudentService {
         }
 
         StudentRepository.updateBatchByChatIdAndEduStreamName(students);
+
+        students.stream().filter(Student::isPingNeeded).forEach(NotificationService::pingStudent);
+
         return Optional.empty();
     }
 
@@ -193,7 +196,7 @@ public class StudentService {
     public static File exportStudentsToExcel(String eduStreamName) throws InternalException, BadRequestException {
         var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
-        var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
+        var students = StudentRepository.exportAll(eduStream);
         var groupToStudents = new HashMap<String, List<Student>>();
 
         for (var s : students) {

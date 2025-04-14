@@ -25,7 +25,7 @@ public class FillEduStreamCommand implements AdminCommand {
 
             ContextHolder.setNextCommand(message.getChatId(), new FillEduStreamUploadCommand());
             return MessageToUser.builder()
-                    .text("Пожалуйста, прикрепите файл с данными студентов для нового потока")
+                    .text("Пожалуйста, прикрепите файл с данными студентов для потока")
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .keyboardMarkup(getReturnToStartMarkup())
                     .needRewriting(true)

@@ -1,5 +1,6 @@
 package ru.itmo.infra.html;
 
+import lombok.extern.java.Log;
 import org.jsoup.Jsoup;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+@Log
 public class ParserIsuXls {
 
     public static List<ExcelStudentInfoDTO> parseISUXls(File file) {
@@ -27,7 +29,7 @@ public class ParserIsuXls {
 
             var table = doc.select("table").first();
             if (table == null) {
-                System.err.println("Таблица не найдена");
+                log.severe("Таблица не найдена");
                 return dtos;
             }
 

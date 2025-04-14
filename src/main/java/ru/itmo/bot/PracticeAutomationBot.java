@@ -28,11 +28,11 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     @Override
     public void consume(Update update) {
         MessageToUser response = null;
-        String username = (update.getMessage() == null) ? null : update.getMessage().getChat().getUserName();
         long chatId = 0;
         boolean isCallback = false;
 
         if (update.hasCallbackQuery()) {
+            String username = (update.getCallbackQuery().getMessage() == null) ? null : update.getCallbackQuery().getMessage().getChat().getUserName();
             String callbackDataString = update.getCallbackQuery().getData();
             chatId = update.getCallbackQuery().getMessage().getChatId();
             MessageDTO messageDTO = MessageDTO.builder()
@@ -45,6 +45,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             isCallback = !(response.getKeyboardMarkup() instanceof ReplyKeyboardMarkup || response.getDocument() != null);
         }
         if (update.hasMessage()) {
+            String username = (update.getMessage() == null) ? null : update.getMessage().getChat().getUserName();
             Message message = update.getMessage();
             chatId = message.getChatId();
             MessageDTO messageDTO = MessageDTO.builder()
@@ -78,6 +79,10 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     }
 
     private static void sendMessage(MessageToUser message, long chatId) {
+        if (message.getText() != null && message.getText().isBlank()) {
+            return;
+        }
+
         var sendMessage = SendMessage.builder()
                 .chatId(String.valueOf(chatId))
                 .text(message.getText())

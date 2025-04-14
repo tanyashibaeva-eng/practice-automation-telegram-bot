@@ -75,7 +75,11 @@ CREATE TABLE IF NOT EXISTS student (
     company_lead_job_title  text                DEFAULT NULL,
     cell_hex_color          varchar(32)         NOT NULL DEFAULT 'FFFFFF',
     managed_manually        boolean             NOT NULL DEFAULT false,
+    exported_at             timestamp           NOT NULL DEFAULT now(),
+    updated_at              timestamp           NOT NULL DEFAULT now(),
     application_bytes       bytea               DEFAULT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_isu_edu_stream_name_student ON student (isu, edu_stream_name) WHERE chat_id IS NULL;
