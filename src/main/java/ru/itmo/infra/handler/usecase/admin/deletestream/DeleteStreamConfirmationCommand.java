@@ -9,7 +9,6 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.UnknownUserException;
-import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 public class DeleteStreamConfirmationCommand implements AdminCommand {

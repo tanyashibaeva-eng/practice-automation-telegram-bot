@@ -1,7 +1,6 @@
 package ru.itmo.infra.handler;
 
 import lombok.extern.java.Log;
-import org.checkerframework.checker.units.qual.Force;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.objects.Document;
@@ -37,9 +36,17 @@ import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.*;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.*;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.*;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.*;
-import ru.itmo.infra.handler.usecase.user.studentregistration.*;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeDepartmentCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentDepartmentCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentLeadFullNameCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.ApplicationInfoSubmittedCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationISUCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationProcessISUCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
 import java.io.File;

@@ -7,7 +7,6 @@ import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
-import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 public class BanConfirmationCommand implements AdminCommand {

@@ -1,6 +1,8 @@
 package ru.itmo.domain.dto.command;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDate;
 
