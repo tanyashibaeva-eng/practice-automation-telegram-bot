@@ -74,7 +74,10 @@ public class RepositoriesTest {
                     "manager 1",
                     "1",
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             ),
             new Student(
                     null,
@@ -95,7 +98,10 @@ public class RepositoriesTest {
                     "manager 2",
                     "2",
                     false,
-                    new byte[]{123, 98, 123, 0, 22}
+                    null,
+                    null,
+                    new byte[]{123, 98, 123, 0, 22},
+                    false
             ),
             new Student(
                     null,
@@ -116,7 +122,10 @@ public class RepositoriesTest {
                     "manager 3",
                     "3",
                     false,
-                    new byte[]{0x14}
+                    null,
+                    null,
+                    new byte[]{0x14},
+                    false
             )
     );
 

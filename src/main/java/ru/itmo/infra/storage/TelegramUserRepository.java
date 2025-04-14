@@ -116,6 +116,19 @@ public class TelegramUserRepository {
         }
     }
 
+    public static Long getAdminsCount() throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT COUNT(*) as total FROM tg_user WHERE is_admin = true;"
+        )) {
+            var rs = statement.executeQuery();
+            rs.next();
+            return rs.getLong("total");
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     private static Optional<TelegramUser> mapToTelegramUserOptional(ResultSet rs) throws SQLException {
         TelegramUser telegramUser = mapToTelegramUser(rs);
         if (telegramUser == null) return Optional.empty();

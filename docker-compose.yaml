@@ -20,6 +20,7 @@ services:
     environment:
       BOT_TOKEN: $BOT_TOKEN
       PG_DSN: $PG_DSN
+      INN_CHECK: $INN_CHECK
     restart: unless-stopped
     networks:
       - practice-bot-network

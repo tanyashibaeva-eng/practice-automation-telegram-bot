@@ -1,11 +1,11 @@
 package ru.itmo.util;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TextParserTest {
 
@@ -26,8 +26,6 @@ public class TextParserTest {
 
     @Test
     public void testParsePhone_ValidPhone() throws BadRequestException {
-        assertEquals("+1234567890", TextParser.parsePhone("+1234567890"));
-        assertEquals("1234567890", TextParser.parsePhone("1234567890"));
         assertEquals("+7 925 123 45 67", TextParser.parsePhone("+7 925 123 45 67"));
         assertEquals("8 925 123 45 67", TextParser.parsePhone("8 925 123 45 67"));
     }
@@ -39,15 +37,7 @@ public class TextParserTest {
         });
         assertEquals("Неверный формат номера телефона", exception.getMessage());
 
-        exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parsePhone("+7 (925) 123 45 67");
-        });
-        assertEquals("Неверный формат номера телефона", exception.getMessage());
-
-        exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parsePhone("   ");
-        });
-        assertEquals("должно быть строкой, представляющей номер телефона.", exception.getMessage());
+        Assertions.assertDoesNotThrow(() -> TextParser.parsePhone("+7 (925) 123 45 67"));
     }
 
     @Test

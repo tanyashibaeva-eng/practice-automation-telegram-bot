@@ -61,7 +61,10 @@ public class StudentApplicationBytesTest {
                 "manager 2",
                 "2",
                 false,
-                new byte[]{123, 98, 123, 0, 22}
+                null,
+                null,
+                new byte[]{123, 98, 123, 0, 22},
+                false
         );
 
         try {
@@ -75,7 +78,7 @@ public class StudentApplicationBytesTest {
                     student.getIsu()
             ));
             StudentRepository.updateBatchByChatIdAndEduStreamName(List.of(student));
-        } catch (InternalException ex) {
+        } catch (InternalException | BadRequestException ex) {
             throw new RuntimeException(ex);
         }
     }

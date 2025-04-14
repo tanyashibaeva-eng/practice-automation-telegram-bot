@@ -39,7 +39,7 @@ public class TextParser {
             throw new BadRequestException("должно быть строкой, представляющей номер телефона.");
         }
 
-        String phoneRegex = "^\\+?(?:[0-9] ?){6,14}[0-9]$";
+        String phoneRegex = "^((8|\\+7)[\\- ]?)?(\\(?\\d{3}\\)?[\\- ]?)?[\\d\\- ]{7,10}$";
         if (!text.matches(phoneRegex)) {
             throw new BadRequestException("Неверный формат номера телефона");
         }

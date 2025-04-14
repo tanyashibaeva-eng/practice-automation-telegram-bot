@@ -34,12 +34,12 @@ public interface AdminCommand extends Command {
     }
 
     default String getEduStreamNameOrThrow(MessageDTO message) throws BadRequestException, UnknownUserException {
-        var streamNameOpt = getEduStreamNameFromMessage(message.getText());
+        Optional<String> streamNameOpt = message.hasText() ? getEduStreamNameFromMessage(message.getText()) : Optional.empty();
         if (streamNameOpt.isPresent()) {
             String streamName = streamNameOpt.get();
             ContextHolder.setEduStreamName(message.getChatId(), streamName);
             return streamName;
-        } else if (message.getText().trim().replace(getName(), "").isEmpty()) {
+        } else if (message.hasText() && message.getText().trim().replace(getName(), "").isBlank()) {
             throw new BadRequestException("Неверный формат команды: %s".formatted(getDescription()));
         } else {
            return ContextHolder.getEduStreamName(message.getChatId());

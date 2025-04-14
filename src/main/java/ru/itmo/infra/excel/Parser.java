@@ -175,7 +175,6 @@ public class Parser {
         return String.format("#%02X%02X%02X", rgb[0] & 0xFF, rgb[1] & 0xFF, rgb[2] & 0xFF);
     }
 
-
     private static String parseString(Cell cell, Map<Integer, List<String>> errorsByRows, boolean canBeEmpty) {
         if (cell == null) {
             return null;

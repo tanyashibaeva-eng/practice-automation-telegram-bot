@@ -76,7 +76,10 @@ public class AuthorizationTest {
                     null,
                     null,
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithPreviousRegistrationPrevious = new Student(
                     studentWithPreviousRegistrationUser,
@@ -97,7 +100,10 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithPreviousRegistrationCurrent = new Student(
                     null,
@@ -118,7 +124,10 @@ public class AuthorizationTest {
                     null,
                     null,
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithRegisteredStatusPrevious = new Student(
                     studentWithRegisteredStatusUser,
@@ -139,7 +148,10 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithRegisteredStatus = new Student(
                     studentWithRegisteredStatusUser,
@@ -160,7 +172,10 @@ public class AuthorizationTest {
                     null,
                     null,
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithApplicationReturnedStatus = new Student(
                     studentWithApplicationReturnedStatusUser,
@@ -181,7 +196,10 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentWithApplicationWaitingSigningStatus = new Student(
                     studentWithApplicationWaitingSigningStatusUser,
@@ -202,7 +220,10 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
         } catch (BadRequestException ex) {
             throw new RuntimeException(ex);

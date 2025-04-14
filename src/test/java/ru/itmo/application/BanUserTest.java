@@ -61,7 +61,10 @@ public class BanUserTest {
                 "manager 2",
                 "2",
                 false,
-                null
+                null,
+                null,
+                null,
+                false
         );
 
         try {
@@ -75,7 +78,7 @@ public class BanUserTest {
                     student.getIsu()
             ));
             StudentRepository.updateBatchByChatIdAndEduStreamName(List.of(student));
-        } catch (InternalException ex) {
+        } catch (InternalException | BadRequestException ex) {
             throw new RuntimeException(ex);
         }
     }

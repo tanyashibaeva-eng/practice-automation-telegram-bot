@@ -72,7 +72,10 @@ public class UserRegistrationTest {
                     null,
                     null,
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
             studentAStreamB = new Student(
                     null,
@@ -93,7 +96,10 @@ public class UserRegistrationTest {
                     null,
                     null,
                     false,
-                    null
+                    null,
+                    null,
+                    null,
+                    false
             );
 
             EduStreamRepository.save(streamA);

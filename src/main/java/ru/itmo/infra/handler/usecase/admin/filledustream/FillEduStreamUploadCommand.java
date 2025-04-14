@@ -53,6 +53,6 @@ public class FillEduStreamUploadCommand implements AdminCommand {
 
     @Override
     public boolean isNextCallNeeded() {
-        return true;
+        return false;
     }
 }

@@ -23,15 +23,14 @@ public class InputITMOStudentDepartmentCommand implements Command {
 
         var dto = ContextHolder.getCommandData(message.getChatId());
         locationName = locationName.trim().replaceAll(" +", " ");
-        if (dto instanceof ITMOPracticeInfoUpdateArgs) {
-            var itmoArgs = (ITMOPracticeInfoUpdateArgs) dto;
+        if (dto instanceof ITMOPracticeInfoUpdateArgs itmoArgs) {
             itmoArgs.setCompanyName(locationName);
             ContextHolder.setCommandData(chatId, itmoArgs);
             var leadName = itmoArgs.getCompanyLeadFullName();
 
             ContextHolder.setNextCommand(chatId, new StudentInputConfirmationCommand());
             return MessageToUser.builder()
-                    .text("Вы будете проходить практику в ИТМО в подразделении %s, у %s ?".formatted(locationName, leadName))
+                    .text("Вы будете проходить практику в ИТМО в подразделении %s, у %s?".formatted(locationName, leadName))
                     .keyboardMarkup(getInlineKeyboard())
                     .build();
 

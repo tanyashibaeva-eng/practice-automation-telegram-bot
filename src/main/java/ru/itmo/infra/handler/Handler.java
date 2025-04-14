@@ -31,6 +31,7 @@ import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
+import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
@@ -119,6 +120,7 @@ public class Handler {
         commands.add(new InitEduStreamCommand());
         commands.add(new CreateAdminFromUserCommand());
         commands.add(new UploadExcelCommand());
+        commands.add(new PingStudentsCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -133,6 +135,10 @@ public class Handler {
 
         if (nextFunc != null) {
             return executeCommand(nextFunc, message);
+        }
+
+        if (!message.hasText()) {
+            return MessageToUser.builder().text("").build();
         }
 
         var commandText = message.getText();
@@ -321,7 +327,8 @@ public class Handler {
                 new UploadExcelCommand(),
                 new InitEduStreamCommand(),
                 new DownloadApplicationCommand(),
-                new DeleteStreamCommand()
+                new DeleteStreamCommand(),
+                new PingStudentsCommand()
         );
     }
 
