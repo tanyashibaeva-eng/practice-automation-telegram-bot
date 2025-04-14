@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Document;
 @Builder
 public class MessageDTO {
     private Long chatId;
+    private String username;
     private String text;
     private Document document;
 

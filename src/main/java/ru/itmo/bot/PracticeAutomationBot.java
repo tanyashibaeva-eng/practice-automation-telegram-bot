@@ -17,9 +17,6 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.interceptor.Interceptor;
 import ru.itmo.util.PropertiesProvider;
 
-import java.util.HashMap;
-import java.util.Map;
-
 
 @Log
 public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsumer {
@@ -27,14 +24,12 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     // TODO: see if there's any alternatives to the OkHttpTelegramClient and whether we should use different TelegramClient implementation
     @Getter
     private static final TelegramClient telegramClient = new OkHttpTelegramClient(PropertiesProvider.getToken());
-    //сохраняем айдишку последнего отправленного сообщения для каждого чата
-    private static final Map<Long, Integer> lastMessageIds = new HashMap<>();
-
 
     @Override
     public void consume(Update update) {
         MessageToUser response = null;
         long chatId = 0;
+        String username = update.getChatMember().getChat().getUserName();
         boolean isCallback = false;
 
         if (update.hasCallbackQuery()) {
@@ -42,6 +37,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             chatId = update.getCallbackQuery().getMessage().getChatId();
             MessageDTO messageDTO = MessageDTO.builder()
                     .chatId(chatId)
+                    .username(username)
                     .text(callbackDataString)
                     .build();
             response = Interceptor.processCallback(messageDTO, callbackDataString);
@@ -51,7 +47,12 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         if (update.hasMessage()) {
             Message message = update.getMessage();
             chatId = message.getChatId();
-            MessageDTO messageDTO = MessageDTO.builder().chatId(chatId).text(message.getText()).document(message.getDocument()).build();
+            MessageDTO messageDTO = MessageDTO.builder()
+                    .chatId(chatId)
+                    .username(username)
+                    .text(message.getText())
+                    .document(message.getDocument())
+                    .build();
             response = Interceptor.processMessage(messageDTO);
         }
 
