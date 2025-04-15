@@ -2,6 +2,7 @@ package ru.itmo.application;
 
 import lombok.extern.java.Log;
 import org.apache.commons.io.FileUtils;
+import org.json.JSONException;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
@@ -273,7 +274,10 @@ public class StudentService {
             resBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
 
             return resBuilder.build();
-        } catch (IOException e) {
+        } catch (JSONException e) {
+            return InnValidationResult.builder().errorText("Не удалось найти такую компанию, попробуйте другую").build();
+        }
+        catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }
     }

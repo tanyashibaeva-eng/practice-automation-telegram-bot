@@ -16,18 +16,26 @@ public class StudentRegistrationConfirmationCommand implements Command {
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
         var args = (UserRegistrationArgs) ContextHolder.getCommandData(chatId);
+
         args.setChatId(chatId);
-        args.setEduStreamName("1");
 
         switch (message.getText()) {
             case "Да":
-                TelegramUserService.registerUser(args); // TODO: check userRegistrationResult
-                ContextHolder.endCommand(chatId);
-                return MessageToUser.builder()
-                        .text("Вы успешно зарегистрировались!")
-                        .keyboardMarkup(new ReplyKeyboardRemove(true))
-                        .needRewriting(false)
-                        .build();
+                var result = TelegramUserService.registerUser(args);
+                if (result.getErrorText() == null || result.getErrorText().isEmpty()) {
+                    ContextHolder.endCommand(chatId);
+                    return MessageToUser.builder()
+                            .text("Вы успешно зарегистрировались!")
+                            .keyboardMarkup(new ReplyKeyboardRemove(true))
+                            .needRewriting(false)
+                            .build();
+                } else {
+                    ContextHolder.endCommand(chatId);
+                    return MessageToUser.builder()
+                            .text(result.getErrorText())
+                            .keyboardMarkup(new ReplyKeyboardRemove(true))
+                            .build();
+                }
             case "Нет":
                 ContextHolder.setNextCommand(chatId, new StudentRegistrationISUCommand());
                 return MessageToUser.builder()

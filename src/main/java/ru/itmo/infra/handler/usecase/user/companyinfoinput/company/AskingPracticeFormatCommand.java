@@ -7,18 +7,18 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 import java.util.ArrayList;
 
-public class AskingPracticeFormatCommand implements Command {
+public class AskingPracticeFormatCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
         ContextHolder.setNextCommand(chatId, new InputPracticeFormatCommand());
         return MessageToUser.builder()
                 .text("Выберите формат прохождения практики:")
-                .keyboardMarkup(getPracticePlaceKeyboard())
+                .keyboardMarkup(getPracticeFormatKeyboard())
                 .build();
     }
 
@@ -27,7 +27,7 @@ public class AskingPracticeFormatCommand implements Command {
         return false;
     }
 
-    public static ReplyKeyboard getPracticePlaceKeyboard() {
+    public static ReplyKeyboard getPracticeFormatKeyboard() {
         var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
         replyKeyboardMarkupBuilder.resizeKeyboard(true);
         replyKeyboardMarkupBuilder.oneTimeKeyboard(true);

@@ -6,10 +6,10 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.StudentInputConfirmationCommand;
 
-public class InputITMOStudentDepartmentCommand implements Command {
+public class InputITMOStudentDepartmentCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
@@ -30,7 +30,7 @@ public class InputITMOStudentDepartmentCommand implements Command {
 
             ContextHolder.setNextCommand(chatId, new StudentInputConfirmationCommand());
             return MessageToUser.builder()
-                    .text("Вы будете проходить практику в ИТМО в подразделении %s, у %s?".formatted(locationName, leadName))
+                    .text("Вы будете проходить практику в ИТМО в подразделении %s у %s ?".formatted(locationName, leadName))
                     .keyboardMarkup(getInlineKeyboard())
                     .build();
 
@@ -41,13 +41,7 @@ public class InputITMOStudentDepartmentCommand implements Command {
         ContextHolder.setCommandData(chatId, companyArgs);
         var leadName = companyArgs.getCompanyLeadFullName();
 
-        // TODO:
         return null;
-//        ContextHolder.setNextCommand(chatId, new StudentInputConfirmationCommand());
-//        return MessageToUser.builder()
-//                .text("Вы будете проходить практику в ИТМО в подразделении %s, у %s ?".formatted(locationName, leadName))
-//                .keyboardMarkup(getInlineKeyboard())
-//                .build();
     }
 
     private boolean isValidLocation(String fullName) {
@@ -61,10 +55,5 @@ public class InputITMOStudentDepartmentCommand implements Command {
     @Override
     public boolean isNextCallNeeded() {
         return false;
-    }
-
-    @Override
-    public String getName() {
-        return "/who_itmo";
     }
 }

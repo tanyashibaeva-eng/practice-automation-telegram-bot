@@ -4,9 +4,9 @@ import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class AskingITMOPracticeLeadFullNameCommand implements Command {
+public class AskingITMOPracticeLeadFullNameCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
@@ -21,10 +21,5 @@ public class AskingITMOPracticeLeadFullNameCommand implements Command {
     @Override
     public boolean isNextCallNeeded() {
         return false;
-    }
-
-    @Override
-    public String getName() {
-        return "/who_itmo";
     }
 }

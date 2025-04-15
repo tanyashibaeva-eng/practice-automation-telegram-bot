@@ -5,9 +5,9 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class ErrorCompanyInputCommand implements Command {
+public class ErrorCompanyInputCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

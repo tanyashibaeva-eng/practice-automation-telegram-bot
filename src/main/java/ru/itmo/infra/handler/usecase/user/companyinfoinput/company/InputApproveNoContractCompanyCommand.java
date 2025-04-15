@@ -4,12 +4,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
 
-public class InputApproveNoContractCompanyCommand implements Command {
+public class InputApproveNoContractCompanyCommand implements UserCommand {
     @Override
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();

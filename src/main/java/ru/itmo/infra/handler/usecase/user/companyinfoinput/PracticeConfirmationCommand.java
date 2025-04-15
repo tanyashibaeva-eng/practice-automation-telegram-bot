@@ -8,12 +8,13 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
 import ru.itmo.domain.type.PracticePlace;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
 
-public class PracticeConfirmationCommand implements Command {
+import static ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand.getPracticePlaceKeyboard;
+
+public class PracticeConfirmationCommand implements UserCommand {
 
     @Override
     @SneakyThrows
@@ -62,10 +63,10 @@ public class PracticeConfirmationCommand implements Command {
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
             default:
-                ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
+                ContextHolder.setNextCommand(chatId, this);
                 return MessageToUser.builder()
                         .text("Извините, я вас не понимаю, ответьте \"Практика у Маркиной Т.А\", \"Практика в ИТМО\", \"В сторонней компании\" или \"Вернуться в меню\"")
-                        .keyboardMarkup(getInlineKeyboard())
+                        .keyboardMarkup(getPracticePlaceKeyboard())
                         .build();
         }
     }

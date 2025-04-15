@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.user.studentregistration;
+package ru.itmo.infra.handler.usecase.user.studentapplicationinput;
 
 import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
@@ -7,13 +7,13 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class StudentRegistrationStartCommand implements UserCommand {
+public class UploadApplicationCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), new StudentRegistrationProcessStreamCommand());
+        ContextHolder.setNextCommand(message.getChatId(), new UploadApplicationHandleCommand());
         return MessageToUser.builder()
-                .text("Введите название вашего потока")
+                .text("Загрузите заявку")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();
@@ -26,21 +26,22 @@ public class StudentRegistrationStartCommand implements UserCommand {
 
     @Override
     public String getName() {
-        return "/register";
+        return "/upload_application";
     }
 
     @Override
     public String getDescription() {
-        return "Зарегистрироваться";
+        return "Загрузить заполненную заявку";
     }
 
     @Override
     public String getDisplayName() {
-        return "Зарегистрироваться";
+        return "Загрузить заполненную заявку";
     }
 
     @Override
     public boolean isAvailableForStatus(StudentStatus status) {
-        return status == StudentStatus.NOT_REGISTERED;
+        return status == StudentStatus.APPLICATION_WAITING_SUBMISSION
+                || status == StudentStatus.APPLICATION_RETURNED;
     }
 }

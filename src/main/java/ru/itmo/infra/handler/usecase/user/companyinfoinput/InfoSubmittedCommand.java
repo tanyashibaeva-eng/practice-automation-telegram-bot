@@ -8,9 +8,9 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class InfoSubmittedCommand implements Command {
+public class InfoSubmittedCommand implements UserCommand {
 
     @Override
     @SneakyThrows

@@ -1,6 +1,7 @@
 package ru.itmo.infra.client;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -69,7 +70,7 @@ public class NalogRuClient {
             JSONObject company = rows.getJSONObject(0);
             return company.getString("c");
         } else {
-            return null;
+            throw new JSONException("");
         }
     }
 }

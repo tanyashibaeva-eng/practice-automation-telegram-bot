@@ -16,7 +16,6 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.domain.type.StudentStatus;
-import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
@@ -46,19 +45,18 @@ import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.*;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.*;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeDepartmentCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentDepartmentCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentLeadFullNameCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.ApplicationInfoSubmittedCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationISUCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationProcessISUCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentFilledApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationHandleCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.*;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
 import java.io.File;
@@ -66,6 +64,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.itmo.exception.InvalidMessageException.ThrowDocumentException;
 
@@ -86,6 +85,7 @@ public class Handler {
         commands.add(new AskingCompanyNameCommand());
         commands.add(new AskingCorporateEmailCommand());
         commands.add(new AskingInnCommand());
+        commands.add(new AskingLeadJobTitleCommand());
         commands.add(new AskingLeadPhoneNumberCommand());
         commands.add(new AskingPracticeFormatCommand());
         commands.add(new CompanyInfoConfirmationCommand());
@@ -93,6 +93,7 @@ public class Handler {
         commands.add(new InputCompanyNameCommand());
         commands.add(new InputCorporateEmailCommand());
         commands.add(new InputInnValidationCommand());
+        commands.add(new InputLeadJobTitleCommand());
         commands.add(new InputLeadPhoneNumberCommand());
         commands.add(new InputPracticeFormatCommand());
 
@@ -107,13 +108,14 @@ public class Handler {
         commands.add(new PracticeConfirmationCommand());
         commands.add(new StudentInputConfirmationCommand());
 
-        commands.add(new ApplicationInfoSubmittedCommand());
+        commands.add(new UploadApplicationHandleCommand());
         commands.add(new StudentDownloadApplicationCommand());
-        commands.add(new UnloadApplicationCommand());
+        commands.add(new StudentFilledApplicationCommand());
+        commands.add(new UploadApplicationCommand());
 
         commands.add(new StudentRegistrationConfirmationCommand());
         commands.add(new StudentRegistrationISUCommand());
-//        commands.add(new StudentRegistrationProcessFlowCommand()); // TODO: uncomment
+        commands.add(new StudentRegistrationProcessStreamCommand());
         commands.add(new StudentRegistrationProcessISUCommand());
         commands.add(new StudentRegistrationStartCommand());
 
@@ -224,12 +226,31 @@ public class Handler {
         }
     }
 
-    private static boolean checkPermission(long chatId, Command command) throws InternalException {
-        if (command instanceof StartCommand) {
+    private static boolean checkPermission(long chatId, Command command) {
+        try {
+            if (command instanceof StartCommand) {
+                return true;
+            }
+
+            if (AuthorizationService.isBanned(chatId)) {
+                return false;
+            }
+
+            boolean isAdmin = AuthorizationService.canDoAdminActions(chatId);
+
+            if (command.isAdminCommand()) {
+                return isAdmin;
+            }
+
+            if (command instanceof UserCommand) {
+                StudentStatus status = getStudentStatus(chatId);
+                return ((UserCommand) command).isAvailableForStatus(status);
+            }
+
             return true;
+        } catch (Exception e) {
+            return false;
         }
-        var isAdmin = AuthorizationService.canDoAdminActions(chatId);
-        return isAdmin == command.isAdminCommand();
     }
 
     private static MessageToUser permissionDenied(MessageDTO message) throws InternalException, UnknownUserException {
@@ -292,56 +313,64 @@ public class Handler {
         }
     }
 
-    private static void updateCommandsDropOut(long chatId) {
+    private static synchronized void updateCommandsDropOut(long chatId) {
         try {
             List<BotCommand> userCommands;
-
             var isAdmin = AuthorizationService.canDoAdminActions(chatId);
+
             if (isAdmin) {
                 userCommands = getAdminCommandsDropOut();
                 setCommandsForUser(chatId, userCommands);
                 return;
             }
 
-            var streamName = ContextHolder.getEduStreamName(chatId);
-
-            var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(chatId, streamName);
-            if (studentOpt.isEmpty()) {
-                throw new UnknownUserException(chatId);
-            }
-
-            var student = studentOpt.get();
-            userCommands = getStudentsCommandsDropOut(student.getStatus());
+            var status = getStudentStatus(chatId);
+            userCommands = getStudentsCommandsDropOut(status);
             setCommandsForUser(chatId, userCommands);
-        } catch (UnknownUserException e) {
-            List<BotCommand> userCommands = new ArrayList<>();
-            addCommandIfExists(userCommands, new StartCommand());
-            setCommandsForUser(chatId, userCommands);
-        } catch (BadRequestException ignored) {
         } catch (Exception e) {
-            log.warning("Ошибка обновления команд для " + chatId + ": " + e.getMessage());
         }
     }
 
+    public static List<Command> getAvailableStudentCommands(StudentStatus status) {
+        List<Command> commands = new ArrayList<>();
+
+        commands.add(new ChoosePracticePlaceCommand());
+        commands.add(new StudentDownloadApplicationCommand());
+        commands.add(new UploadApplicationCommand());
+        commands.add(new StudentRegistrationStartCommand());
+        commands.add(new StudentFilledApplicationCommand());
+
+        // Фильтруем только те, которые доступны для текущего статуса
+        return commands.stream()
+                .filter(cmd -> {
+                    if (cmd instanceof UserCommand) {
+                        return ((UserCommand) cmd).isAvailableForStatus(status);
+                    }
+                    return true;
+                })
+                .collect(Collectors.toList());
+    }
+
     private static List<BotCommand> getStudentsCommandsDropOut(StudentStatus status) {
-        List<BotCommand> resultCommands = new ArrayList<>();
+        List<BotCommand> result = new ArrayList<>();
 
-        addCommandIfExists(resultCommands, new StartCommand());
-        addCommandIfExists(resultCommands, new StatusCommand());
+        // Всегда доступные базовые команды
+        addCommandIfExists(result, new StartCommand());
+        addCommandIfExists(result, new HelpCommand());
+        addCommandIfExists(result, new StatusCommand());
 
-        switch (status) {
-            case REGISTERED, COMPANY_INFO_RETURNED:
-                addCommandIfExists(resultCommands, new ChoosePracticePlaceCommand());
-                break;
-            case COMPANY_INFO_WAITING_APPROVAL, PRACTICE_APPROVED, APPLICATION_WAITING_SUBMISSION,
-                 APPLICATION_WAITING_APPROVAL, APPLICATION_RETURNED:
-                addCommandIfExists(resultCommands, new DownloadApplicationCommand());
-                break;
-            case APPLICATION_SIGNED:
-                addCommandIfExists(resultCommands, new UnloadApplicationCommand());
-                break;
+        // Команды, зависящие от статуса
+        if (status != null) {
+            getAvailableStudentCommands(status).forEach(cmd -> {
+                // Проверяем, что команда не добавлена ранее и доступна
+                if (result.stream().noneMatch(bc -> bc.getCommand().equals(cmd.getName())) &&
+                        (!(cmd instanceof UserCommand) || ((UserCommand) cmd).isAvailableForStatus(status))) {
+                    addCommandIfExists(result, cmd);
+                }
+            });
         }
-        return resultCommands;
+
+        return result;
     }
 
     private static List<BotCommand> getAdminCommandsDropOut() {
@@ -387,4 +416,36 @@ public class Handler {
             log.severe("Ошибка установки команд: " + e.getMessage());
         }
     }
-}
+
+    private static StudentStatus getStudentStatus(long chatId) {
+        try {
+            // Сначала пробуем получить имя потока
+            String streamName;
+            try {
+                streamName = ContextHolder.getEduStreamName(chatId);
+            } catch (UnknownUserException e) {
+                // Если нет в контексте, пробуем получить из базы
+                var eduOpt = StudentService.getNewestStudentEduStreamNameByChatId(chatId);
+                if (eduOpt.isEmpty()) {
+                    log.warning("Edu stream not found for chatId: " + chatId);
+                    return StudentStatus.NOT_REGISTERED;
+                }
+                streamName = eduOpt.get();
+                ContextHolder.setEduStreamName(chatId, streamName);
+            }
+
+            // Получаем студента
+            var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(chatId, streamName);
+            if (studentOpt.isPresent()) {
+                StudentStatus status = studentOpt.get().getStatus();
+                log.info("Student status for chatId " + chatId + ": " + status);
+                return status;
+            }
+
+            log.warning("Student not found for chatId: " + chatId);
+            return StudentStatus.NOT_REGISTERED;
+        } catch (Exception e) {
+            log.warning("Error getting student status: " + e.getMessage());
+            return StudentStatus.NOT_REGISTERED;
+        }
+    }}

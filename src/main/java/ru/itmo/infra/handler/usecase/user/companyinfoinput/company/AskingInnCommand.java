@@ -4,9 +4,9 @@ import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class AskingInnCommand implements Command {
+public class AskingInnCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
