@@ -22,7 +22,6 @@ import ru.itmo.util.PropertiesProvider;
 @Log
 public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsumer {
 
-    // TODO: see if there's any alternatives to the OkHttpTelegramClient and whether we should use different TelegramClient implementation
     @Getter
     private static final TelegramClient telegramClient = new OkHttpTelegramClient(PropertiesProvider.getToken());
 

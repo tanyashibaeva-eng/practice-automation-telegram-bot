@@ -192,7 +192,7 @@ public class RepositoriesTest {
         filter = Filter.builder()
                 .eduStream(eduStream)
                 .stGroups(List.of("G1"))
-                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
+                .stStatuses(List.of(StudentStatus.REGISTERED))
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);
@@ -201,7 +201,7 @@ public class RepositoriesTest {
 
         filter = Filter.builder()
                 .stGroups(List.of("G2"))
-                .stStatuses(List.of(StudentStatus.REGISTERED)) // TODO: test with other status
+                .stStatuses(List.of(StudentStatus.REGISTERED))
                 .build();
 
         studentsRes = StudentRepository.findAll(filter);

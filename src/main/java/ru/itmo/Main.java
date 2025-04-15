@@ -14,7 +14,6 @@ public class Main {
 
         try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
 
-            // TODO: just for testing, remove afterwards
             Class.forName("ru.itmo.infra.storage.DatabaseManager");
 
             botsApplication.registerBot(token, new PracticeAutomationBot());

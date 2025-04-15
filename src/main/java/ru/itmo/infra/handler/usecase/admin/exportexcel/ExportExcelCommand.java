@@ -30,7 +30,6 @@ public class ExportExcelCommand implements AdminCommand {
             ContextHolder.setNextCommand(chatId, new GotoStreamCommand());
             return MessageToUser.builder().text("Сгенерированная выгрузка по потоку %s".formatted(streamName)).document(file).build();
         } catch (BadRequestException e) {
-            // TODO:
             return MessageToUser.builder().text(e.getMessage()).build();
         } catch (UnknownUserException e) {
             return returnToMainMenuWithError(message.getChatId(),

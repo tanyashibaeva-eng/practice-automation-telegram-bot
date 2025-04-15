@@ -19,6 +19,7 @@ import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
@@ -113,7 +114,7 @@ public class StartCommand implements Command {
         var markupBuilder = InlineKeyboardMarkup.builder();
         for (var streamName : streamNames) {
             var callbackData = CallbackData.builder()
-                    .command("/goto_stream_menu") // TODO: replace with Command.getName
+                    .command(new GotoStreamCommand().getName())
                     .key("eduStreamName")
                     .value(streamName)
                     .build();
