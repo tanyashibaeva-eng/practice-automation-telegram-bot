@@ -14,6 +14,7 @@ import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamUploadCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 
 @NoArgsConstructor
