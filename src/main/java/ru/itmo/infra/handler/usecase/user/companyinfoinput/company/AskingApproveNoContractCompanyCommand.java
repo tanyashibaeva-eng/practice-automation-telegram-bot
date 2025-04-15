@@ -4,9 +4,9 @@ import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class AskingApproveNoContractCompanyCommand implements Command {
+public class AskingApproveNoContractCompanyCommand implements UserCommand {
 
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

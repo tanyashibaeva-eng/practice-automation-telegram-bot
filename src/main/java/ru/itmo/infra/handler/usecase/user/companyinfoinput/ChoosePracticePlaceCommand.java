@@ -7,11 +7,12 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.Keyboard
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 import java.util.ArrayList;
 
-public class ChoosePracticePlaceCommand implements Command {
+public class ChoosePracticePlaceCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -21,6 +22,17 @@ public class ChoosePracticePlaceCommand implements Command {
                 .text("Выберите формат прохождения практики:")
                 .keyboardMarkup(getPracticePlaceKeyboard())
                 .build();
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "Выбор места практики";
+    }
+
+    @Override
+    public boolean isAvailableForStatus(StudentStatus status) {
+        return status == StudentStatus.REGISTERED ||
+                status == StudentStatus.COMPANY_INFO_RETURNED;
     }
 
     @Override
@@ -35,10 +47,10 @@ public class ChoosePracticePlaceCommand implements Command {
 
     @Override
     public String getDescription() {
-        return "Выбрать практику";
+        return "Выбрать место прохождения практики";
     }
 
-    private static ReplyKeyboard getPracticePlaceKeyboard() {
+    public static ReplyKeyboard getPracticePlaceKeyboard() {
         var replyKeyboardMarkupBuilder = ReplyKeyboardMarkup.builder();
         replyKeyboardMarkupBuilder.resizeKeyboard(true);
         replyKeyboardMarkupBuilder.oneTimeKeyboard(true);

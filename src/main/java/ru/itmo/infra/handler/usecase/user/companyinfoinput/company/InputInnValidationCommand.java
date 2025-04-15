@@ -7,10 +7,10 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.type.PracticeFormat;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
-public class InputInnValidationCommand implements Command {
+public class InputInnValidationCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
@@ -22,6 +22,8 @@ public class InputInnValidationCommand implements Command {
             ContextHolder.setNextCommand(chatId, this);
             return MessageToUser.builder()
                     .text(innResponse.getErrorText())
+                    .keyboardMarkup(getReturnToStartMarkup())
+                    .needRewriting(true)
                     .build();
         }
         // Если ИНН начинается не с "78", идем к запросу формата практики OK тут еще добавили если формат практики онлайн
@@ -29,6 +31,15 @@ public class InputInnValidationCommand implements Command {
             ContextHolder.setNextCommand(chatId, new AskingPracticeFormatCommand());
             return MessageToUser.builder()
                     .text("Для компаний не из Санкт-Петербурга формат прохождения практики может быть только дистанционным")
+                    .build();
+        }
+        // Если компания не найдена, просим ввести название
+        if (innResponse.getCompanyName() == null) {
+            dto.setInn(innResponse.getInn());
+            ContextHolder.setCommandData(chatId, dto); // сохранили инн
+            ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
+            return MessageToUser.builder()
+                    .text("")
                     .build();
         }
         // Если ИНН корректен, проверяем договор с ИТМО OK
@@ -39,14 +50,7 @@ public class InputInnValidationCommand implements Command {
                     .build();
         }
         dto.setInn(innResponse.getInn()); //получили инн
-        // Если компания не найдена, просим ввести название
-        if (innResponse.getCompanyName() == null) {
-            ContextHolder.setCommandData(chatId, dto); // сохранили инн
-            ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
-            return MessageToUser.builder()
-                    .text("")
-                    .build();
-        }
+
         // сохранение и отправка
         dto.setCompanyName(innResponse.getCompanyName()); // сохранили название компании
         ContextHolder.setCommandData(chatId, dto);

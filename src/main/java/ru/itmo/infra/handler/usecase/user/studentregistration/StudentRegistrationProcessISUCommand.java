@@ -13,10 +13,13 @@ public class StudentRegistrationProcessISUCommand implements Command {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var isuNumber = message.getText().trim();
-        var isuResp = StudentService.validateIsu(isuNumber, "1");
         var chatId = message.getChatId();
+        // Получаем сохраненное имя потока из ContextHolder
+        var eduStreamName = ContextHolder.getEduStreamName(chatId);
+        var isuResp = StudentService.validateIsu(isuNumber, eduStreamName);
+
         if (isuResp.getErrorText() != null) {
-            ContextHolder.setNextCommand(chatId, new StudentRegistrationISUCommand());
+            ContextHolder.setNextCommand(chatId, new StudentRegistrationProcessISUCommand());
             return MessageToUser.builder()
                     .text(isuResp.getErrorText())
                     .keyboardMarkup(getReturnToStartMarkup())
@@ -28,11 +31,15 @@ public class StudentRegistrationProcessISUCommand implements Command {
         var dto = UserRegistrationArgs.builder()
                 .username(student.getFullName())
                 .isu(isuResp.getIsu())
+                .eduStreamName(eduStreamName) // Сохраняем имя потока в DTO
                 .build();
         ContextHolder.setCommandData(chatId, dto);
         ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
         return MessageToUser.builder()
-                .text("Найден студент с ИСУ номером %d. Его ФИО: %s. Это вы?".formatted(student.getIsu(), student.getFullName()))
+                .text("Найден студент с ИСУ номером %d. Его ФИО: %s. Поток: %s. Это вы?".formatted(
+                        student.getIsu(),
+                        student.getFullName(),
+                        eduStreamName))
                 .keyboardMarkup(getInlineKeyboard())
                 .build();
     }

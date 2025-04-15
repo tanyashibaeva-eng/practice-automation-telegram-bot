@@ -7,25 +7,32 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.StudentStatus;
-import ru.itmo.infra.handler.usecase.start.StartCommand;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class StudentDownloadApplicationCommand implements UserCommand {
+public class StudentFilledApplicationCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        var chatId = message.getChatId();
-        var fileResp = StudentService.generateApplicationFileByChatId(chatId);
-        if (fileResp.getErrorText() != null) {
-            System.out.println(fileResp.getErrorText());
-        }
+        try {
+            var chatId = message.getChatId();
+            var file = StudentService.getApplicationFile(chatId);
+
         ContextHolder.endCommand(message.getChatId());
         return MessageToUser.builder()
-                .text("Скачайте и заполните заявку, затем загрузите ее обратно в бота")
+                .text("")
                 .keyboardMarkup(new ReplyKeyboardRemove(true))
-                .document(fileResp.getFile())
+                .document(file)
                 .build();
-}
+    } catch (BadRequestException e) {
+            ContextHolder.endCommand(message.getChatId());
+            return MessageToUser.builder()
+                    .text(e.getMessage())
+                    .keyboardMarkup(new ReplyKeyboardRemove(true))
+                    .needRewriting(true)
+                    .build();
+        }
+    }
 
     @Override
     public boolean isNextCallNeeded() {
@@ -34,23 +41,22 @@ public class StudentDownloadApplicationCommand implements UserCommand {
 
     @Override
     public String getName() {
-        return "/download_application";
+        return "/download_sent_application";
     }
 
     @Override
     public String getDescription() {
-        return "Скачать шаблон заявки";
+        return "Скачать отправленную заявку";
     }
 
     @Override
     public String getDisplayName() {
-        return "Скачать шаблон заявки";
+        return "Скачать отправленную заявку";
     }
 
     @Override
     public boolean isAvailableForStatus(StudentStatus status) {
-        return  status == StudentStatus.APPLICATION_WAITING_SUBMISSION ||
-                status == StudentStatus.APPLICATION_WAITING_APPROVAL ||
-                status == StudentStatus.APPLICATION_RETURNED;
+        return  status == StudentStatus.APPLICATION_WAITING_APPROVAL ||
+                status == StudentStatus.APPLICATION_WAITING_SIGNING ;
     }
 }

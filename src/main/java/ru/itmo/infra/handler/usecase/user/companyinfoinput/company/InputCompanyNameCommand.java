@@ -5,10 +5,10 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
-public class InputCompanyNameCommand implements Command {
+public class InputCompanyNameCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
@@ -16,9 +16,11 @@ public class InputCompanyNameCommand implements Command {
         if (!isValidCompanyName(companyName)) {
             return MessageToUser.builder()
                     .text("Не корректный ввод")
+                    .keyboardMarkup(getReturnToStartMarkup())
+                    .needRewriting(true)
                     .build();
         }
-        // TODO нужна ли валидация на название компании, которую вводит сам студент
+
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
         dto.setCompanyName(companyName);
         ContextHolder.setCommandData(chatId, dto);
@@ -30,11 +32,11 @@ public class InputCompanyNameCommand implements Command {
     }
 
     private boolean isValidCompanyName(String companyName) {
-        return  (companyName == null || companyName.trim().isEmpty());
-        }
+        return companyName != null && !companyName.trim().isEmpty();
+    }
 
     @Override
     public boolean isNextCallNeeded() {
-        return false;
+        return true;
     }
 }

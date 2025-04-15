@@ -7,10 +7,11 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.type.PracticeFormat;
-import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
-public class InputPracticeFormatCommand implements Command {
+import static ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingPracticeFormatCommand.getPracticeFormatKeyboard;
+
+public class InputPracticeFormatCommand implements UserCommand {
 
     @Override
     @SneakyThrows
@@ -34,10 +35,10 @@ public class InputPracticeFormatCommand implements Command {
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
             default:
-                ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
+                ContextHolder.setNextCommand(chatId, this);
                 return MessageToUser.builder()
                         .text("Извините, я вас не понимаю, ответьте \"Очная практика\", \"Гибридная практика\", \"Дистанционная практика\", \"Вернуться в меню\"")
-                        .keyboardMarkup(getInlineKeyboard())
+                        .keyboardMarkup(getPracticeFormatKeyboard())
                         .build();
         }
         ContextHolder.setCommandData(chatId, dto);

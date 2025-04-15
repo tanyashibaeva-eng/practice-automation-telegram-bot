@@ -6,39 +6,32 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
-import ru.itmo.util.TextParser;
 
-public class InputLeadPhoneNumberCommand implements UserCommand {
+public class InputLeadJobTitleCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var phoneNumber = message.getText().trim();
-
-        if (!isValidPhoneNumber(phoneNumber)) {
-            ContextHolder.setNextCommand(chatId, this);
+        var leadJob = message.getText().trim();
+        if (!isValidLeadPost(leadJob)) {
             return MessageToUser.builder()
-                    .text("Некорректный формат номера")
+                    .text("Не корректный ввод")
                     .keyboardMarkup(getReturnToStartMarkup())
                     .needRewriting(true)
                     .build();
         }
 
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
-        dto.setCompanyLeadPhone(phoneNumber);
+        dto.setCompanyLeadJobTitle(leadJob);
         ContextHolder.setCommandData(chatId, dto);
-        ContextHolder.setNextCommand(chatId, new AskingCorporateEmailCommand());
+        ContextHolder.setNextCommand(chatId, new AskingLeadPhoneNumberCommand());
         return MessageToUser.builder()
                 .text("")
+                .keyboardMarkup(getInlineKeyboard())
                 .build();
     }
 
-    private boolean isValidPhoneNumber(String phone) {
-        try {
-            String parsed = TextParser.parsePhone(phone);
-            return parsed.startsWith("+7") || parsed.startsWith("8");
-        } catch (Exception e) {
-            return false;
-        }
+    private boolean isValidLeadPost(String leadJob) {
+        return leadJob != null && !leadJob.trim().isEmpty();
     }
 
     @Override

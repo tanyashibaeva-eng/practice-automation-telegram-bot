@@ -6,10 +6,10 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.exception.BadRequestException;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.util.TextParser;
 
-    public class InputCorporateEmailCommand implements Command {
+    public class InputCorporateEmailCommand implements UserCommand {
         @SneakyThrows
         public MessageToUser execute(MessageDTO message) {
             var chatId = message.getChatId();
@@ -18,7 +18,7 @@ import ru.itmo.util.TextParser;
             if (!isValidCorporateEmail(email)) {
                 ContextHolder.setNextCommand(chatId, this);
                 return MessageToUser.builder()
-                        .text("Некорректный формат email")
+                        .text("Email имеет некорректный формат или не является корпоративным")
                         .keyboardMarkup(getReturnToStartMarkup())
                         .needRewriting(true)
                         .build();

@@ -23,7 +23,7 @@ public class Interceptor {
             return MessageToUser.builder().text(e.getMessage()).build();
         } catch (InternalException e) {
             ContextHolder.endCommand(message.getChatId());
-            log.severe(e.getCause().getMessage());
+            log.severe(e.getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         } catch (TelegramApiException | IOException ex) {
             ContextHolder.endCommand(message.getChatId());

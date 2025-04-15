@@ -17,11 +17,10 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
+import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.Command;
-import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UnloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
@@ -158,85 +157,46 @@ public class StartCommand implements Command {
                                         .text(registerIcon + " Регистрация")
                                         .callbackData(
                                                 CallbackData.builder()
-                                                        .command("/register")
+                                                        .command(new StudentRegistrationStartCommand().getName())
                                                         .build()
                                                         .toString()
                                         ).build()
                         )).build();
     }
-
     private static ReplyKeyboard getUserKeyboard(StudentStatus status) {
+        if (status == null) {
+            return getMarkupKeyboardForStart();
+        }
+
         var markupBuilder = InlineKeyboardMarkup.builder();
 
-        // Кнопка статуса всегда доступна
+        // Добавим кнопку "Мой статус" в любом случае
         markupBuilder.keyboardRow(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
                         .text("Мой статус")
-                        .callbackData(
-                                CallbackData.builder()
-                                        .command(new StatusCommand().getName())
-                                        .build()
-                                        .toString()
-                        ).build()
+                        .callbackData(CallbackData.builder()
+                                .command(new StatusCommand().getName())
+                                .build()
+                                .toString())
+                        .build()
         ));
-        if (status != null) {
-            switch (status) {
-                case REGISTERED:
-                case COMPANY_INFO_RETURNED:
-                    markupBuilder.keyboardRow(new InlineKeyboardRow(
-                            InlineKeyboardButton.builder()
-                                    .text("Выбор места практики")
-                                    .callbackData(
-                                            CallbackData.builder()
-                                                    .command(new ChoosePracticePlaceCommand().getName())
-                                                    .build()
-                                                    .toString()
-                                    ).build()
-                    ));
-                    break;
 
-                case COMPANY_INFO_WAITING_APPROVAL:
-                case PRACTICE_APPROVED:
-                case APPLICATION_WAITING_SUBMISSION:
-                case APPLICATION_RETURNED:
-                    markupBuilder.keyboardRow(new InlineKeyboardRow(
-                            InlineKeyboardButton.builder()
-                                    .text("Скачать заявку")
-                                    .callbackData(
-                                            CallbackData.builder()
-                                                    .command(new DownloadApplicationCommand().getName())
-                                                    .build()
-                                                    .toString()
-                                    ).build()
-                    ));
-                    break;
-
-                case APPLICATION_SIGNED:
-                    markupBuilder.keyboardRow(new InlineKeyboardRow(
-                            InlineKeyboardButton.builder()
-                                    .text("Загрузить заявку")
-                                    .callbackData(
-                                            CallbackData.builder()
-                                                    .command(new UnloadApplicationCommand().getName())
-                                                    .build()
-                                                    .toString()
-                                    ).build()
-                    ));
-                    break;
+        // Добавляем остальные команды
+        Handler.getAvailableStudentCommands(status).forEach(cmd -> {
+            if (cmd instanceof UserCommand && !cmd.getName().equals(new StatusCommand().getName())) {
+                UserCommand userCmd = (UserCommand) cmd;
+                markupBuilder.keyboardRow(new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text(userCmd.getDisplayName())
+                                .callbackData(
+                                        CallbackData.builder()
+                                                .command(userCmd.getName())
+                                                .build()
+                                                .toString())
+                                .build()
+                ));
             }
-        } else {
-            markupBuilder.keyboardRow(new InlineKeyboardRow(
-                    InlineKeyboardButton.builder()
-                            .text("Регистрация")
-                            .callbackData(
-                                    CallbackData.builder()
-                                            .command(new StudentRegistrationStartCommand().getName())
-                                            .build()
-                                            .toString()
-                            ).build()
-            ));
-        }
+        });
 
         return markupBuilder.build();
-    }
-}
+    }}

@@ -5,8 +5,10 @@ import ru.itmo.application.AuthorizationService;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 import java.util.ArrayList;
 
@@ -56,5 +58,4 @@ public class HelpCommand implements AdminCommand {
 
         return String.join("\n", helpMessages);
     }
-
 }

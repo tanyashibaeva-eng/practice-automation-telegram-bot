@@ -14,7 +14,7 @@ public class UploadExcelHandleCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         var file = Handler.getFileFromMessage(message);
 
-        var res = StudentService.updateStudentsFromExcel(file, "1");
+        var res = StudentService.updateStudentsFromExcel(file, "крутой");
         if (res.isEmpty()) {
             ContextHolder.endCommand(message.getChatId());
             return MessageToUser.builder().text("Файл был успешно загружен").build();

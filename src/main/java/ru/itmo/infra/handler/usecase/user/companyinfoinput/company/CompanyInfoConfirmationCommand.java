@@ -4,11 +4,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
-import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
 
-public class CompanyInfoConfirmationCommand implements Command {
+public class CompanyInfoConfirmationCommand implements UserCommand {
     @Override
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
@@ -35,7 +35,7 @@ public class CompanyInfoConfirmationCommand implements Command {
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
             default:
-                ContextHolder.setNextCommand(chatId, new StudentRegistrationConfirmationCommand());
+                ContextHolder.setNextCommand(chatId, this);
                 return MessageToUser.builder()
                         .text("Извините, я вас не понимаю, ответьте \"Да\", \"Нет\" или \"Вернуться в меню\" ")
                         .keyboardMarkup(getInlineKeyboard())
