@@ -26,7 +26,7 @@ public class TextParser {
         }
     }
 
-    public static long parseDoubleToLong(String text) throws BadRequestException {
+    public static long parseDoubleStrToLong(String text) throws BadRequestException {
         try {
             return (long) Double.parseDouble(text.trim());
         } catch (NumberFormatException e) {

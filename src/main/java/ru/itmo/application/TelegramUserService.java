@@ -142,8 +142,13 @@ public class TelegramUserService {
         return wasDeleted && TelegramUserRepository.updateByChatId(telegramUser);
     }
 
-    public static boolean unbanUser(TelegramUser telegramUser) throws InternalException, BadRequestException {
-        doesExistOrThrow(telegramUser.getChatId());
+    public static boolean unbanUser(long chatId) throws InternalException, BadRequestException {
+        doesExistOrThrow(chatId);
+        var tgUserOpt = TelegramUserRepository.findByChatId(chatId);
+        if (tgUserOpt.isEmpty()) {
+            return true;
+        }
+        var telegramUser = tgUserOpt.get();
         telegramUser.setBanned(false);
         return TelegramUserRepository.updateByChatId(telegramUser);
     }

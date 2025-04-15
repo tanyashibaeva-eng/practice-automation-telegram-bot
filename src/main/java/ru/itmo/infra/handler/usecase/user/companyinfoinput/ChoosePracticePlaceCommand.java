@@ -51,7 +51,7 @@ public class ChoosePracticePlaceCommand implements Command {
 
         var keyboardSecondRow = new KeyboardRow();
         keyboardSecondRow.add("В сторонней компании");
-        keyboardSecondRow.add("Вернуться в меню");
+        keyboardSecondRow.add(returnIcon + " Вернуться в меню");
         keyboard.add(keyboardSecondRow);
         replyKeyboardMarkupBuilder.keyboard(keyboard);
 

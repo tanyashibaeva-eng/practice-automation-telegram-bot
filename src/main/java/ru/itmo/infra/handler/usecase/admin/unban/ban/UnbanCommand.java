@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.admin.ban;
+package ru.itmo.infra.handler.usecase.admin.unban.ban;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -11,7 +11,7 @@ import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
 
-public class BanCommand implements AdminCommand {
+public class UnbanCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -19,7 +19,7 @@ public class BanCommand implements AdminCommand {
             var messageText = message.getText().trim().replaceAll(" +", " ");
             var fields = messageText.split(" ");
             if (fields.length < 2) {
-                throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/ban <studentChatId>`");
+                throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/unban <studentChatId>`");
             }
 
             var studentChatIdStr = fields[1];
@@ -35,20 +35,12 @@ public class BanCommand implements AdminCommand {
                 throw new BadRequestException("Студент с chatId: %d не найден".formatted(studentChatId));
             }
 
-            var textBuilder = new StringBuilder();
-            textBuilder.append("Найденные записи о студенте:\n");
-            for (var student : students) {
-                textBuilder.append("- Поток: %s\n".formatted(student.getEduStream().getName()));
-                textBuilder.append("\tФИО: %s\n".formatted(student.getFullName()));
-                textBuilder.append("\tСтатус: %s\n".formatted(student.getStatus().getDisplayName()));
-            }
-
-            textBuilder.append("\nЗабанить студента с chatId %d? Все записи о нем будут удалены".formatted(studentChatId));
+            String textBuilder = "\nРазбанить студента с chatId %d?".formatted(studentChatId);
             ContextHolder.setCommandData(message.getChatId(), new BanArgs(studentChatId));
-            ContextHolder.setNextCommand(message.getChatId(), new BanConfirmationCommand());
+            ContextHolder.setNextCommand(message.getChatId(), new UnbanConfirmationCommand());
 
             return MessageToUser.builder()
-                    .text(textBuilder.toString())
+                    .text(textBuilder)
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .keyboardMarkup(getInlineKeyboard())
                     .build();
@@ -68,11 +60,11 @@ public class BanCommand implements AdminCommand {
 
     @Override
     public String getName() {
-        return "/ban";
+        return "/unban";
     }
 
     @Override
     public String getDescription() {
-        return "Забанить пользователя, все данные о нем будут удалены, он не сможет выполнять команды. Пример: `/ban 27263272`";
+        return "Разбанить пользователя, ему снова станут доступны все команды. Пример: `/unban 27263272`";
     }
 }

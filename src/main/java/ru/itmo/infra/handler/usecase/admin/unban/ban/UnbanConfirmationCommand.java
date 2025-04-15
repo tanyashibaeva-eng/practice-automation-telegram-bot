@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.admin.ban;
+package ru.itmo.infra.handler.usecase.admin.unban.ban;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -9,7 +9,7 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
-public class BanConfirmationCommand implements AdminCommand {
+public class UnbanConfirmationCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -18,10 +18,10 @@ public class BanConfirmationCommand implements AdminCommand {
 
         switch (message.getText()) {
             case "Да":
-                TelegramUserService.banUser(args.getChatId());
+                TelegramUserService.unbanUser(args.getChatId());
                 ContextHolder.endCommand(chatId);
                 return MessageToUser.builder()
-                        .text("Пользователь с chatId %d был забанен, все записи о нем были удалены".formatted(args.getChatId()))
+                        .text("Пользователь с chatId %d был разбанен, теперь он сможет зарегистрироваться".formatted(args.getChatId()))
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .needRewriting(false)
                         .build();

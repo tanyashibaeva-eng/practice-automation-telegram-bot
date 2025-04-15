@@ -243,7 +243,7 @@ public class StudentService {
             // парсим инн
             long innLong;
             try {
-                innLong = TextParser.parseDoubleToLong(inn);
+                innLong = TextParser.parseDoubleStrToLong(inn);
                 resBuilder.inn(innLong);
             } catch (BadRequestException e) {
                 return InnValidationResult.builder().errorText("ИНН должен быть числом").build();

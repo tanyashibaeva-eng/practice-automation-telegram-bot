@@ -31,9 +31,6 @@ import java.util.Optional;
 
 @NoArgsConstructor
 public class StartCommand implements Command {
-    public static final String helpIcon = "\uD83D\uDCA1";
-    public static final String registerIcon = "\uD83C\uDD95";
-
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

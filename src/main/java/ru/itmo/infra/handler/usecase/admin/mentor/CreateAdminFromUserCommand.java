@@ -101,6 +101,6 @@ public class CreateAdminFromUserCommand implements AdminCommand {
 
     @Override
     public String getDescription() {
-        return "Активировать права администратора по токену";
+        return "Активировать права администратора по токену. Для генерации токена используйте команду `/generate_token`. Пример: `/register_as_admin 550e8400-e29b-41d4-a716-446655440000`";
     }
 }

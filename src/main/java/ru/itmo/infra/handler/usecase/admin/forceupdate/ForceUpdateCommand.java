@@ -29,7 +29,7 @@ public class ForceUpdateCommand implements AdminCommand {
             var studentChatIdStr = fields[0].replace("/forceupdate ", "").trim();
             long studentChatId;
             try {
-                studentChatId = TextParser.parseDoubleToLong(studentChatIdStr);
+                studentChatId = TextParser.parseDoubleStrToLong(studentChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
