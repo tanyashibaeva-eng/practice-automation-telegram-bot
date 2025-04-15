@@ -30,11 +30,6 @@ public class UnbanCommand implements AdminCommand {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
 
-            var students = StudentService.getStudentsByChatId(studentChatId);
-            if (students.isEmpty()) {
-                throw new BadRequestException("Студент с chatId: %d не найден".formatted(studentChatId));
-            }
-
             String textBuilder = "\nРазбанить студента с chatId %d?".formatted(studentChatId);
             ContextHolder.setCommandData(message.getChatId(), new BanArgs(studentChatId));
             ContextHolder.setNextCommand(message.getChatId(), new UnbanConfirmationCommand());
