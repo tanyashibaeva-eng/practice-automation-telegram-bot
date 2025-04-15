@@ -12,6 +12,8 @@ import java.util.concurrent.ConcurrentMap;
 public class ContextHolder {
     private static final ConcurrentMap<Long, Map<ContextHolderType, Object>> contextMap = new ConcurrentHashMap<>();
     private static final ConcurrentMap<Long, Integer> lastMessageIdMap = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, Integer> prevCallbackMessageId = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<Long, Integer> currCallbackMessageId = new ConcurrentHashMap<>();
 
     public static void endCommand(Long chatId) {
         contextMap.remove(chatId);
@@ -66,17 +68,44 @@ public class ContextHolder {
     }
 
     public static Integer getLastMessageId(long chatId) {
-        try {
-            if (lastMessageIdMap.containsKey(chatId)) {
-                return lastMessageIdMap.get(chatId);
-            }
-        } catch (Exception ignored) {
+        if (lastMessageIdMap.containsKey(chatId)) {
+            return lastMessageIdMap.get(chatId);
         }
-        return null;
+        return 0;
     }
 
     public static void setLastMessageId(Long chatId, Integer lastMessageId) {
         lastMessageIdMap.put(chatId, lastMessageId);
+        if (lastMessageId == 0) {
+            return;
+        }
+
+        currCallbackMessageId.put(chatId, lastMessageId);
+    }
+
+    public static void setCurrCallbackMessageId(Long chatId, Integer lastMessageId) {
+        var curr = ContextHolder.getCurrCallbackId(chatId);
+        if (lastMessageId == 0) {
+            return;
+        }
+        if (curr != lastMessageId) {
+            prevCallbackMessageId.put(chatId, curr);
+        }
+        currCallbackMessageId.put(chatId, lastMessageId);
+    }
+
+    public static int getPrevCallbackId(long chatId) {
+        if (prevCallbackMessageId.containsKey(chatId)) {
+            return prevCallbackMessageId.get(chatId);
+        }
+        return 0;
+    }
+
+    public static int getCurrCallbackId(long chatId) {
+        if (currCallbackMessageId.containsKey(chatId)) {
+            return currCallbackMessageId.get(chatId);
+        }
+        return 0;
     }
 }
 

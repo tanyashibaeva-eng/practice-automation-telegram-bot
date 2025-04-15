@@ -111,7 +111,7 @@ public class Student {
         }
 
         try {
-            if (dto.getCompanyINN() != null) this.companyINN = TextParser.parseDoubleToLong(dto.getCompanyINN());
+            if (dto.getCompanyINN() != null) this.companyINN = TextParser.parseDoubleStrToLong(dto.getCompanyINN());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
@@ -222,7 +222,7 @@ public class Student {
             return false;
         }
         if (dto.getPracticePlace() == PracticePlace.ITMO_UNIVERSITY) {
-            return isBaseRequiredFieldsFilled(dto) && dto.getPracticeFormat() != PracticeFormat.NOT_SPECIFIED && dto.getCompanyLeadFullName() != null;
+            return isBaseRequiredFieldsFilled(dto) && dto.getCompanyLeadFullName() != null;
         }
         return isBaseRequiredFieldsFilled(dto) && dto.getPracticeFormat() != null &&
                 dto.getPracticeFormat() != PracticeFormat.NOT_SPECIFIED &&
@@ -247,6 +247,7 @@ public class Student {
             case APPLICATION_WAITING_APPROVAL, APPLICATION_RETURNED, APPLICATION_WAITING_SIGNING ->
                     isApplicationInfoFieldsFilled(dto, student);
             case PRACTICE_APPROVED -> true;
+            case APPLICATION_SIGNED -> true;
             default -> false;
         };
     }
@@ -257,8 +258,13 @@ public class Student {
             case REGISTERED -> new String[]{StudentStatus.REGISTERED.getDisplayName()};
             case PRACTICE_IN_ITMO_MARKINA ->
                     new String[]{StudentStatus.PRACTICE_IN_ITMO_MARKINA.getDisplayName(), StudentStatus.REGISTERED.getDisplayName()};
-            case COMPANY_INFO_WAITING_APPROVAL ->
-                    new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName()};
+            case COMPANY_INFO_WAITING_APPROVAL -> {
+                if (this.practicePlace.equals(PracticePlace.ITMO_UNIVERSITY)) {
+                    yield new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.PRACTICE_APPROVED.getDisplayName()};
+                } else {
+                    yield new String[]{StudentStatus.COMPANY_INFO_WAITING_APPROVAL.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName()};
+                }
+            }
             case COMPANY_INFO_RETURNED -> new String[]{StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
             case APPLICATION_WAITING_SUBMISSION ->
                     new String[]{StudentStatus.APPLICATION_WAITING_SUBMISSION.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
@@ -266,9 +272,10 @@ public class Student {
                     new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
             case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getDisplayName()};
             case APPLICATION_WAITING_SIGNING ->
-                    new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
+                    new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_SIGNED.getDisplayName()};
             case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getDisplayName()};
-            case PRACTICE_APPROVED -> new String[]{StudentStatus.PRACTICE_APPROVED.getDisplayName()};
+            case PRACTICE_APPROVED ->
+                    new String[]{StudentStatus.PRACTICE_APPROVED.getDisplayName()};
         };
     }
 }

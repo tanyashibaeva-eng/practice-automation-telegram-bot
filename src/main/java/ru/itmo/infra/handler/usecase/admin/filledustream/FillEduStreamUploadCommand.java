@@ -43,6 +43,7 @@ public class FillEduStreamUploadCommand implements AdminCommand {
             ContextHolder.setNextCommand(message.getChatId(), this);
             return MessageToUser.builder()
                     .text(e.getMessage())
+                    .needRewriting(true)
                     .keyboardMarkup(getReturnToStartMarkup())
                     .build();
         } catch (UnknownUserException e) {

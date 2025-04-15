@@ -98,7 +98,7 @@ public class BanUserTest {
     @Order(2)
     @Test
     void unbanUserTest() throws InternalException {
-        Assertions.assertDoesNotThrow(() -> TelegramUserService.unbanUser(telegramUser));
+        Assertions.assertDoesNotThrow(() -> TelegramUserService.unbanUser(telegramUser.getChatId()));
         Optional<TelegramUser> telegramUserOpt = TelegramUserService.findByChatId(telegramUser.getChatId());
         Assertions.assertTrue(telegramUserOpt.isPresent() && !telegramUserOpt.get().isBanned());
     }

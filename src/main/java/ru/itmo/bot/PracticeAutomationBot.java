@@ -5,6 +5,7 @@ import lombok.extern.java.Log;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -58,6 +59,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         }
 
         sendToUser(response, chatId, isCallback);
+        clearKeyboardMessage(chatId);
     }
 
     public static void sendToUser(MessageToUser response, long chatId, boolean isCallback) {
@@ -90,7 +92,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                 .build();
         try {
             var sentMessage = telegramClient.execute(sendMessage);
-            ContextHolder.setLastMessageId(chatId, !message.isNeedRewriting() ? 0 : sentMessage.getMessageId());
+            updateMessageIds(message, chatId, sentMessage.getMessageId());
         } catch (TelegramApiException ex) {
             log.severe("Не удалось отправить сообщение: " + ex.getMessage());
         }
@@ -105,7 +107,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                 .build();
         try {
             var sentMessage = telegramClient.execute(sendDocument);
-            ContextHolder.setLastMessageId(chatId, !message.isNeedRewriting() ? 0 : sentMessage.getMessageId());
+            updateMessageIds(message, chatId, sentMessage.getMessageId());
         } catch (TelegramApiException ex) {
             log.severe("Не удалось отправить документ: " + ex.getMessage());
         }
@@ -120,13 +122,40 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                 .build();
         try {
             telegramClient.execute(editMessage);
-            ContextHolder.setLastMessageId(chatId, !message.isNeedRewriting() ? 0 : messageId);
+            updateMessageIds(message, chatId, editMessage.getMessageId());
         } catch (TelegramApiException ex) {
             if (message.getDocument() != null) {
                 sendDocument(message, chatId);
             } else {
                 sendMessage(message, chatId);
             }
+        }
+    }
+
+    private static void updateMessageIds(MessageToUser message, Long chatId, Integer messageId) {
+        if (message.getKeyboardMarkup() != null && message.getKeyboardMarkup() instanceof InlineKeyboardMarkup) {
+            ContextHolder.setCurrCallbackMessageId(chatId, messageId);
+        }
+        ContextHolder.setLastMessageId(chatId, !message.isNeedRewriting() ? 0 : messageId);
+    }
+
+    private static void clearKeyboardMessage(long chatId) {
+        var prev = ContextHolder.getPrevCallbackId(chatId);
+        var curr = ContextHolder.getLastMessageId(chatId);
+        if (prev == 0 && curr == 0) {
+            return;
+        }
+        if (prev == curr || prev == 0) {
+            return;
+        }
+        var editMessage = EditMessageReplyMarkup.builder()
+                .chatId(String.valueOf(chatId))
+                .messageId(prev)
+                .replyMarkup(null)
+                .build();
+        try {
+            telegramClient.execute(editMessage);
+        } catch (TelegramApiException ex) {
         }
     }
 }

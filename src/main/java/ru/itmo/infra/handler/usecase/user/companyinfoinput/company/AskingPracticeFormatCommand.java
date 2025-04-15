@@ -40,7 +40,7 @@ public class AskingPracticeFormatCommand implements Command {
 
         var keyboardSecondRow = new KeyboardRow();
         keyboardSecondRow.add("Дистанционная практика");
-        keyboardSecondRow.add("Вернуться в меню");
+        keyboardSecondRow.add(returnIcon + " Вернуться в меню");
         keyboard.add(keyboardSecondRow);
         replyKeyboardMarkupBuilder.keyboard(keyboard);
 

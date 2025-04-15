@@ -18,13 +18,6 @@ import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 
 @NoArgsConstructor
 public class GotoStreamCommand implements AdminCommand {
-
-    public static final String getIcon = "\uD83D\uDCCA";
-    public static final String uploadIcon = "\uD83D\uDDC2";
-    public static final String addIcon = "\uD83C\uDD95";
-    public static final String RemoveIcon = "\uD83D\uDDD1\uFE0F";
-    public static final String returnIcon = "↩\uFE0F";
-
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {

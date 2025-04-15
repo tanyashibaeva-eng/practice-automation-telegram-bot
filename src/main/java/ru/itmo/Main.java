@@ -2,10 +2,10 @@ package ru.itmo;
 
 import lombok.extern.java.Log;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
-import ru.itmo.application.AdminTokenService;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.infra.storage.TelegramUserRepository;
 import ru.itmo.util.PropertiesProvider;
+import ru.itmo.application.AdminTokenService;
 
 @Log
 public class Main {

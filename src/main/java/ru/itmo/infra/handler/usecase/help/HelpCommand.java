@@ -15,7 +15,7 @@ public class HelpCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.endCommand(message.getChatId());
+        ContextHolder.setNextCommand(message.getChatId(), this);
         var text = "\"Справка по командам:\\n\"";
         if (AuthorizationService.canDoAdminActions(message.getChatId())) {
             text += getAdminHelp();

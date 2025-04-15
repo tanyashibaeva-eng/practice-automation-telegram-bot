@@ -129,7 +129,7 @@ public class Parser {
                 var leadPhone = parsePhone(row.getCell(12), errorsByRows, true);
                 var leadEmail = parseEmail(row.getCell(13), errorsByRows, true);
                 var leadJobTitle = parseString(row.getCell(14), errorsByRows, true);
-                var cellHexColor = parseCellColor(row.getCell(2));
+                var cellHexColor = parseCellColor(row.getCell(3));
 
                 var studentDTO = new ExcelStudentDTO(
                         chatId,
@@ -217,7 +217,7 @@ public class Parser {
             if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
-            return TextParser.parseDoubleToLong(strVal);
+            return TextParser.parseDoubleStrToLong(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -230,7 +230,15 @@ public class Parser {
             if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
-            return TextParser.parsePhone(strVal);
+            String phoneStr = "";
+            if (cell.getCellType() != Cell.CELL_TYPE_STRING) {
+                phoneStr = String.valueOf((long) cell.getNumericCellValue());
+            } else if (cell.getCellType() == Cell.CELL_TYPE_NUMERIC) {
+                phoneStr = cell.getStringCellValue();
+            } else {
+                phoneStr = cell.getStringCellValue();
+            }
+            return TextParser.parsePhone(phoneStr);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть номером телефона (+7 925 123 45 67)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }

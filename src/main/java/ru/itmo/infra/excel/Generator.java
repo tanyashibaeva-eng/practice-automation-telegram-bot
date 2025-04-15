@@ -92,6 +92,9 @@ public class Generator {
         var practiceFormatOptions = getPracticeFormatOptions();
 
         for (var groupName : groups) {
+            if (groupName == null) {
+                continue;
+            }
             var students = groupToStudents.get(groupName);
             var sheet = workbook.createSheet(groupName);
 
@@ -133,6 +136,35 @@ public class Generator {
                 row.createCell(12).setCellValue(student.getCompanyLeadPhone() != null ? student.getCompanyLeadPhone() : "");
                 row.createCell(13).setCellValue(student.getCompanyLeadEmail() != null ? student.getCompanyLeadEmail() : "");
                 row.createCell(14).setCellValue(student.getCompanyLeadJobTitle() != null ? student.getCompanyLeadJobTitle() : "");
+
+                for (int i = 0; i < 15; i++) {
+                    if (i == 5 || i == 6) {
+                        continue;
+                    }
+                    if (row.getCell(i) == null) {
+                        row.getCell(i).setCellStyle(createGrayCellStyle(workbook));
+                    }
+                    switch (row.getCell(i).getCellType()) {
+                        case Cell.CELL_TYPE_BLANK:
+                            row.getCell(i).setCellStyle(createGrayCellStyle(workbook));
+                            break;
+                        case Cell.CELL_TYPE_FORMULA:
+                            if (row.getCell(i).getCellFormula().isEmpty()) {
+                                row.getCell(i).setCellStyle(createGrayCellStyle(workbook));
+                            }
+                            break;
+                        case Cell.CELL_TYPE_NUMERIC:
+                            if (row.getCell(i).getNumericCellValue() == 0) {
+                                row.getCell(i).setCellStyle(createGrayCellStyle(workbook));
+                            }
+                            break;
+                        case Cell.CELL_TYPE_STRING:
+                            if (row.getCell(i).getStringCellValue().isEmpty()) {
+                                row.getCell(i).setCellStyle(createGrayCellStyle(workbook));
+                            }
+                            break;
+                    }
+                }
             }
 
             applyConditionalFormatting(sheet, sheet.getPhysicalNumberOfRows());
@@ -172,6 +204,15 @@ public class Generator {
         }
         return style;
     }
+
+    private static CellStyle createGrayCellStyle(Workbook workbook) {
+        var style = workbook.createCellStyle();
+        var grayColor = new XSSFColor(new byte[]{(byte) 230, (byte) 230, (byte) 230}); // серый
+        ((XSSFCellStyle) style).setFillForegroundColor(grayColor);
+        ((XSSFCellStyle) style).setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
 
     private static void addEnumValidation(Sheet sheet, int colIndex, String[] options, int startRow, int endRow) {
         var dvHelper = sheet.getDataValidationHelper();

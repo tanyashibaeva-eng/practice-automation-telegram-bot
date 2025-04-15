@@ -38,7 +38,7 @@ public enum StudentStatus {
             case PRACTICE_IN_ITMO_MARKINA -> "Практика в ИТМО у Маркиной Т. А.";
             case COMPANY_INFO_WAITING_APPROVAL -> "Данные о компании на проверке";
             case COMPANY_INFO_RETURNED -> "Данные о компании возвращены на доработку";
-            case APPLICATION_WAITING_SUBMISSION -> "Данные о компании утверждены и ожидается заполнения заявки";
+            case APPLICATION_WAITING_SUBMISSION -> "Данные о компании утверждены и ожидается заполнение заявки";
             case PRACTICE_APPROVED -> "Практика в ИТМО";
             case APPLICATION_WAITING_APPROVAL -> "Заявка на проверке";
             case APPLICATION_RETURNED -> "Заявка возвращена на доработку";

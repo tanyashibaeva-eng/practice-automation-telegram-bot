@@ -15,6 +15,14 @@ import java.util.ArrayList;
 import static ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand.returnIcon;
 
 public interface Command {
+    String returnIcon = "↩\uFE0F";
+    String getIcon = "\uD83D\uDCCA";
+    String uploadIcon = "\uD83D\uDDC2";
+    String addIcon = "\uD83C\uDD95";
+    String RemoveIcon = "\uD83D\uDDD1\uFE0F";
+    String helpIcon = "\uD83D\uDCA1";
+    String registerIcon = "\uD83C\uDD95";
+
     MessageToUser execute(MessageDTO message);
 
     boolean isNextCallNeeded();

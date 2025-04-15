@@ -24,7 +24,7 @@ public class DownloadApplicationCommand implements AdminCommand {
             var studentChatIdStr = fields[1];
             long studentChatId;
             try {
-                studentChatId = TextParser.parseDoubleToLong(studentChatIdStr);
+                studentChatId = TextParser.parseDoubleStrToLong(studentChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }

@@ -23,16 +23,27 @@ import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
+import ru.itmo.infra.handler.usecase.admin.ban.BanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamMoreFilesCommand;
+import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamUploadCommand;
 import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateCommand;
+import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamNameCommand;
+import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamStartDateCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanCommand;
+import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
+import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.*;
@@ -111,16 +122,27 @@ public class Handler {
         // для админов
         commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
+        commands.add(new BanConfirmationCommand());
         commands.add(new DeleteStreamCommand());
+        commands.add(new DeleteStreamConfirmationCommand());
         commands.add(new DownloadApplicationCommand());
         commands.add(new ExportExcelCommand());
         commands.add(new FillEduStreamCommand());
+        commands.add(new FillEduStreamMoreFilesCommand());
+        commands.add(new FillEduStreamUploadCommand());
         commands.add(new ForceUpdateCommand());
+        commands.add(new ForceUpdateConfirmationCommand());
         commands.add(new GotoStreamCommand());
+        commands.add(new InitEduInputStreamNameCommand());
+        commands.add(new InitEduInputStreamStartDateCommand());
         commands.add(new InitEduStreamCommand());
+        commands.add(new InitEduStreamEndDateCommand());
         commands.add(new CreateAdminFromUserCommand());
-        commands.add(new UploadExcelCommand());
         commands.add(new PingStudentsCommand());
+        commands.add(new UnbanCommand());
+        commands.add(new UnbanConfirmationCommand());
+        commands.add(new UploadExcelCommand());
+        commands.add(new UploadExcelHandleCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -170,6 +192,7 @@ public class Handler {
 
         tryToSetEduStream(message.getChatId());
         updateCommandsDropOut(message.getChatId());
+        prepareMessage(message);
 
         var response = command.execute(message);
 
@@ -187,6 +210,18 @@ public class Handler {
         }
 
         return response;
+    }
+
+    private static void prepareMessage(MessageDTO message) {
+        if (message.hasText()) {
+            message.setText(message.getText().replaceAll(Command.returnIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.getIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.uploadIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.addIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.RemoveIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.helpIcon, "").trim());
+            message.setText(message.getText().replaceAll(Command.registerIcon, "").trim());
+        }
     }
 
     private static boolean checkPermission(long chatId, Command command) throws InternalException {
@@ -323,12 +358,16 @@ public class Handler {
         return List.of(
                 new HelpCommand(),
                 new StartCommand(),
-                new ExportExcelCommand(),
-                new UploadExcelCommand(),
-                new InitEduStreamCommand(),
-                new DownloadApplicationCommand(),
+                new BanCommand(),
                 new DeleteStreamCommand(),
-                new PingStudentsCommand()
+                new DownloadApplicationCommand(),
+                new ExportExcelCommand(),
+                new ForceUpdateCommand(),
+                new InitEduStreamCommand(),
+                new CreateAdminFromUserCommand(),
+                new PingStudentsCommand(),
+                new UnbanCommand(),
+                new UploadExcelCommand()
         );
     }
 

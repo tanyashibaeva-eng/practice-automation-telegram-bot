@@ -1,8 +1,8 @@
 package ru.itmo.infra.html;
 
-import lombok.extern.java.Log;
 import org.jsoup.Jsoup;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
+import ru.itmo.exception.BadRequestException;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,10 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@Log
 public class ParserIsuXls {
 
-    public static List<ExcelStudentInfoDTO> parseISUXls(File file) {
+    public static List<ExcelStudentInfoDTO> parseISUXls(File file) throws BadRequestException {
         List<ExcelStudentInfoDTO> dtos = new ArrayList<>();
         try {
             var doc = Jsoup.parse(file, "UTF-8");
@@ -29,8 +28,7 @@ public class ParserIsuXls {
 
             var table = doc.select("table").first();
             if (table == null) {
-                log.severe("Таблица не найдена");
-                return dtos;
+                throw new BadRequestException("Неверный шаблон, ожидается файл скаченный из ИСУ (список группы). Попробуйте загрузить другой файл или вернитесь в меню");
             }
 
             var rows = table.select("tr");
