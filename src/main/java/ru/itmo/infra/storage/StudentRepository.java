@@ -44,7 +44,7 @@ public class StudentRepository {
         } catch (SQLException ex) {
             /* violates index "idx_isu_edu_stream_name_student" constraint */
             if (ex.getSQLState().equals("23505")) {
-                throw new BadRequestException("Некоторые из переданных в файле студентов уже существуют в потоке");
+                throw new BadRequestException("Некоторые из переданных в файле студентов уже существуют в потоке, загрузите новый файл");
             }
             throw handleAndWrapSQLException(ex);
         }

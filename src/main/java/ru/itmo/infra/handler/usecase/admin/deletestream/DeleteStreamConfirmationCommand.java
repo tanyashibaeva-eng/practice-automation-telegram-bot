@@ -10,6 +10,7 @@ import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
+import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 
 public class DeleteStreamConfirmationCommand implements AdminCommand {
     @Override
@@ -29,7 +30,7 @@ public class DeleteStreamConfirmationCommand implements AdminCommand {
                             .keyboardMarkup(new ReplyKeyboardRemove(true))
                             .build();
                 case "Нет":
-                    ContextHolder.endCommand(message.getChatId());
+                    ContextHolder.setNextCommand(message.getChatId(), new GotoStreamCommand());
                     return MessageToUser.builder()
                             .text("Удаление потока отменено")
                             .keyboardMarkup(new ReplyKeyboardRemove(true))
@@ -38,7 +39,6 @@ public class DeleteStreamConfirmationCommand implements AdminCommand {
                     ContextHolder.setNextCommand(message.getChatId(), this);
                     return MessageToUser.builder()
                             .text("Пожалуйста, ответьте 'Да' или 'Нет'")
-                            .keyboardMarkup(getConfirmationKeyboard())
                             .build();
             }
         } catch (BadRequestException e) {

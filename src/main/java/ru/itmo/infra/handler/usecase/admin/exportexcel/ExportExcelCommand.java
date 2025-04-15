@@ -10,6 +10,7 @@ import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
+import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 
 public class ExportExcelCommand implements AdminCommand {
 
@@ -26,7 +27,7 @@ public class ExportExcelCommand implements AdminCommand {
 
             var chatId = message.getChatId();
             var file = StudentService.exportStudentsToExcel(stream.getName());
-            ContextHolder.endCommand(chatId);
+            ContextHolder.setNextCommand(chatId, new GotoStreamCommand());
             return MessageToUser.builder().text("Сгенерированная выгрузка по потоку %s".formatted(streamName)).document(file).build();
         } catch (BadRequestException e) {
             // TODO:

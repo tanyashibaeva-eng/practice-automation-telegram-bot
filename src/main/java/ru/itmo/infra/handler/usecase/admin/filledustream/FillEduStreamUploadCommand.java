@@ -1,8 +1,13 @@
 package ru.itmo.infra.handler.usecase.admin.filledustream;
 
 import lombok.SneakyThrows;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
+import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.model.EduStream;
@@ -10,6 +15,7 @@ import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
+import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 
 import java.io.File;
 
@@ -51,7 +57,21 @@ public class FillEduStreamUploadCommand implements AdminCommand {
                     "Из-за внешних обстоятельств контекст был утерян. Пожалуйста, повторите действие еще раз");
         }
     }
-
+    @Override
+    public ReplyKeyboard getReturnToStartMarkup() {
+        return InlineKeyboardMarkup.builder()
+                .keyboardRow(
+                        new InlineKeyboardRow(
+                                InlineKeyboardButton.builder()
+                                        .text(returnIcon + " Вернуться в меню")
+                                        .callbackData(
+                                                CallbackData.builder()
+                                                        .command(new GotoStreamCommand().getName())
+                                                        .build()
+                                                        .toString()
+                                        ).build()
+                        )).build();
+    }
     @Override
     public boolean isNextCallNeeded() {
         return false;

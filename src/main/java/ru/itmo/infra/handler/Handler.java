@@ -39,6 +39,7 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
@@ -145,6 +146,7 @@ public class Handler {
         commands.add(new UnbanConfirmationCommand());
         commands.add(new UploadExcelCommand());
         commands.add(new UploadExcelHandleCommand());
+        commands.add(new GetStudentInfoCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -396,7 +398,8 @@ public class Handler {
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
                 new UnbanCommand(),
-                new UploadExcelCommand()
+                new UploadExcelCommand(),
+                new GetStudentInfoCommand()
         );
     }
 
