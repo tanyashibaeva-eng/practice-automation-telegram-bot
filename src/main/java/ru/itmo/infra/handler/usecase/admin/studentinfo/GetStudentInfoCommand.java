@@ -9,6 +9,7 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextParser;
+import ru.itmo.domain.type.PracticeFormat;
 
 public class GetStudentInfoCommand implements AdminCommand {
     @Override
@@ -45,16 +46,16 @@ public class GetStudentInfoCommand implements AdminCommand {
                 textBuilder.append("Группа: ").append(student.getStGroup()).append("\n");
                 textBuilder.append("Статус: ").append(student.getStatus().getDisplayName()).append("\n");
 
-                if (student.getPracticeFormat() != null) {
+                if (student.getPracticeFormat() != null && student.getPracticeFormat() != PracticeFormat.NOT_SPECIFIED) {
                     textBuilder.append("Формат практики: ").append(student.getPracticeFormat()).append("\n");
                 }
-                if (student.getCompanyName() != null) {
+                if (student.getCompanyName() != null  && !student.getCompanyName().isBlank()) {
                     textBuilder.append("Компания: ").append(student.getCompanyName()).append("\n");
                 }
                 if (student.getCompanyINN() != null) {
                     textBuilder.append("ИНН Компании: ").append(student.getCompanyINN()).append("\n");
                 }
-                if (student.getCompanyLeadFullName() != null) {
+                if (student.getCompanyLeadFullName() != null && !student.getCompanyLeadFullName().isBlank()) {
                     textBuilder.append("Руководитель: ").append(student.getCompanyLeadFullName()).append("\n");
                 }
                 if (student.getCompanyLeadPhone() != null) {
@@ -63,7 +64,7 @@ public class GetStudentInfoCommand implements AdminCommand {
                 if (student.getCompanyLeadEmail() != null) {
                     textBuilder.append("Почта руководителя: ").append(student.getCompanyLeadEmail()).append("\n");
                 }
-                if (student.getCompanyLeadJobTitle() != null) {
+                if (student.getCompanyLeadJobTitle() != null && !student.getCompanyLeadJobTitle().isBlank()) {
                     textBuilder.append("Должность руководителя: ").append(student.getCompanyLeadJobTitle()).append("\n");
                 }
                 textBuilder.append("\n");
@@ -96,6 +97,6 @@ public class GetStudentInfoCommand implements AdminCommand {
 
     @Override
     public String getDescription() {
-        return "Получить информацию о студенте по chatId";
+        return "Получить информацию о студенте по chatId. Пример: `/student_info 27263272`";
     }
 }
