@@ -8,7 +8,7 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.EduStreamCreationArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.time.LocalDate;
 
@@ -18,7 +18,7 @@ public class InitEduInputStreamStartDateCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         try {
             var dateStr = message.getText().trim();
-            var date = TextParser.parseDate(dateStr);
+            var date = TextUtils.parseDate(dateStr);
 
             // Проверяем, что дата в будущем
             if (date.isBefore(LocalDate.now())){

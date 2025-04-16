@@ -12,8 +12,6 @@ import ru.itmo.bot.MessageToUser;
 
 import java.util.ArrayList;
 
-import static ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand.returnIcon;
-
 public interface Command {
     String returnIcon = "↩\uFE0F";
     String getIcon = "\uD83D\uDCCA";

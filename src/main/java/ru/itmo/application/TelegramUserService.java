@@ -65,9 +65,9 @@ public class TelegramUserService {
             shouldDuplicateStudent = true;
         }
 
+        TelegramUser previouslyRegisteredUser = student.getTelegramUser();
+        TelegramUser telegramUser = new TelegramUser(args.getChatId(), false, false, args.getUsername());
         try {
-            TelegramUser telegramUser = new TelegramUser(args.getChatId(), false, false, args.getUsername());
-
             if (shouldCreateTelegramUser)
                 TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
             if (shouldDuplicateStudent)
@@ -82,19 +82,46 @@ public class TelegramUserService {
         }
 
         if (shouldDuplicateStudent) {
-            // TODO: somehow notify admins
+            NotificationService.notifyAdmins("""
+                    Произошла множественная регистрация студентов. Вероятно, кто-то зарегистрировался не под своим именем.
+                    Множественная регистрация на студента:
+                        - ФИО: %s
+                        - ИСУ: %d
+                        - Группа: %s
+                    Первая регистрация:
+                        - chatId: %d
+                        - имя пользователя: %s
+                    Вторая регистрация:
+                        - chatId: %d
+                        - имя пользователя: %s
+                    """
+                    .formatted(
+                            student.getFullName(), student.getIsu(), student.getStGroup(),
+                            previouslyRegisteredUser.getChatId(), previouslyRegisteredUser.getUsername(),
+                            telegramUser.getChatId(), telegramUser.getUsername()
+                    )
+            );
         }
         return resultBuilder.errorText("").build();
     }
 
     public static void registerAdmin(TelegramUser telegramUser, AdminToken adminToken) throws InternalException, BadRequestException {
         Optional<TelegramUser> existingUser = TelegramUserRepository.findByChatId(telegramUser.getChatId());
+
         if (existingUser.isPresent() && existingUser.get().isAdmin())
             throw new BadRequestException("Пользователь %s уже админ".formatted(telegramUser.getUsername()));
+
         if (!AdminTokenRepository.delete(adminToken))
             throw new BadRequestException("Токен невалиден");
-        telegramUser.setAdmin(true);
-        TelegramUserRepository.save(telegramUser);
+
+        if (existingUser.isPresent()) {
+            telegramUser = existingUser.get();
+            telegramUser.setAdmin(true);
+            TelegramUserRepository.updateByChatId(telegramUser);
+        } else {
+            telegramUser.setAdmin(true);
+            TelegramUserRepository.save(telegramUser);
+        }
     }
 
     public static boolean deleteAdmin(TelegramUser telegramUser) throws InternalException, BadRequestException {

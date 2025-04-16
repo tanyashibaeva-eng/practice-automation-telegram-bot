@@ -12,7 +12,7 @@ import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -208,7 +208,7 @@ public class Parser {
             if (strVal == null) {
                 return null;
             }
-            return TextParser.parseDoubleToInt(strVal);
+            return TextUtils.parseDoubleToInt(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -221,7 +221,7 @@ public class Parser {
             if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
-            return TextParser.parseDoubleStrToLong(strVal);
+            return TextUtils.parseDoubleStrToLong(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть числом".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -242,7 +242,7 @@ public class Parser {
             } else {
                 phoneStr = cell.getStringCellValue();
             }
-            return TextParser.parsePhone(phoneStr);
+            return TextUtils.parsePhone(phoneStr);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть номером телефона (+7 925 123 45 67)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -255,7 +255,7 @@ public class Parser {
             if (strVal == null || strVal.isEmpty()) {
                 return null;
             }
-            return TextParser.parseEmail(strVal);
+            return TextUtils.parseEmail(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" должно быть электронной почтой (ivanov@yandex.ru)".formatted(columns[cell.getColumnIndex()]), errorsByRows);
         }
@@ -271,7 +271,7 @@ public class Parser {
             if (strVal == null) {
                 return StudentStatus.NOT_REGISTERED;
             }
-            return TextParser.parseStatus(strVal);
+            return TextUtils.parseStatusByDisplayName(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getStatusEnumNames()), errorsByRows);
         }
@@ -286,7 +286,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, true);
             if (strVal == null || strVal.isEmpty())
                 return PracticeFormat.NOT_SPECIFIED;
-            return TextParser.parsePracticeFormat(strVal);
+            return TextUtils.parsePracticeFormatByDisplayName(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticeFormatEnumNames()), errorsByRows);
         }
@@ -301,7 +301,7 @@ public class Parser {
             var strVal = parseString(cell, errorsByRows, true);
             if (strVal == null || strVal.isEmpty())
                 return PracticePlace.NOT_SPECIFIED;
-            return TextParser.parsePracticePlace(strVal);
+            return TextUtils.parsePracticePlaceByDisplayName(strVal);
         } catch (Exception e) {
             addErr(cell.getRowIndex(), "значение в колонке \"%s\" может быть одним из %s".formatted(columns[cell.getColumnIndex()], getPracticePlaceEnumNames()), errorsByRows);
         }

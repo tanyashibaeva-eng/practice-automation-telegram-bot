@@ -48,15 +48,19 @@ public class TelegramUserRepository {
                 "SELECT * FROM tg_user;"
         )) {
             var rs = statement.executeQuery();
-            List<TelegramUser> result = new ArrayList<>();
+            return mapToTelegramUserList(rs);
 
-            TelegramUser telegramUser = mapToTelegramUser(rs);
-            while (telegramUser != null) {
-                result.add(telegramUser);
-                telegramUser = mapToTelegramUser(rs);
-            }
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
 
-            return result;
+    public static List<TelegramUser> findAllAdmins() throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT * FROM tg_user WHERE is_admin = true AND is_banned = false;"
+        )) {
+            var rs = statement.executeQuery();
+            return mapToTelegramUserList(rs);
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
@@ -145,6 +149,18 @@ public class TelegramUserRepository {
             );
         }
         return null;
+    }
+
+    private static List<TelegramUser> mapToTelegramUserList(ResultSet rs) throws SQLException {
+        List<TelegramUser> result = new ArrayList<>();
+
+        TelegramUser telegramUser = mapToTelegramUser(rs);
+        while (telegramUser != null) {
+            result.add(telegramUser);
+            telegramUser = mapToTelegramUser(rs);
+        }
+
+        return result;
     }
 
     private static InternalException handleAndWrapSQLException(SQLException ex) {

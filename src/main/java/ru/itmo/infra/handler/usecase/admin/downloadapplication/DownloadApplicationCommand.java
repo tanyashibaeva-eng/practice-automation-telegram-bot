@@ -8,14 +8,14 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 public class DownloadApplicationCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = message.getText().trim().replaceAll(" +", " ");
+            var messageText = TextUtils.removeRedundantSpaces(message.getText());
             var fields = messageText.split(" ");
             if (fields.length < 2) {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/application <studentChatId>`");
@@ -24,7 +24,7 @@ public class DownloadApplicationCommand implements AdminCommand {
             var studentChatIdStr = fields[1];
             long studentChatId;
             try {
-                studentChatId = TextParser.parseDoubleStrToLong(studentChatIdStr);
+                studentChatId = TextUtils.parseDoubleStrToLong(studentChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }

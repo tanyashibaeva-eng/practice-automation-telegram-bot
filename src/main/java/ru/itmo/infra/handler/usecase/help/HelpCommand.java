@@ -1,7 +1,6 @@
 package ru.itmo.infra.handler.usecase.help;
 
 import lombok.SneakyThrows;
-import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import ru.itmo.application.AuthorizationService;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;

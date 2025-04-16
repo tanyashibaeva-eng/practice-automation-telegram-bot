@@ -6,17 +6,17 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
-import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.util.TextUtils;
 
 public class GetStudentInfoCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = message.getText().trim().replaceAll(" +", " ");
+            var messageText = TextUtils.removeRedundantSpaces(message.getText());
             var fields = messageText.split(" ");
 
             if (fields.length < 2) {
@@ -26,7 +26,7 @@ public class GetStudentInfoCommand implements AdminCommand {
 
             long chatId;
             try {
-                chatId = TextParser.parseDoubleStrToLong(fields[1]);
+                chatId = TextUtils.parseDoubleStrToLong(fields[1]);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный формат <chatId>. Ожидается число");
             }

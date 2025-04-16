@@ -9,7 +9,7 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.EduStreamCreationArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.time.LocalDate;
 import java.time.Year;
@@ -20,7 +20,7 @@ public class InitEduStreamEndDateCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         try {
             var dateStr = message.getText().trim();
-            var date = TextParser.parseDate(dateStr);
+            var date = TextUtils.parseDate(dateStr);
             var dto = (EduStreamCreationArgs)ContextHolder.getCommandData(message.getChatId());
 
             // Проверяем, что дата в будущем

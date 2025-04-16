@@ -6,7 +6,6 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
 
 public class CompanyInfoConfirmationCommand implements UserCommand {
     @Override

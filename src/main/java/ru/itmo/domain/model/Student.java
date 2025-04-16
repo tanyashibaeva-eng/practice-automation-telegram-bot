@@ -8,7 +8,7 @@ import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -93,25 +93,25 @@ public class Student {
         var errors = new ArrayList<String>();
 
         try {
-            if (dto.getStatus() != null) this.status = TextParser.parseStatus(dto.getStatus());
+            if (dto.getStatus() != null) this.status = TextUtils.parseStatusByExactName(dto.getStatus());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
 
         try {
-            if (dto.getPracticePlace() != null) this.practicePlace = TextParser.parsePracticePlace(dto.getStatus());
+            if (dto.getPracticePlace() != null) this.practicePlace = TextUtils.parsePracticePlaceByExactName(dto.getPracticePlace());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
 
         try {
-            if (dto.getPracticeFormat() != null) this.practiceFormat = TextParser.parsePracticeFormat(dto.getStatus());
+            if (dto.getPracticeFormat() != null) this.practiceFormat = TextUtils.parsePracticeFormatByExactName(dto.getPracticeFormat());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
 
         try {
-            if (dto.getCompanyINN() != null) this.companyINN = TextParser.parseDoubleStrToLong(dto.getCompanyINN());
+            if (dto.getCompanyINN() != null) this.companyINN = TextUtils.parseDoubleStrToLong(dto.getCompanyINN());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
@@ -122,14 +122,14 @@ public class Student {
 
         try {
             if (dto.getCompanyLeadPhone() != null)
-                this.companyLeadPhone = TextParser.parsePhone(dto.getCompanyLeadPhone());
+                this.companyLeadPhone = TextUtils.parsePhone(dto.getCompanyLeadPhone());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
 
         try {
             if (dto.getCompanyLeadEmail() != null)
-                this.companyLeadEmail = TextParser.parseEmail(dto.getCompanyLeadEmail());
+                this.companyLeadEmail = TextUtils.parseEmail(dto.getCompanyLeadEmail());
         } catch (BadRequestException e) {
             errors.add(e.getMessage());
         }
@@ -246,9 +246,7 @@ public class Student {
                     isCompanyInfoFieldsFilled(dto);
             case APPLICATION_WAITING_APPROVAL, APPLICATION_RETURNED, APPLICATION_WAITING_SIGNING ->
                     isApplicationInfoFieldsFilled(dto, student);
-            case PRACTICE_APPROVED -> true;
-            case APPLICATION_SIGNED -> true;
-            default -> false;
+            case PRACTICE_APPROVED, APPLICATION_SIGNED -> true;
         };
     }
 

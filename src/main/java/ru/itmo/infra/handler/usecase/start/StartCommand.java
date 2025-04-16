@@ -18,7 +18,6 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
-import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
@@ -185,8 +184,7 @@ public class StartCommand implements UserCommand {
 
         // Добавляем остальные команды
         Handler.getAvailableStudentCommands(status).forEach(cmd -> {
-            if (cmd instanceof UserCommand && !cmd.getName().equals(new StatusCommand().getName())) {
-                UserCommand userCmd = (UserCommand) cmd;
+            if (cmd instanceof UserCommand userCmd && !cmd.getName().equals(new StatusCommand().getName())) {
                 markupBuilder.keyboardRow(new InlineKeyboardRow(
                         InlineKeyboardButton.builder()
                                 .text(userCmd.getDisplayName())

@@ -21,10 +21,11 @@ public class CreateAdminFromUserCommand implements AdminCommand {
         try {
             String[] parts = message.getText().trim().split(" +", 2);
             if (parts.length < 2 || parts[1].isEmpty()) {
-                throw new BadRequestException(
-                        "Неверный формат команды. Используйте:\n" +
-                                "/register_as_admin <токен>\n\n" +
-                                "Пример: /register_as_admin 550e8400-e29b-41d4-a716-446655440000"
+                throw new BadRequestException("""
+                        Неверный формат команды. Используйте:
+                        /register_as_admin <токен>
+                        
+                        Пример: /register_as_admin 550e8400-e29b-41d4-a716-446655440000"""
                 );
             }
 

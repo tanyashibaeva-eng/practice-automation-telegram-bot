@@ -29,7 +29,7 @@ public class StudentRegistrationProcessISUCommand implements Command {
 
         var student = isuResp.getStudent();
         var dto = UserRegistrationArgs.builder()
-                .username(student.getFullName())
+                .username(message.getUsername())
                 .isu(isuResp.getIsu())
                 .eduStreamName(eduStreamName) // Сохраняем имя потока в DTO
                 .build();

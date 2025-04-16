@@ -5,74 +5,75 @@ import org.junit.jupiter.api.Test;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class TextParserTest {
+public class TextUtilsTest {
 
-    private final TextParser textParser = new TextParser();
+    private final TextUtils textUtils = new TextUtils();
 
     @Test
     public void testParseIsu_ValidInput() throws BadRequestException {
-        assertEquals(123, TextParser.parseIsu(" 123 "));
+        assertEquals(123, TextUtils.parseIsu(" 123 "));
     }
 
     @Test
     public void testParseIsu_InvalidInput() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseIsu("abc");
+            TextUtils.parseIsu("abc");
         });
         assertEquals("Номер ИСУ должен быть числом", exception.getMessage());
     }
 
     @Test
     public void testParsePhone_ValidPhone() throws BadRequestException {
-        assertEquals("+7 925 123 45 67", TextParser.parsePhone("+7 925 123 45 67"));
-        assertEquals("8 925 123 45 67", TextParser.parsePhone("8 925 123 45 67"));
+        assertEquals("+7 925 123 45 67", TextUtils.parsePhone("+7 925 123 45 67"));
+        assertEquals("8 925 123 45 67", TextUtils.parsePhone("8 925 123 45 67"));
     }
 
     @Test
     public void testParsePhone_InvalidPhone() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parsePhone("12345");
+            TextUtils.parsePhone("12345");
         });
         assertEquals("Неверный формат номера телефона", exception.getMessage());
 
-        Assertions.assertDoesNotThrow(() -> TextParser.parsePhone("+7 (925) 123 45 67"));
+        Assertions.assertDoesNotThrow(() -> TextUtils.parsePhone("+7 (925) 123 45 67"));
     }
 
     @Test
     public void testParseEmail_ValidEmail() throws BadRequestException {
-        assertEquals("example@example.com", TextParser.parseEmail("example@example.com"));
+        assertEquals("example@example.com", TextUtils.parseEmail("example@example.com"));
     }
 
     @Test
     public void testParseEmail_InvalidEmail() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseEmail("example@com");
+            TextUtils.parseEmail("example@com");
         });
         assertEquals("Неверный формат email", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseEmail("   ");
+            TextUtils.parseEmail("   ");
         });
         assertEquals("должно быть строкой, представляющей email.", exception.getMessage());
     }
 
     @Test
     public void testParseStatus_ValidStatus() throws BadRequestException {
-        assertEquals(StudentStatus.APPLICATION_RETURNED, TextParser.parseStatus("Заявка возвращена на доработку"));
-        assertEquals(StudentStatus.REGISTERED, TextParser.parseStatus("Зарегистрирован"));
+        assertEquals(StudentStatus.APPLICATION_RETURNED, TextUtils.parseStatusByDisplayName("Заявка возвращена на доработку"));
+        assertEquals(StudentStatus.REGISTERED, TextUtils.parseStatusByDisplayName("Зарегистрирован"));
     }
 
     @Test
     public void testParseStatus_InvalidStatus() {
         var exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseStatus("unknown_status");
+            TextUtils.parseStatusByDisplayName("unknown_status");
         });
         assertEquals("неверный статус", exception.getMessage());
 
         exception = assertThrows(BadRequestException.class, () -> {
-            TextParser.parseStatus("   ");
+            TextUtils.parseStatusByDisplayName("   ");
         });
         assertEquals("должно быть строкой, представляющей статус.", exception.getMessage());
     }

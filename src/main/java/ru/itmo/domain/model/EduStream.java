@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.util.TextUtils;
 
 import java.time.LocalDate;
 import java.util.StringJoiner;
@@ -50,6 +51,6 @@ public class EduStream {
     private static String trimName(String name) {
         return (name == null)
                 ? ""
-                : name.trim().replaceAll(" +", " ");
+                : TextUtils.removeRedundantSpaces(name);
     }
 }
