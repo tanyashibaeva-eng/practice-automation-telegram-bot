@@ -37,8 +37,8 @@ public class FillEduStreamCommand implements AdminCommand {
                     .needRewriting(true)
                     .build();
         } catch (BadRequestException e) {
-            // TODO:
             return MessageToUser.builder().text(e.getMessage()).build();
+
         } catch (
                 UnknownUserException e) {
             return returnToMainMenuWithError(message.getChatId(),

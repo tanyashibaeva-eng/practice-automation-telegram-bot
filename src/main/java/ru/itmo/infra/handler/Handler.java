@@ -404,6 +404,7 @@ public class Handler {
                 new ExportExcelCommand(),
                 new ForceUpdateCommand(),
                 new InitEduStreamCommand(),
+                new AddAdminCommand(),
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
                 new UnbanCommand(),
