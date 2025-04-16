@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
 import ru.itmo.application.ContextHolder;
-import ru.itmo.application.EduStreamService;
 import ru.itmo.application.StudentService;
 import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
@@ -21,6 +20,7 @@ public class UploadExcelHandleCommand implements AdminCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var file = Handler.getFileFromMessage(message);
+
         var streamName = getEduStreamNameOrThrow(message);
         EduStream stream = new EduStream(streamName);
         var res = StudentService.updateStudentsFromExcel(file, stream.getName());
