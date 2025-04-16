@@ -10,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import ru.itmo.domain.dto.StudentsWithErrors;
+import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
@@ -20,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,10 @@ public class Generator {
             "Почта Руководителя",
             "Должность Руководителя"
     };
+
+    private static String getTimestamp() {
+        return new SimpleDateFormat("dd-MM-yyyy_HH-mm").format(new Date());
+    }
 
     public static File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -85,7 +92,7 @@ public class Generator {
         }
     }
 
-    public static File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups) throws InternalException {
+    public static File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups, EduStream eduStream) throws InternalException {
         var workbook = new XSSFWorkbook();
 
         var practicePlaceOptions = getPracticePlaceOptions();
@@ -179,7 +186,11 @@ public class Generator {
             }
         }
 
-        var file = new File("список студентов.xlsx");
+
+        var streamName = eduStream.getName();
+        var fileName = String.format("список студентов_%s_%s.xlsx",
+                streamName, getTimestamp());
+        var file = new File(fileName);
         try (var fileOut = new FileOutputStream(file)) {
             workbook.write(fileOut);
         } catch (IOException e) {

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Optional;
 
 @NoArgsConstructor
-public class StartCommand implements Command {
+public class StartCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
@@ -164,6 +164,7 @@ public class StartCommand implements Command {
                                         ).build()
                         )).build();
     }
+
     private static ReplyKeyboard getUserKeyboard(StudentStatus status) {
         if (status == null) {
             return getMarkupKeyboardForStart();

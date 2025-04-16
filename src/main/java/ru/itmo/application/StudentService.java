@@ -207,7 +207,7 @@ public class StudentService {
             groupToStudents.get(s.getStGroup()).add(s);
         }
 
-        return Generator.generateExcel(groupToStudents, groups);
+        return Generator.generateExcel(groupToStudents, groups, eduStream);
     }
 
     public static IsuValidationResult validateIsu(String isuText, String eduStreamName) throws InternalException {

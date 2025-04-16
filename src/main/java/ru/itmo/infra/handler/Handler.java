@@ -330,6 +330,7 @@ public class Handler {
             userCommands = getStudentsCommandsDropOut(status);
             setCommandsForUser(chatId, userCommands);
         } catch (Exception e) {
+            log.warning("Ошибка обновления команд для " + chatId + ": " + e.getMessage());
         }
     }
 
@@ -385,6 +386,14 @@ public class Handler {
         return resultCommands;
     }
 
+    public static List<Command> getStudentCommands() {
+        return List.of(
+                new HelpCommand(),
+                new StartCommand(),
+                new StatusCommand()
+        );
+    }
+
     public static List<Command> getAdminCommands() {
         return List.of(
                 new HelpCommand(),
@@ -420,7 +429,7 @@ public class Handler {
         }
     }
 
-    private static StudentStatus getStudentStatus(long chatId) {
+    public static StudentStatus getStudentStatus(long chatId) {
         try {
             // Сначала пробуем получить имя потока
             String streamName;
