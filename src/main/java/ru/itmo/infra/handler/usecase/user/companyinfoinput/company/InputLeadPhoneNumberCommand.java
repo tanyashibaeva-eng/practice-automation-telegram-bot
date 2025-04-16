@@ -6,7 +6,7 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 public class InputLeadPhoneNumberCommand implements UserCommand {
     @SneakyThrows
@@ -34,7 +34,7 @@ public class InputLeadPhoneNumberCommand implements UserCommand {
 
     private boolean isValidPhoneNumber(String phone) {
         try {
-            String parsed = TextParser.parsePhone(phone);
+            String parsed = TextUtils.parsePhone(phone);
             return parsed.startsWith("+7") || parsed.startsWith("8");
         } catch (Exception e) {
             return false;

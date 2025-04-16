@@ -1,12 +1,14 @@
 package ru.itmo.application;
 
 import ru.itmo.domain.model.Student;
+import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.notification.Notification;
-import ru.itmo.infra.notification.Notificator;
+import ru.itmo.infra.notification.Notifier;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
+import ru.itmo.infra.storage.TelegramUserRepository;
 
 import java.util.List;
 import java.util.Set;
@@ -35,7 +37,19 @@ public class NotificationService {
                 .chatId(student.getTelegramUser().getChatId())
                 .text(getMessageForStatus(student.getStatus()))
                 .build();
-        Notificator.sendNotification(notification);
+        Notifier.notifyAsync(notification);
+    }
+
+    public static void notifyAdmins(String message) throws InternalException {
+        List<TelegramUser> adminList = TelegramUserRepository.findAllAdmins();
+        for (var admin : adminList) {
+            Notifier.notifyAsync(
+                    Notification.builder()
+                            .chatId(admin.getChatId())
+                            .text(message)
+                            .build()
+            );
+        }
     }
 
     private static String getMessageForStatus(StudentStatus status) {
@@ -48,13 +62,13 @@ public class NotificationService {
                     !!! Уведомление от администратора !!!
                     Преподаватель вернул данные о компании на доработку, необходимо заново их заполнить
                     """;
-            case APPLICATION_WAITING_SUBMISSION -> """
-                    !!! Уведомление от администратора !!!
-                    Данные о компании были утверждены преподавателем. Теперь вам необходимо заполнить и загрузить заявку о прохождении практики в сторонней компании
-                    """;
             case APPLICATION_RETURNED -> """
                     !!! Уведомление от администратора !!!
                     Заявка о прохождении практики в сторонней компании была возвращена преподавателем на доработку, необходимо заново ее заполнить
+                    """;
+            case APPLICATION_WAITING_SUBMISSION -> """
+                    !!! Уведомление от администратора !!!
+                    Данные о компании были утверждены преподавателем. Теперь вам необходимо заполнить и загрузить заявку о прохождении практики в сторонней компании
                     """;
             case APPLICATION_WAITING_SIGNING -> """
                     !!! Уведомление от администратора !!!

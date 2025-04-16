@@ -7,7 +7,7 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
     public class InputCorporateEmailCommand implements UserCommand {
         @SneakyThrows
@@ -43,7 +43,7 @@ import ru.itmo.util.TextParser;
                 return false;
             }
             try {
-                TextParser.parseEmail(email);
+                TextUtils.parseEmail(email);
             } catch (BadRequestException e) {
                 return false;
             }

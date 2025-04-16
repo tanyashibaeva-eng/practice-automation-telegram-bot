@@ -23,7 +23,7 @@ import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
 import ru.itmo.util.EduStreamChecker;
 import ru.itmo.util.PropertiesProvider;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -215,7 +215,7 @@ public class StudentService {
             var resBuilder = IsuValidationResult.builder();
 
             // парсим ису
-            var isu = TextParser.parseIsu(isuText);
+            var isu = TextUtils.parseIsu(isuText);
             resBuilder.isu(isu);
 
             // проверяем что такой студент есть
@@ -244,7 +244,7 @@ public class StudentService {
             // парсим инн
             long innLong;
             try {
-                innLong = TextParser.parseDoubleStrToLong(inn);
+                innLong = TextUtils.parseDoubleStrToLong(inn);
                 resBuilder.inn(innLong);
             } catch (BadRequestException e) {
                 return InnValidationResult.builder().errorText("ИНН должен быть числом").build();

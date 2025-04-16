@@ -8,6 +8,7 @@ import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.StudentInputConfirmationCommand;
+import ru.itmo.util.TextUtils;
 
 public class InputITMOStudentDepartmentCommand implements UserCommand {
     @SneakyThrows
@@ -22,7 +23,7 @@ public class InputITMOStudentDepartmentCommand implements UserCommand {
         }
 
         var dto = ContextHolder.getCommandData(message.getChatId());
-        locationName = locationName.trim().replaceAll(" +", " ");
+        locationName = TextUtils.removeRedundantSpaces(locationName);
         if (dto instanceof ITMOPracticeInfoUpdateArgs itmoArgs) {
             itmoArgs.setCompanyName(locationName);
             ContextHolder.setCommandData(chatId, itmoArgs);

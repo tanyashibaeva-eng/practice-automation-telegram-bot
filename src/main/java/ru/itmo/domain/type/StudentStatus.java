@@ -1,6 +1,10 @@
 package ru.itmo.domain.type;
 
 import lombok.AllArgsConstructor;
+import ru.itmo.exception.BadRequestException;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 public enum StudentStatus {
@@ -18,11 +22,19 @@ public enum StudentStatus {
 
     private final String name;
 
+    public static StudentStatus valueOfIgnoreCaseChecked(String name) throws BadRequestException {
+        try {
+            return valueOf(name.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("неизвестный статус студента: %s, ".formatted(name) + getAvailableValues());
+        }
+    }
+
     public static StudentStatus valueOfIgnoreCase(String name) {
         return valueOf(name.trim().toUpperCase());
     }
 
-    public static StudentStatus getByUserName(String text) {
+    public static StudentStatus getByDisplayName(String text) {
         for (StudentStatus status : StudentStatus.values()) {
             if (status.getDisplayName().equals(text)) {
                 return status;
@@ -61,5 +73,12 @@ public enum StudentStatus {
             case APPLICATION_WAITING_SIGNING -> 44;
             case APPLICATION_SIGNED -> 41;
         };
+    }
+
+    public static String getAvailableValues() {
+        return "доступные значения:\n"
+                + Arrays.stream(StudentStatus.values())
+                .map(value -> "%s : %s".formatted(value, value.getDisplayName()))
+                .collect(Collectors.joining("\n"));
     }
 }

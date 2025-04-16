@@ -315,7 +315,7 @@ public class Handler {
         }
     }
 
-    private static synchronized void updateCommandsDropOut(long chatId) {
+    private static void updateCommandsDropOut(long chatId) {
         try {
             List<BotCommand> userCommands;
             var isAdmin = AuthorizationService.canDoAdminActions(chatId);

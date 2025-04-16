@@ -21,13 +21,9 @@ public class Interceptor {
             return Handler.handleMessage(message);
         } catch (InvalidMessageException | BadRequestException e) {
             return MessageToUser.builder().text(e.getMessage()).build();
-        } catch (InternalException e) {
+        } catch (InternalException | TelegramApiException | IOException e) {
             ContextHolder.endCommand(message.getChatId());
             log.severe(e.getMessage());
-            return MessageToUser.builder().text("Что-то пошло не так").build();
-        } catch (TelegramApiException | IOException ex) {
-            ContextHolder.endCommand(message.getChatId());
-            log.severe(ex.getMessage());
             return MessageToUser.builder().text("Что-то пошло не так").build();
         }
     }

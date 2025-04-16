@@ -7,7 +7,6 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.StudentStatus;
-import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 public class StudentDownloadApplicationCommand implements UserCommand {

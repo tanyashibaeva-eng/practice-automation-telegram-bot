@@ -9,14 +9,14 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.BanArgs;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 public class BanCommand implements AdminCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = message.getText().trim().replaceAll(" +", " ");
+            var messageText = TextUtils.removeRedundantSpaces(message.getText());
             var fields = messageText.split(" ");
             if (fields.length < 2) {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/ban <studentChatId>`");
@@ -25,7 +25,7 @@ public class BanCommand implements AdminCommand {
             var studentChatIdStr = fields[1];
             long studentChatId;
             try {
-                studentChatId = TextParser.parseDoubleStrToLong(studentChatIdStr);
+                studentChatId = TextUtils.parseDoubleStrToLong(studentChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
@@ -40,6 +40,7 @@ public class BanCommand implements AdminCommand {
             for (var student : students) {
                 textBuilder.append("- Поток: %s\n".formatted(student.getEduStream().getName()));
                 textBuilder.append("\tФИО: %s\n".formatted(student.getFullName()));
+                textBuilder.append("\tИмя пользователя: %s\n".formatted(student.getTelegramUser().getUsername()));
                 textBuilder.append("\tСтатус: %s\n".formatted(student.getStatus().getDisplayName()));
             }
 

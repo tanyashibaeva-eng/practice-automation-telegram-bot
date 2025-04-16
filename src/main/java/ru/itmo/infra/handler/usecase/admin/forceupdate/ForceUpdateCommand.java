@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler.usecase.admin.forceupdate;
 
 import lombok.SneakyThrows;
+import lombok.extern.java.Log;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
@@ -9,69 +10,97 @@ import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.ForceUpdateDTO;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextParser;
+import ru.itmo.util.TextUtils;
 
 import java.util.Set;
+import java.util.stream.Collectors;
 
+@Log
 public class ForceUpdateCommand implements AdminCommand {
-    private final Set<String> fieldNames = Set.of("статус", "место_практики", "формат_практики", "инн_компании", "имя_компании", "фио_руководителя", "телефон_руководителя", "почта_руководителя", "должность_руководителя");
+    private final Set<String> fieldNames = Set.of(
+            "статус",
+            "место_практики",
+            "формат_практики",
+            "инн_компании",
+            "имя_компании",
+            "фио_руководителя",
+            "телефон_руководителя",
+            "почта_руководителя",
+            "должность_руководителя"
+    );
 
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = message.getText().trim().replaceAll(" +", "");
+            var messageText = TextUtils.removeRedundantSpaces(message.getText());
             var fields = messageText.split(" \"");
-            if (fields.length < 5 && fields.length % 2 == 0) {
+
+            /* Должно быть не меньше четырех токенов (`/forceupdate chatId` считаем за один),
+               так как обязательные -- `/forceupdate chatId`, `eduStreamName` и хотя бы одна пара `fieldName`, `fieldValue`;
+               также у каждого `fieldName` должна быть пара `fieldValue`, поэтому, с учетом `/forceupdate chatId` и `eduStreamName`,
+               общее количество токенов должно быть четно
+            */
+            if (fields.length < 4 || fields.length % 2 != 0) {
                 throw new BadRequestException("Неверный формат команды, пример (кавычки обязательны): `/forceupdate <chatId> \"<eduStreamName>\" \"<fieldName1>\" \"<fieldValue1>\", ...,  \"<fieldNameN>\" \"<fieldValueN>\"`");
             }
 
-            var studentChatIdStr = fields[0].replace("/forceupdate ", "").trim();
+            fields[0] = fields[0].replace("/forceupdate ", "").trim();
+            var studentChatIdStr = fields[0];
             long studentChatId;
             try {
-                studentChatId = TextParser.parseDoubleStrToLong(studentChatIdStr);
+                studentChatId = TextUtils.parseDoubleStrToLong(studentChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
 
-            var eduStreamName = fields[2].replace("\"", "").replaceAll(" +", "").trim();
+            var eduStreamName = TextUtils.removeAllSpaces(fields[1].replace("\"", ""));
 
             var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(studentChatId, eduStreamName);
             if (studentOpt.isEmpty()) {
-                throw new BadRequestException("Студент с chatId: %d не найден".formatted(studentChatId));
+                throw new BadRequestException("Студент с chatId %d на потоке %s не найден".formatted(studentChatId, eduStreamName));
             }
 
             var dtoBuilder = ForceUpdateDTO.builder();
             dtoBuilder.chatId(studentChatId);
             dtoBuilder.eduStreamName(eduStreamName);
 
-            for (int i = 0; i < fields.length; i += 2) {
-                var fieldName = fields[i].replace("\"", "").replaceAll(" +", "").trim();
-                var fieldValue = fields[i + 1].replace("\"", "").replaceAll(" +", "").trim();
+            for (int i = 2; i < fields.length; i += 2) {
+                var fieldName = TextUtils.removeAllSpaces(fields[i].replace("\"", ""));
+                var fieldValue = TextUtils.removeAllSpaces(fields[i + 1].replace("\"", ""));
 
                 if (!fieldNames.contains(fieldName)) {
-                    throw new BadRequestException("Неизвестное поле \"%s\", список полей доступных для обновления: ".formatted(fieldName) + fieldNames.stream().map(v -> "\"" + v + "\""));
+                    throw new BadRequestException("Неизвестное поле \"%s\", список полей доступных для обновления: ".formatted(fieldName) + fieldNames.stream().map(v -> "\"" + v + "\"").collect(Collectors.joining(", ")));
                 }
 
                 switch (fieldName) {
                     case "статус":
                         dtoBuilder.status(fieldValue);
+                        break;
                     case "место_практики":
                         dtoBuilder.practicePlace(fieldValue);
+                        break;
                     case "формат_практики":
                         dtoBuilder.practiceFormat(fieldValue);
+                        break;
                     case "инн_компании":
                         dtoBuilder.companyINN(fieldValue);
+                        break;
                     case "имя_компании":
                         dtoBuilder.companyName(fieldValue);
+                        break;
                     case "фио_руководителя":
                         dtoBuilder.companyLeadFullName(fieldValue);
+                        break;
                     case "телефон_руководителя":
                         dtoBuilder.companyLeadPhone(fieldValue);
+                        break;
                     case "почта_руководителя":
                         dtoBuilder.companyLeadEmail(fieldValue);
+                        break;
                     case "должность_руководителя":
                         dtoBuilder.companyLeadJobTitle(fieldValue);
+                        break;
                 }
             }
 
@@ -81,8 +110,12 @@ public class ForceUpdateCommand implements AdminCommand {
             var dto = dtoBuilder.build();
 
             var currStrValStatus = student.getStatus().getDisplayName().isEmpty() ? "Не заполнено" : student.getStatus().getDisplayName();
-            var currStrValPlace = student.getPracticePlace() == null ? "Не заполнено" : student.getPracticePlace().getDisplayName();
-            var currStrValFormat = student.getPracticeFormat() == null ? "Не заполнено" : student.getPracticeFormat().getDisplayName();
+            var currStrValPlace = student.getPracticePlace() == null
+                    ? "Не заполнено"
+                    : (student.getPracticePlace().getDisplayName().isBlank() ? "Не заполнено" : student.getPracticePlace().getDisplayName());
+            var currStrValFormat = student.getPracticeFormat() == null
+                    ? "Не заполнено"
+                    : (student.getPracticeFormat().getDisplayName().isBlank() ? "Не заполнено" : student.getPracticeFormat().getDisplayName());
             var currStrValINN = student.getCompanyINN() == null ? "Не заполнено" : student.getCompanyINN();
             var currStrValCompany = student.getCompanyName() == null ? "Не заполнено" : student.getCompanyName();
             var currStrValLeadFullName = student.getCompanyLeadFullName() == null ? "Не заполнено" : student.getCompanyLeadFullName();

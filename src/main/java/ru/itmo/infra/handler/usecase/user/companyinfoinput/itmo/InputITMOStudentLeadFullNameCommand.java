@@ -8,6 +8,7 @@ import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.dto.command.ITMOPracticeInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingLeadJobTitleCommand;
+import ru.itmo.util.TextUtils;
 
 public class InputITMOStudentLeadFullNameCommand implements UserCommand {
     @SneakyThrows
@@ -22,7 +23,7 @@ public class InputITMOStudentLeadFullNameCommand implements UserCommand {
         }
 
         var dto = ContextHolder.getCommandData(message.getChatId());
-        leadName = leadName.trim().replaceAll(" +", " ");
+        leadName = TextUtils.removeRedundantSpaces(leadName);
         if (dto instanceof ITMOPracticeInfoUpdateArgs) {
             var itmoArgs = (ITMOPracticeInfoUpdateArgs) dto;
             itmoArgs.setCompanyLeadFullName(leadName);

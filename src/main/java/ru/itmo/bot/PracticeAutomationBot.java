@@ -88,6 +88,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                 .chatId(String.valueOf(chatId))
                 .text(message.getText())
                 .replyMarkup(message.getKeyboardMarkup())
+//                .parseMode("MarkdownV2") // TODO: разобраться какой mode лучше использовать и зарефакторить
                 .build();
         try {
             var sentMessage = telegramClient.execute(sendMessage);
