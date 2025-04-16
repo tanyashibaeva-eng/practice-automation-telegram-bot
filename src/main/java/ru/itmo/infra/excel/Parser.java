@@ -103,7 +103,7 @@ public class Parser {
 
             var count = 0;
             for (int i : new int[]{1, 2, 3, 4}) {
-                if (row.getCell(i) == null) {
+                if (row.getCell(i) == null || row.getCell(i).getStringCellValue() == null || row.getCell(i).getStringCellValue().isEmpty()) {
                     count++;
                     addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i + 1]), errorsByRows);
                 }
@@ -130,6 +130,10 @@ public class Parser {
                 var leadEmail = parseEmail(row.getCell(13), errorsByRows, true);
                 var leadJobTitle = parseString(row.getCell(14), errorsByRows, true);
                 var cellHexColor = parseCellColor(row.getCell(3));
+
+                if (cellHexColor.isEmpty() || cellHexColor.equals("0") || cellHexColor.equals("000000")) {
+                    cellHexColor = "FFFFFF";
+                }
 
                 var studentDTO = new ExcelStudentDTO(
                         chatId,

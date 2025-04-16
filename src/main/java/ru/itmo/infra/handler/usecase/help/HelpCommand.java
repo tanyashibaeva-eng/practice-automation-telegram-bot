@@ -1,6 +1,7 @@
 package ru.itmo.infra.handler.usecase.help;
 
 import lombok.SneakyThrows;
+import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import ru.itmo.application.AuthorizationService;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
@@ -17,7 +18,7 @@ public class HelpCommand implements UserCommand {
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
-        ContextHolder.setNextCommand(message.getChatId(), this);
+        ContextHolder.endCommand(message.getChatId());
         var text = "Справка по командам:\n\n";
         if (AuthorizationService.canDoAdminActions(message.getChatId())) {
             text += getAdminHelp();
@@ -28,13 +29,12 @@ public class HelpCommand implements UserCommand {
         return MessageToUser.builder()
                 .text(text)
                 .keyboardMarkup(getReturnToStartMarkup())
-                .needRewriting(true)
                 .build();
     }
 
     @Override
     public boolean isNextCallNeeded() {
-        return false;
+        return true;
     }
 
     @Override
