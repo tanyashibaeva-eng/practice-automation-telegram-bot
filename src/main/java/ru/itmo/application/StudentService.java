@@ -169,7 +169,11 @@ public class StudentService {
 
         StudentRepository.updateBatchByChatIdAndEduStreamName(students);
 
-        students.stream().filter(Student::isPingNeeded).forEach(NotificationService::pingStudent);
+        new Thread(
+                () -> students.stream()
+                        .filter(Student::isPingNeeded)
+                        .forEach(NotificationService::pingStudent)
+        ).start();
 
         return Optional.empty();
     }
@@ -252,7 +256,7 @@ public class StudentService {
 
             // валидируем инн
             if (inn.length() != 10) {
-                resBuilder.errorText("ИНН должен состоять из 10");
+                resBuilder.errorText("ИНН должен состоять из 10 цифр");
                 return resBuilder.build();
             }
 
@@ -276,8 +280,7 @@ public class StudentService {
             return resBuilder.build();
         } catch (JSONException e) {
             return InnValidationResult.builder().errorText("Не удалось найти такую компанию, попробуйте другую").build();
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }
     }

@@ -11,6 +11,7 @@ import ru.itmo.bot.CallbackData;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.model.EduStream;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
@@ -22,10 +23,18 @@ public class UploadExcelHandleCommand implements AdminCommand {
         var file = Handler.getFileFromMessage(message);
 
         var streamName = getEduStreamNameOrThrow(message);
-        EduStream stream = new EduStream(streamName);
+
+        EduStream stream;
+        try {
+            stream = new EduStream(streamName);
+        } catch (BadRequestException ex) {
+            return returnToMainMenuWithError(message.getChatId(),
+                    "Из-за внешних обстоятельств контекст был утерян. Пожалуйста, повторите действие еще раз");
+        }
+
         var res = StudentService.updateStudentsFromExcel(file, stream.getName());
         if (res.isEmpty()) {
-            ContextHolder.setNextCommand(message.getChatId(),new GotoStreamCommand());
+            ContextHolder.setNextCommand(message.getChatId(), new GotoStreamCommand());
             return MessageToUser.builder().text("Файл был успешно загружен").build();
         }
         return MessageToUser.builder()
@@ -34,6 +43,7 @@ public class UploadExcelHandleCommand implements AdminCommand {
                 .document(res.get())
                 .build();
     }
+
     @Override
     public ReplyKeyboard getReturnToStartMarkup() {
         return InlineKeyboardMarkup.builder()

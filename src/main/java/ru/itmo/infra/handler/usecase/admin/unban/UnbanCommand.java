@@ -1,4 +1,4 @@
-package ru.itmo.infra.handler.usecase.admin.unban.ban;
+package ru.itmo.infra.handler.usecase.admin.unban;
 
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;

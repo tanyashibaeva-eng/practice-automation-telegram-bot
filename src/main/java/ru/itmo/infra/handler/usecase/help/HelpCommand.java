@@ -20,7 +20,7 @@ public class HelpCommand implements UserCommand {
         ContextHolder.endCommand(message.getChatId());
         var text = "Справка по командам:\n\n";
         if (AuthorizationService.canDoAdminActions(message.getChatId())) {
-            text += getAdminHelp();
+            text += getAdminHelp(message.getChatId());
         } else {
             text += getUserHelp(message.getChatId());
         }
@@ -46,8 +46,8 @@ public class HelpCommand implements UserCommand {
         return "Справка с информацией о командах";
     }
 
-    private String getAdminHelp() {
-        var commands = Handler.getAdminCommands();
+    private String getAdminHelp(long chatId) {
+        var commands = Handler.getAdminCommands(chatId);
         var helpMessages = new ArrayList<String>();
 
         for (var cmd : commands) {

@@ -14,7 +14,7 @@ public class InputInnValidationCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var  userText = message.getText().trim();
+        var userText = message.getText().trim();
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
         //валидация инн
         var innResponse = StudentService.validateInn(userText);
@@ -42,6 +42,12 @@ public class InputInnValidationCommand implements UserCommand {
                     .text("")
                     .build();
         }
+
+        dto.setInn(innResponse.getInn()); //получили инн
+        // сохранение и отправка
+        dto.setCompanyName(innResponse.getCompanyName()); // сохранили название компании
+        ContextHolder.setCommandData(chatId, dto);
+
         // Если ИНН корректен, проверяем договор с ИТМО OK
         if (!innResponse.isPresentInITMOAgreementFile()) {
             ContextHolder.setNextCommand(chatId, new AskingApproveNoContractCompanyCommand());
@@ -49,17 +55,14 @@ public class InputInnValidationCommand implements UserCommand {
                     .text("")
                     .build();
         }
-        dto.setInn(innResponse.getInn()); //получили инн
 
-        // сохранение и отправка
-        dto.setCompanyName(innResponse.getCompanyName()); // сохранили название компании
-        ContextHolder.setCommandData(chatId, dto);
         ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
         return MessageToUser.builder()
                 .text("")
                 .keyboardMarkup(getConfirmationKeyboard())
                 .build();
     }
+
     @Override
     public boolean isNextCallNeeded() {
         return true;

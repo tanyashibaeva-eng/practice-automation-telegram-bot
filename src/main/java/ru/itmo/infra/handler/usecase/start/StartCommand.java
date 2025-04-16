@@ -34,6 +34,7 @@ public class StartCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         ContextHolder.endCommand(message.getChatId());
+        Handler.updateCommandsDropOut(message.getChatId());
 
         if (AuthorizationService.isBanned(message.getChatId())) {
             return bannedStartCommand(message);
@@ -119,7 +120,7 @@ public class StartCommand implements UserCommand {
                     .build();
             var keyboardRow = new InlineKeyboardRow(
                     InlineKeyboardButton.builder()
-                            .text("🧑‍🎓 " + streamName)
+                            .text(streamName)
                             .callbackData(callbackData.toString())
                             .build()
             );

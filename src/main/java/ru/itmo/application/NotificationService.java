@@ -33,6 +33,9 @@ public class NotificationService {
     }
 
     public static void pingStudent(Student student) {
+        if (!statusRequiresPingSet.contains(student.getStatus()))
+            return;
+
         Notification notification = Notification.builder()
                 .chatId(student.getTelegramUser().getChatId())
                 .text(getMessageForStatus(student.getStatus()))

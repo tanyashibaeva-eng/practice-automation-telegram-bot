@@ -133,6 +133,18 @@ public class TelegramUserRepository {
         }
     }
 
+    public static List<TelegramUser> findAllBanned() throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT * FROM tg_user WHERE is_banned = true;"
+        )) {
+            var rs = statement.executeQuery();
+            return mapToTelegramUserList(rs);
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     private static Optional<TelegramUser> mapToTelegramUserOptional(ResultSet rs) throws SQLException {
         TelegramUser telegramUser = mapToTelegramUser(rs);
         if (telegramUser == null) return Optional.empty();

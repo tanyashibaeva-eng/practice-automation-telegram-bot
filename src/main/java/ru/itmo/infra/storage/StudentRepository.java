@@ -323,8 +323,8 @@ public class StudentRepository {
                 statement.setString(2, student.getStGroup());
                 statement.setString(3, student.getFullName());
                 statement.setObject(4, student.getStatus(), Types.OTHER);
-                statement.setString(5, student.getComments());
-                statement.setString(6, student.getCallStatusComments());
+                statement.setString(5, student.getComments() == null ? "" : student.getComments());
+                statement.setString(6, student.getCallStatusComments() == null ? "" : student.getCallStatusComments());
                 statement.setObject(7, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
 
@@ -338,7 +338,7 @@ public class StudentRepository {
                 statement.setString(12, student.getCompanyLeadPhone());
                 statement.setString(13, student.getCompanyLeadEmail());
                 statement.setString(14, student.getCompanyLeadJobTitle());
-                statement.setString(15, student.getCellHexColor());
+                statement.setString(15, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
                 statement.setBoolean(16, student.isManagedManually());
                 statement.setBytes(17, student.getApplicationBytes());
 

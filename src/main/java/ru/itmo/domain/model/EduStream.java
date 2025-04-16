@@ -6,6 +6,7 @@ import lombok.ToString;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.util.TextUtils;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.StringJoiner;
 
@@ -20,8 +21,11 @@ public class EduStream {
 
     public EduStream(String name) throws BadRequestException {
         name = trimName(name);
-        if (name.isEmpty())
+        if (name.isBlank())
             throw new BadRequestException("Имя потока не может быть пустым");
+
+        if (name.length() >= 21)
+            throw new BadRequestException("Имя потока слишком длинное");
 
         this.name = name;
     }
@@ -30,7 +34,7 @@ public class EduStream {
         StringJoiner stringJoiner = new StringJoiner("\n");
 
         name = trimName(name);
-        if (name.isEmpty())
+        if (name.isBlank())
             stringJoiner.add("Имя потока не может быть пустым");
 
         if (year <= 0)

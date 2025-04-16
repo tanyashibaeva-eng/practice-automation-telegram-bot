@@ -54,7 +54,7 @@ public class DocxGenerator {
                 }
             }
 
-            var outputFile = new File("заявка – %s.docx".formatted(dto.getFullName()));
+            var outputFile = new File("Заявка – %s.docx".formatted(dto.getFullName()));
             try (FileOutputStream fos = new FileOutputStream(outputFile)) {
                 doc.write(fos);
             }

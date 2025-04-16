@@ -16,6 +16,7 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.bot.PracticeAutomationBot;
 import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.exception.InvalidMessageException;
 import ru.itmo.exception.UnknownUserException;
@@ -32,6 +33,7 @@ import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamMoreFilesC
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamUploadCommand;
 import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateCommand;
 import ru.itmo.infra.handler.usecase.admin.forceupdate.ForceUpdateConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.getbanned.GetBannedCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamNameCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamStartDateCommand;
@@ -40,8 +42,8 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCom
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
-import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanCommand;
-import ru.itmo.infra.handler.usecase.admin.unban.ban.UnbanConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
+import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
@@ -126,6 +128,7 @@ public class Handler {
         commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
         commands.add(new BanConfirmationCommand());
+        commands.add(new GetBannedCommand());
         commands.add(new DeleteStreamCommand());
         commands.add(new DeleteStreamConfirmationCommand());
         commands.add(new DownloadApplicationCommand());
@@ -308,20 +311,18 @@ public class Handler {
     }
 
     private static void mapKeyToFunc(Long chatId, String key, String value) {
-        switch (key) {
-            case "eduStreamName":
-                ContextHolder.setEduStreamName(chatId, value);
-            default:
+        if (key.equals("eduStreamName")) {
+            ContextHolder.setEduStreamName(chatId, value);
         }
     }
 
-    private static void updateCommandsDropOut(long chatId) {
+    public static void updateCommandsDropOut(long chatId) {
         try {
             List<BotCommand> userCommands;
             var isAdmin = AuthorizationService.canDoAdminActions(chatId);
 
             if (isAdmin) {
-                userCommands = getAdminCommandsDropOut();
+                userCommands = getAdminCommandsDropOut(chatId);
                 setCommandsForUser(chatId, userCommands);
                 return;
             }
@@ -329,7 +330,7 @@ public class Handler {
             var status = getStudentStatus(chatId);
             userCommands = getStudentsCommandsDropOut(status);
             setCommandsForUser(chatId, userCommands);
-        } catch (Exception e) {
+        } catch (InternalException e) {
             log.warning("Ошибка обновления команд для " + chatId + ": " + e.getMessage());
         }
     }
@@ -376,10 +377,10 @@ public class Handler {
         return result;
     }
 
-    private static List<BotCommand> getAdminCommandsDropOut() {
+    private static List<BotCommand> getAdminCommandsDropOut(long chatId) {
         List<BotCommand> resultCommands = new ArrayList<>();
 
-        for (var cmd : getAdminCommands()) {
+        for (var cmd : getAdminCommands(chatId)) {
             addCommandIfExists(resultCommands, cmd);
         }
 
@@ -394,7 +395,11 @@ public class Handler {
         );
     }
 
-    public static List<Command> getAdminCommands() {
+    public static List<Command> getAdminCommands(long chatId) {
+        try {
+            ContextHolder.getEduStreamName(chatId);
+            return List.of(new StartCommand());
+        } catch (UnknownUserException ignored) { }
         return List.of(
                 new HelpCommand(),
                 new StartCommand(),
@@ -407,6 +412,7 @@ public class Handler {
                 new AddAdminCommand(),
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
+                new GetBannedCommand(),
                 new UnbanCommand(),
                 new UploadExcelCommand(),
                 new GetStudentInfoCommand()
@@ -440,7 +446,6 @@ public class Handler {
                 // Если нет в контексте, пробуем получить из базы
                 var eduOpt = StudentService.getNewestStudentEduStreamNameByChatId(chatId);
                 if (eduOpt.isEmpty()) {
-                    log.warning("Edu stream not found for chatId: " + chatId);
                     return StudentStatus.NOT_REGISTERED;
                 }
                 streamName = eduOpt.get();
@@ -450,15 +455,12 @@ public class Handler {
             // Получаем студента
             var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(chatId, streamName);
             if (studentOpt.isPresent()) {
-                StudentStatus status = studentOpt.get().getStatus();
-                log.info("Student status for chatId " + chatId + ": " + status);
-                return status;
+                return studentOpt.get().getStatus();
             }
 
-            log.warning("Student not found for chatId: " + chatId);
             return StudentStatus.NOT_REGISTERED;
-        } catch (Exception e) {
-            log.warning("Error getting student status: " + e.getMessage());
+        } catch (InternalException | BadRequestException e) {
             return StudentStatus.NOT_REGISTERED;
         }
-    }}
+    }
+}

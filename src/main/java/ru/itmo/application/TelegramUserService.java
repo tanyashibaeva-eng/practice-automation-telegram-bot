@@ -185,4 +185,8 @@ public class TelegramUserService {
             throw new BadRequestException("Пользователь с chatId %d не найден".formatted(chatId));
     }
 
+    public static List<TelegramUser> getAllBannedUsers() throws InternalException {
+        return TelegramUserRepository.findAllBanned();
+    }
+
 }

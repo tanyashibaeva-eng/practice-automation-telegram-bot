@@ -13,7 +13,7 @@ public class AskingApproveNoContractCompanyCommand implements UserCommand {
         var chatId = message.getChatId();
         ContextHolder.setNextCommand(chatId, new InputApproveNoContractCompanyCommand());
         return MessageToUser.builder()
-                .text("С данной компанией не подписан договор. Вы уверенны, что будете проходить практику в этой компании?")
+                .text("С данной компанией не подписан договор. Вы уверены, что будете проходить практику в этой компании?")
                 .keyboardMarkup(getConfirmationKeyboard())
                 .build();
     }
