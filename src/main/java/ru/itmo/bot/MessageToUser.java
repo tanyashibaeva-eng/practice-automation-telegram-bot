@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
-import java.io.File;
+import java.io.InputStream;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,7 +14,8 @@ import java.io.File;
 @Builder
 public class MessageToUser {
     String text;
-    File document;
+    InputStream fileStream;
+    String fileName;
     ReplyKeyboard keyboardMarkup;
     boolean needRewriting;
 }

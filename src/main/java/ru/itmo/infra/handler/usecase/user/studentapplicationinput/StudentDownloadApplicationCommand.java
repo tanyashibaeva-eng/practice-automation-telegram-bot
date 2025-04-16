@@ -14,7 +14,7 @@ public class StudentDownloadApplicationCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var fileResp = StudentService.generateApplicationFileByChatId(chatId);
+        var fileResp = StudentService.generateApplicationByChatId(chatId);
         if (fileResp.getErrorText() != null) {
             System.out.println(fileResp.getErrorText());
         }
@@ -22,7 +22,8 @@ public class StudentDownloadApplicationCommand implements UserCommand {
         return MessageToUser.builder()
                 .text("Скачайте и заполните заявку, затем загрузите ее обратно в бота")
                 .keyboardMarkup(new ReplyKeyboardRemove(true))
-                .document(fileResp.getFile())
+                .fileStream(fileResp.getFileStreamDTO().getFileStream())
+                .fileName(fileResp.getFileStreamDTO().getFileName())
                 .build();
 }
 

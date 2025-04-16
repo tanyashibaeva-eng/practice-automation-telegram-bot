@@ -1,10 +1,10 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
-import org.apache.commons.io.FileUtils;
 import org.json.JSONException;
 import ru.itmo.domain.dto.ApplicationDTO;
 import ru.itmo.domain.dto.ExcelStudentDTO;
+import ru.itmo.domain.dto.FileStreamDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
 import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
@@ -25,6 +25,7 @@ import ru.itmo.util.EduStreamChecker;
 import ru.itmo.util.PropertiesProvider;
 import ru.itmo.util.TextUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -90,23 +91,20 @@ public class StudentService {
         return StudentRepository.updateITMOPracticeInfo(args, eduStreamNameOpt.get());
     }
 
-    public static File getApplicationFile(long chatId) throws InternalException, BadRequestException {
-        try {
-            List<Student> students = StudentRepository.findAllByChatId(chatId);
-            for (var student : students) {
-                if (EduStreamChecker.isActiveStream(student.getEduStream())) {
-                    if (student.getApplicationBytes() == null) {
-                        throw new BadRequestException("Нельзя выкачать заявку для студента %s, так как она еще не загружена".formatted(student.getFullName()));
-                    }
-                    var application = new File("Заявка - %s.docx".formatted(student.getFullName()));
-                    FileUtils.writeByteArrayToFile(application, student.getApplicationBytes());
-                    return application;
+    public static FileStreamDTO getApplication(long chatId) throws InternalException, BadRequestException {
+        List<Student> students = StudentRepository.findAllByChatId(chatId);
+        for (var student : students) {
+            if (EduStreamChecker.isActiveStream(student.getEduStream())) {
+                if (student.getApplicationBytes() == null) {
+                    throw new BadRequestException("Нельзя выкачать заявку для студента %s, так как она еще не загружена".formatted(student.getFullName()));
                 }
+                return FileStreamDTO.builder()
+                        .fileStream(new ByteArrayInputStream(student.getApplicationBytes()))
+                        .fileName("Заявка - %s.docx".formatted(student.getFullName()))
+                        .build();
             }
-            throw new BadRequestException("Невозможно выкачать заявку, так как студент с chatId %d не найден".formatted(chatId));
-        } catch (IOException e) {
-            throw new InternalException("Произошла техническая ошибка: заявка не может быть выгружена");
         }
+        throw new BadRequestException("Невозможно выкачать заявку, так как студент с chatId %d не найден".formatted(chatId));
     }
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, File application) throws InternalException {
@@ -126,7 +124,7 @@ public class StudentService {
         return StudentRepository.updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, newBytes);
     }
 
-    public static Optional<File> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
+    public static Optional<FileStreamDTO> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
         var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
         var students = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
@@ -198,7 +196,7 @@ public class StudentService {
         return "";
     }
 
-    public static File exportStudentsToExcel(String eduStreamName) throws InternalException, BadRequestException {
+    public static FileStreamDTO exportStudentsToExcel(String eduStreamName) throws InternalException, BadRequestException {
         var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
         var students = StudentRepository.exportAll(eduStream);
@@ -295,7 +293,7 @@ public class StudentService {
                 .build();
     }
 
-    public static ApplicationFillingResult generateApplicationFileByChatId(long chatId) throws InternalException {
+    public static ApplicationFillingResult generateApplicationByChatId(long chatId) throws InternalException {
         // ищем студента в активных потоках
         var students = StudentRepository.findAllByChatId(chatId);
         Student currStudent = null;
@@ -330,7 +328,7 @@ public class StudentService {
                 currStudent.getPracticeFormat() == PracticeFormat.OFFLINE ? "Очно" : "С применением дистанционных технологий",
                 currStudent.getCompanyName()
         ));
-        return resBuilder.file(file).build();
+        return resBuilder.fileStreamDTO(file).build();
     }
 
     public static List<Student> getStudentsByChatId(long chatId) throws InternalException {

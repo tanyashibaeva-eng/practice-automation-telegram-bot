@@ -21,7 +21,6 @@ public class CompanyInfoConfirmationCommand implements UserCommand {
                         .needRewriting(false)
                         .build();
             case "Нет":
-                // TODO подумать куда лучше отсюда переходить
                 ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
                 return MessageToUser.builder()
                         .text("")

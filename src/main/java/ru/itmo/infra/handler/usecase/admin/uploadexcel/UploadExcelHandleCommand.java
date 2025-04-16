@@ -40,7 +40,8 @@ public class UploadExcelHandleCommand implements AdminCommand {
         return MessageToUser.builder()
                 .text("В загруженном файле содержатся ошибки, поправьте их и попробуйте снова или вернитесь назад.")
                 .keyboardMarkup(getReturnToStartMarkup())
-                .document(res.get())
+                .fileStream(res.get().getFileStream())
+                .fileName(res.get().getFileName())
                 .build();
     }
 

@@ -29,11 +29,12 @@ public class DownloadApplicationCommand implements AdminCommand {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
 
-            var file = StudentService.getApplicationFile(studentChatId);
+            var fileStreamDTO = StudentService.getApplication(studentChatId);
             ContextHolder.endCommand(message.getChatId());
             return MessageToUser.builder()
                     .text("Заявка студента %d:".formatted(studentChatId))
-                    .document(file)
+                    .fileStream(fileStreamDTO.getFileStream())
+                    .fileName(fileStreamDTO.getFileName())
                     .build();
         } catch (BadRequestException e) {
             ContextHolder.endCommand(message.getChatId());

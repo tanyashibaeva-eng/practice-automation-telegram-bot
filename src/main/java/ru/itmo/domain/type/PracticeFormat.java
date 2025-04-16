@@ -38,7 +38,7 @@ public enum PracticeFormat {
 
     public String getDisplayName() {
         return switch (this) {
-            case NOT_SPECIFIED -> "Не заполнено";
+            case NOT_SPECIFIED -> "";
             case OFFLINE -> "Очный";
             case HYBRID -> "Гибридный";
             case ONLINE -> "Удаленный";

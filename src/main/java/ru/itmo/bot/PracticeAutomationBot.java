@@ -42,7 +42,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
                     .build();
             response = Interceptor.processCallback(messageDTO, callbackDataString);
 
-            isCallback = !(response.getKeyboardMarkup() instanceof ReplyKeyboardMarkup || response.getDocument() != null);
+            isCallback = !(response.getKeyboardMarkup() instanceof ReplyKeyboardMarkup || response.getFileStream() != null);
         }
         if (update.hasMessage()) {
             String username = (update.getMessage() == null) ? null : update.getMessage().getChat().getUserName();
@@ -72,7 +72,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             return;
         }
 
-        if (response.getDocument() == null) {
+        if (response.getFileStream() == null) {
             sendMessage(response, chatId);
         } else {
             sendDocument(response, chatId);
@@ -101,7 +101,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     private static void sendDocument(MessageToUser message, long chatId) {
         SendDocument sendDocument = SendDocument.builder()
                 .chatId(chatId)
-                .document(new InputFile(message.getDocument()))
+                .document(new InputFile(message.getFileStream(), message.getFileName()))
                 .caption(message.getText())
                 .replyMarkup(message.getKeyboardMarkup())
                 .build();
@@ -124,7 +124,7 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             telegramClient.execute(editMessage);
             updateMessageIds(message, chatId, editMessage.getMessageId());
         } catch (TelegramApiException ex) {
-            if (message.getDocument() != null) {
+            if (message.getFileStream() != null) {
                 sendDocument(message, chatId);
             } else {
                 sendMessage(message, chatId);

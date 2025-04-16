@@ -26,9 +26,13 @@ public class ExportExcelCommand implements AdminCommand {
             }
 
             var chatId = message.getChatId();
-            var file = StudentService.exportStudentsToExcel(stream.getName());
+            var fileStreamDTO = StudentService.exportStudentsToExcel(stream.getName());
             ContextHolder.setNextCommand(chatId, new GotoStreamCommand());
-            return MessageToUser.builder().text("Сгенерированная выгрузка по потоку %s".formatted(streamName)).document(file).build();
+            return MessageToUser.builder()
+                    .text("Сгенерированная выгрузка по потоку %s".formatted(streamName))
+                    .fileStream(fileStreamDTO.getFileStream())
+                    .fileName(fileStreamDTO.getFileName())
+                    .build();
         } catch (BadRequestException e) {
             return MessageToUser.builder().text(e.getMessage()).build();
         } catch (UnknownUserException e) {

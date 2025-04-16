@@ -16,13 +16,14 @@ public class StudentFilledApplicationCommand implements UserCommand {
     public MessageToUser execute(MessageDTO message) {
         try {
             var chatId = message.getChatId();
-            var file = StudentService.getApplicationFile(chatId);
+            var fileStreamDTO = StudentService.getApplication(chatId);
 
         ContextHolder.endCommand(message.getChatId());
         return MessageToUser.builder()
                 .text("")
                 .keyboardMarkup(new ReplyKeyboardRemove(true))
-                .document(file)
+                .fileStream(fileStreamDTO.getFileStream())
+                .fileName(fileStreamDTO.getFileName())
                 .build();
     } catch (BadRequestException e) {
             ContextHolder.endCommand(message.getChatId());

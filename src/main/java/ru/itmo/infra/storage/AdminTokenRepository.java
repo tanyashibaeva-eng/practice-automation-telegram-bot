@@ -47,8 +47,6 @@ public class AdminTokenRepository {
         }
     }
 
-    // TODO: is findAll implementation needed?
-
     private static InternalException handleAndWrapSQLException(SQLException ex) {
         log.severe("Ошибка во время выполнения SQL запроса: " + ex.getMessage());
         return new InternalException("Что-то пошло не так", ex.getCause());

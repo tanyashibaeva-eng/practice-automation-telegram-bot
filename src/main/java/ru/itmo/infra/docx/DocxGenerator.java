@@ -3,18 +3,20 @@ package ru.itmo.infra.docx;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import ru.itmo.domain.dto.ApplicationDTO;
+import ru.itmo.domain.dto.FileStreamDTO;
 import ru.itmo.exception.InternalException;
 
-import java.io.File;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 public class DocxGenerator {
 
     private static final String TEMPLATE = "src/main/resources/templates/application.docx";
 
-    public static File fillApplicationTemplate(ApplicationDTO dto) throws InternalException {
+    public static FileStreamDTO fillApplicationTemplate(ApplicationDTO dto) throws InternalException {
         try (FileInputStream fis = new FileInputStream(TEMPLATE)) {
             var doc = new XWPFDocument(fis);
 
@@ -54,12 +56,15 @@ public class DocxGenerator {
                 }
             }
 
-            var outputFile = new File("Заявка – %s.docx".formatted(dto.getFullName()));
-            try (FileOutputStream fos = new FileOutputStream(outputFile)) {
-                doc.write(fos);
-            }
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            doc.write(bos);
+            byte[] bytes = bos.toByteArray();
+            InputStream inputStream = new ByteArrayInputStream(bytes);
+            return FileStreamDTO.builder()
+                    .fileStream(inputStream)
+                    .fileName("Заявка – %s.docx".formatted(dto.getFullName()))
+                    .build();
 
-            return outputFile;
         } catch (Exception e) {
             throw new InternalException("Произошла ошибка при генерации файла: " + e.getMessage(), e);
         }

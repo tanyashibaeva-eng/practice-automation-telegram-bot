@@ -9,6 +9,7 @@ import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import ru.itmo.domain.dto.FileStreamDTO;
 import ru.itmo.domain.dto.StudentsWithErrors;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -17,10 +18,7 @@ import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -51,7 +49,7 @@ public class Generator {
         return new SimpleDateFormat("dd-MM-yyyy_HH-mm").format(new Date());
     }
 
-    public static File generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
+    public static FileStreamDTO generateExcelWithErrors(File file, HashMap<String, StudentsWithErrors> errorsByGroups) throws InternalException {
         try (FileInputStream fis = new FileInputStream(file)) {
             var workbook = new XSSFWorkbook(fis);
 
@@ -83,16 +81,21 @@ public class Generator {
                 }
             }
 
-            file = new File("список студентов – ошибки.xlsx");
-            var fileOut = new FileOutputStream(file);
-            workbook.write(fileOut);
-            return file;
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            workbook.write(bos);
+            byte[] bytes = bos.toByteArray();
+            InputStream inputStream = new ByteArrayInputStream(bytes);
+
+            return FileStreamDTO.builder()
+                    .fileStream(inputStream)
+                    .fileName("список студентов – ошибки.xlsx")
+                    .build();
         } catch (IOException e) {
             throw new InternalException("Произошла ошибка при обработке Excel файла: " + e.getMessage(), e);
         }
     }
 
-    public static File generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups, EduStream eduStream) throws InternalException {
+    public static FileStreamDTO generateExcel(Map<String, List<Student>> groupToStudents, List<String> groups, EduStream eduStream) throws InternalException {
         var workbook = new XSSFWorkbook();
 
         var practicePlaceOptions = getPracticePlaceOptions();
@@ -186,18 +189,24 @@ public class Generator {
             }
         }
 
-
         var streamName = eduStream.getName();
         var fileName = String.format("список студентов_%s_%s.xlsx",
                 streamName, getTimestamp());
-        var file = new File(fileName);
-        try (var fileOut = new FileOutputStream(file)) {
-            workbook.write(fileOut);
+
+        InputStream inputStream;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            workbook.write(bos);
+            byte[] bytes = bos.toByteArray();
+            inputStream = new ByteArrayInputStream(bytes);
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
         }
 
-        return file;
+        return FileStreamDTO.builder()
+                .fileStream(inputStream)
+                .fileName(fileName)
+                .build();
     }
 
     private static CellStyle createColoredCellStyle(Workbook workbook, String hexColor) {
