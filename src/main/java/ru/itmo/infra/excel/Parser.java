@@ -103,7 +103,7 @@ public class Parser {
 
             var count = 0;
             for (int i : new int[]{1, 2, 3, 4}) {
-                if (row.getCell(i) == null || row.getCell(i).getStringCellValue() == null || row.getCell(i).getStringCellValue().isEmpty()) {
+                if (row.getCell(i) == null || parseString(row.getCell(i), errorsByRows, false) == null) {
                     count++;
                     addErr(row.getRowNum(), "поле %s является обязательным".formatted(columns[i + 1]), errorsByRows);
                 }
