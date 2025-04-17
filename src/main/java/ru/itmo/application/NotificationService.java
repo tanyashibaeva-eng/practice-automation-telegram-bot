@@ -44,7 +44,7 @@ public class NotificationService {
     }
 
     public static void notifyAdmins(String message) throws InternalException {
-        List<TelegramUser> adminList = TelegramUserRepository.findAllAdmins();
+        List<TelegramUser> adminList = TelegramUserService.getAllNotBannedAdmins();
         for (var admin : adminList) {
             Notifier.notifyAsync(
                     Notification.builder()

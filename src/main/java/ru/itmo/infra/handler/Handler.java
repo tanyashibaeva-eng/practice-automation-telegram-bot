@@ -24,6 +24,8 @@ import ru.itmo.infra.handler.usecase.Command;
 import ru.itmo.infra.handler.usecase.admin.addadmin.AddAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.banadmin.BanAdminCommand;
+import ru.itmo.infra.handler.usecase.admin.banadmin.BanAdminConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
@@ -39,6 +41,7 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamNameC
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduInputStreamStartDateCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCommand;
+import ru.itmo.infra.handler.usecase.admin.listadmins.ListAdminsCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
@@ -128,7 +131,10 @@ public class Handler {
         commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
         commands.add(new BanConfirmationCommand());
+        commands.add(new BanAdminCommand());
+        commands.add(new BanAdminConfirmationCommand());
         commands.add(new GetBannedCommand());
+        commands.add(new ListAdminsCommand());
         commands.add(new DeleteStreamCommand());
         commands.add(new DeleteStreamConfirmationCommand());
         commands.add(new DownloadApplicationCommand());
@@ -404,6 +410,7 @@ public class Handler {
                 new HelpCommand(),
                 new StartCommand(),
                 new BanCommand(),
+                new BanAdminCommand(),
                 new DeleteStreamCommand(),
                 new DownloadApplicationCommand(),
                 new ExportExcelCommand(),
@@ -413,6 +420,7 @@ public class Handler {
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
                 new GetBannedCommand(),
+                new ListAdminsCommand(),
                 new UnbanCommand(),
                 new UploadExcelCommand(),
                 new GetStudentInfoCommand()

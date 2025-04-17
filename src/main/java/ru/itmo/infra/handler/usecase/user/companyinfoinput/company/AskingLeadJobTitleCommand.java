@@ -12,7 +12,7 @@ public class AskingLeadJobTitleCommand implements UserCommand {
         var chatId = message.getChatId();
         ContextHolder.setNextCommand(chatId, new InputLeadJobTitleCommand());
         return MessageToUser.builder()
-                .text("Введите должность вашего научного руководителя")
+                .text("Введите должность вашего руководителя практики")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();

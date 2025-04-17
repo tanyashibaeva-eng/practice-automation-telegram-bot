@@ -180,6 +180,28 @@ public class TelegramUserService {
         return TelegramUserRepository.updateByChatId(telegramUser);
     }
 
+    public static boolean banAdmin(long chatId) throws InternalException, BadRequestException {
+        doesExistOrThrow(chatId);
+        var tgUserOpt = TelegramUserRepository.findByChatId(chatId);
+        if (tgUserOpt.isEmpty()) {
+            return true;
+        }
+        var telegramUser = tgUserOpt.get();
+        if (!telegramUser.isAdmin()) {
+            throw new BadRequestException("Пользователь не является админом");
+        }
+        telegramUser.setBanned(true);
+        return TelegramUserRepository.updateByChatId(telegramUser);
+    }
+
+    public static List<TelegramUser> getAllNotBannedAdmins() throws InternalException {
+        return TelegramUserRepository.findAllNotBannedAdmins();
+    }
+
+    public static List<TelegramUser> getAllAdmins() throws InternalException {
+        return TelegramUserRepository.findAllAdmins();
+    }
+
     private static void doesExistOrThrow(long chatId) throws InternalException, BadRequestException {
         if (!TelegramUserRepository.existsByChatId(chatId))
             throw new BadRequestException("Пользователь с chatId %d не найден".formatted(chatId));

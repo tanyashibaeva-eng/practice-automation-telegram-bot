@@ -21,16 +21,16 @@ public class UnbanCommand implements AdminCommand {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/unban <studentChatId>`");
             }
 
-            var studentChatIdStr = fields[1];
-            long studentChatId;
+            var userChatIdStr = fields[1];
+            long userChatId;
             try {
-                studentChatId = TextUtils.parseDoubleStrToLong(studentChatIdStr);
+                userChatId = TextUtils.parseDoubleStrToLong(userChatIdStr);
             } catch (BadRequestException e) {
                 throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
             }
 
-            String textBuilder = "\nРазбанить студента с chatId %d?".formatted(studentChatId);
-            ContextHolder.setCommandData(message.getChatId(), new BanArgs(studentChatId));
+            String textBuilder = "\nРазбанить пользователя с chatId %d?".formatted(userChatId);
+            ContextHolder.setCommandData(message.getChatId(), new BanArgs(userChatId));
             ContextHolder.setNextCommand(message.getChatId(), new UnbanConfirmationCommand());
 
             return MessageToUser.builder()

@@ -12,7 +12,7 @@ public class AskingCorporateEmailCommand implements UserCommand {
             var chatId = message.getChatId();
             ContextHolder.setNextCommand(chatId, new InputCorporateEmailCommand());
             return MessageToUser.builder()
-                    .text("Введите корпоративную почту научного руководителя")
+                    .text("Введите корпоративную почту руководителя практики от компании")
                     .keyboardMarkup(getReturnToStartMarkup())
                     .needRewriting(true)
                     .build();

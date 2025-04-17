@@ -12,7 +12,7 @@ public class AskingITMOPracticeLeadFullNameCommand implements UserCommand {
         var chatId = message.getChatId();
         ContextHolder.setNextCommand(chatId, new InputITMOStudentLeadFullNameCommand());
         return MessageToUser.builder()
-                .text("Введите ФИО научного руководителя")
+                .text("Введите ФИО руководителя практики")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
                 .build();

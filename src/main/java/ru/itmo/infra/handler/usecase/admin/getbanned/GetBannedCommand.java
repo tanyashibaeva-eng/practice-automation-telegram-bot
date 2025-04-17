@@ -5,6 +5,7 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.application.TelegramUserService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.model.TelegramUser;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 
 import java.util.stream.Collectors;
@@ -15,8 +16,15 @@ public class GetBannedCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         var bannedUsers = TelegramUserService.getAllBannedUsers();
 
-        String result = "Забаненные пользователи:\n\n"
-                + bannedUsers.stream()
+        var bannedStudents = bannedUsers.stream().filter(telegramUser -> !telegramUser.isAdmin()).toList();
+        var bannedAdmins = bannedUsers.stream().filter(TelegramUser::isAdmin).toList();
+
+        String result = "Забаненные студенты:\n\n"
+                + bannedStudents.stream()
+                .map(user -> "Пользователь @%s, chatId: %d".formatted(user.getUsername(), user.getChatId()))
+                .collect(Collectors.joining("\n\n"))
+                + "\n\nЗабаненные администраторы:\n\n"
+                + bannedAdmins.stream()
                 .map(user -> "Пользователь @%s, chatId: %d".formatted(user.getUsername(), user.getChatId()))
                 .collect(Collectors.joining("\n\n"));
 
