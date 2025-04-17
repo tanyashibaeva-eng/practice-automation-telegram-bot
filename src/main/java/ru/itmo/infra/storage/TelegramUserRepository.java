@@ -55,9 +55,21 @@ public class TelegramUserRepository {
         }
     }
 
-    public static List<TelegramUser> findAllAdmins() throws InternalException {
+    public static List<TelegramUser> findAllNotBannedAdmins() throws InternalException {
         try (var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE is_admin = true AND is_banned = false;"
+        )) {
+            var rs = statement.executeQuery();
+            return mapToTelegramUserList(rs);
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<TelegramUser> findAllAdmins() throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "SELECT * FROM tg_user WHERE is_admin = true;"
         )) {
             var rs = statement.executeQuery();
             return mapToTelegramUserList(rs);

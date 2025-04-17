@@ -47,7 +47,7 @@ public class GetStudentInfoCommand implements AdminCommand {
                 textBuilder.append("Статус: ").append(student.getStatus().getDisplayName()).append("\n");
 
                 if (student.getPracticeFormat() != null && student.getPracticeFormat() != PracticeFormat.NOT_SPECIFIED) {
-                    textBuilder.append("Формат практики: ").append(student.getPracticeFormat()).append("\n");
+                    textBuilder.append("Формат практики: ").append(student.getPracticeFormat().getDisplayName()).append("\n");
                 }
                 if (student.getCompanyName() != null  && !student.getCompanyName().isBlank()) {
                     textBuilder.append("Компания: ").append(student.getCompanyName()).append("\n");

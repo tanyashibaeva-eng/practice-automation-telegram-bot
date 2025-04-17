@@ -17,7 +17,7 @@ public class BanCommand implements AdminCommand {
     public MessageToUser execute(MessageDTO message) {
         try {
             var messageText = TextUtils.removeRedundantSpaces(message.getText());
-            var fields = messageText.split(" ");
+            var fields = messageText.split(" +");
             if (fields.length < 2) {
                 throw new BadRequestException("Неверный формат команды, не указан chatId студента, формат: `/ban <studentChatId>`");
             }
@@ -32,7 +32,7 @@ public class BanCommand implements AdminCommand {
 
             var students = StudentService.getStudentsByChatId(studentChatId);
             if (students.isEmpty()) {
-                throw new BadRequestException("Студент с chatId: %d не найден".formatted(studentChatId));
+                throw new BadRequestException("Студент с chatId %d не найден".formatted(studentChatId));
             }
 
             var textBuilder = new StringBuilder();

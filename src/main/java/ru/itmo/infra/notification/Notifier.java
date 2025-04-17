@@ -17,7 +17,7 @@ public class Notifier {
 
     private static final TelegramClient telegramClient = new OkHttpTelegramClient(PropertiesProvider.getToken());
     private static final ScheduledExecutorService schedulingExecutor = Executors.newSingleThreadScheduledExecutor();
-    private static final ConcurrentLinkedQueue<SendMessage> messageQueue = new ConcurrentLinkedQueue<>();
+    private static final ConcurrentLinkedQueue<Notification> messageQueue = new ConcurrentLinkedQueue<>();
 
     static {
         schedulingExecutor.scheduleWithFixedDelay(
@@ -29,25 +29,27 @@ public class Notifier {
     }
 
     public static void notifyAsync(Notification notification) {
+        notification.setRetryCount(0);
+        messageQueue.add(notification);
+    }
+
+    private static void sendNotification() {
+        if (messageQueue.isEmpty()) return;
+
+        Notification notification = messageQueue.poll();
+        if (!notification.countRetry()) return;
+
         SendMessage sendmessage = SendMessage.builder()
                 .chatId(notification.getChatId())
                 .text(notification.getText())
 //                .parseMode("MarkdownV2")
                 .build();
 
-        messageQueue.add(sendmessage);
-    }
-
-    private static void sendNotification() {
-        if (messageQueue.isEmpty()) return;
-
-        SendMessage sendmessage = messageQueue.poll();
-
         try {
             telegramClient.execute(sendmessage);
         } catch (TelegramApiException ex) {
             log.warning("Ошибка отправки уведомления: " + ex.getMessage());
-            messageQueue.add(sendmessage);
+            messageQueue.add(notification);
         }
     }
 }

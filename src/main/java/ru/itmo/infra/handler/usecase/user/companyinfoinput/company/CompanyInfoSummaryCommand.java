@@ -17,7 +17,7 @@ public class CompanyInfoSummaryCommand implements UserCommand {
                 .text(("""
                         Вы будете проходить практику в компании: %s, ИНН %d.
                         Формат прохождения: %s.
-                        Ваш научный руководитель: %s.\s
+                        Ваш руководитель практики: %s.\s
                         Данные руководителя: должность: %s, номер телефона: %s, корпоративная почта %s. Верно?""")
                         .formatted(dto.getCompanyName(), dto.getInn(), dto.getPracticeFormat().getDisplayName(), dto.getCompanyLeadFullName(), dto.getCompanyLeadJobTitle(), dto.getCompanyLeadPhone(), dto.getCompanyLeadEmail() ))
                 .keyboardMarkup(getInlineKeyboard())
