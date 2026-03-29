@@ -1,20 +1,27 @@
 package ru.itmo.infra.handler.usecase.user.companyinfoinput.company;
 
+import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
+import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.SubmitCompanyApprovalRequestCommand;
 
 public class CompanyInfoConfirmationCommand implements UserCommand {
     @Override
+    @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
+        var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
 
         switch (message.getText()) {
             case "Да":
-                ContextHolder.setNextCommand(chatId, new InfoSubmittedCommand());
+                ContextHolder.setNextCommand(chatId, dto.isRequiresSpbOfficeApproval()
+                        ? new SubmitCompanyApprovalRequestCommand()
+                        : new InfoSubmittedCommand());
                 return MessageToUser.builder()
                         .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))

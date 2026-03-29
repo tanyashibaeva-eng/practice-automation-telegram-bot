@@ -1,2 +1,5 @@
 rootProject.name = 'practice-automation-telegram-bot'
 
+include(":office-locator")
+
+project(":office-locator").projectDir = file("./modules/office-locator")

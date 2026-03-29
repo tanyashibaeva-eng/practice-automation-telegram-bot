@@ -42,6 +42,7 @@ public class Notifier {
         SendMessage sendmessage = SendMessage.builder()
                 .chatId(notification.getChatId())
                 .text(notification.getText())
+                .replyMarkup(notification.getKeyboardMarkup())
 //                .parseMode("MarkdownV2")
                 .build();
 
