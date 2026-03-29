@@ -38,6 +38,16 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
+DO $$ BEGIN
+    CREATE TYPE company_request_status AS ENUM (
+        'PENDING',
+        'APPROVED',
+        'REJECTED'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 CREATE TABLE IF NOT EXISTS tg_user (
     chat_id                 bigint              PRIMARY KEY,
     is_admin                boolean             NOT NULL DEFAULT FALSE,
@@ -339,3 +349,29 @@ FROM (
     FROM guide_subsection
 ) o
 WHERE u.id = o.id;
+
+CREATE TABLE IF NOT EXISTS company_approval_request (
+    id                      bigserial               PRIMARY KEY,
+    student_chat_id         bigint                  NOT NULL REFERENCES tg_user(chat_id) ON DELETE CASCADE,
+    edu_stream_name         text                    NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE ON UPDATE CASCADE,
+    inn                     bigint                  NOT NULL,
+    company_name            text                    NOT NULL,
+    company_address         text                    NOT NULL,
+    practice_format         st_practice_format      NOT NULL,
+    company_lead_fullname   text                    NOT NULL,
+    company_lead_phone      text                    NOT NULL,
+    company_lead_email      text                    NOT NULL,
+    company_lead_job_title  text                    NOT NULL,
+    requires_spb_office_approval boolean            NOT NULL DEFAULT FALSE,
+    status                  company_request_status  NOT NULL DEFAULT 'PENDING',
+    processed_by_chat_id    bigint                  DEFAULT NULL REFERENCES tg_user(chat_id) ON DELETE SET NULL,
+    created_at              timestamp               NOT NULL DEFAULT now(),
+    processed_at            timestamp               DEFAULT NULL
+);
+
+ALTER TABLE company_approval_request
+    ADD COLUMN IF NOT EXISTS requires_spb_office_approval boolean NOT NULL DEFAULT FALSE;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_company_approval_request_pending
+    ON company_approval_request (student_chat_id, edu_stream_name)
+    WHERE status = 'PENDING';

@@ -18,7 +18,7 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
-import ru.itmo.infra.storage.GuideRepository;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.ListCompanyApprovalRequestsCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
@@ -26,6 +26,7 @@ import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualEditStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
+import ru.itmo.infra.storage.GuideRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +49,6 @@ public class StartCommand implements UserCommand {
         }
 
         return userStartCommand(message);
-
     }
 
     private MessageToUser bannedStartCommand(MessageDTO message) {
@@ -96,7 +96,6 @@ public class StartCommand implements UserCommand {
                 .needRewriting(true)
                 .build();
     }
-
 
     @Override
     public boolean isNextCallNeeded() {
@@ -170,6 +169,16 @@ public class StartCommand implements UserCommand {
                         .build()
         ));
 
+        var requestsCallbackData = CallbackData.builder()
+                .command(new ListCompanyApprovalRequestsCommand().getName())
+                .build();
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("Заявки на компании")
+                        .callbackData(requestsCallbackData.toString())
+                        .build()
+        ));
+
         return markupBuilder.build();
     }
 
@@ -197,7 +206,7 @@ public class StartCommand implements UserCommand {
 
         var markupBuilder = InlineKeyboardMarkup.builder();
 
-        // Добавим кнопку "Мой статус" в любом случае
+        // Добавим кнопку "Мой статус" в любом случае.
         markupBuilder.keyboardRow(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
                         .text("Мой статус")
@@ -210,7 +219,7 @@ public class StartCommand implements UserCommand {
 
         appendGuideSectionRows(markupBuilder);
 
-        // Добавляем остальные команды
+        // Добавляем остальные команды, доступные для статуса.
         Handler.getAvailableStudentCommands(status).forEach(cmd -> {
             if (cmd instanceof UserCommand userCmd && !cmd.getName().equals(new StatusCommand().getName())) {
                 markupBuilder.keyboardRow(new InlineKeyboardRow(
