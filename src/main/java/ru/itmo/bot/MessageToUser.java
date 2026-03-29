@@ -18,4 +18,17 @@ public class MessageToUser {
     String fileName;
     ReplyKeyboard keyboardMarkup;
     boolean needRewriting;
+    /**
+     * Telegram parse mode, e.g. {@code "HTML"}. When null, plain text is sent.
+     */
+    String parseMode;
+    /**
+     * Короткая подсказка на inline-кнопку (до 200 символов у Telegram).
+     */
+    String callbackAnswerText;
+    /**
+     * Для callback: только ответить на query, не менять текст сообщения в чате.
+     */
+    @Builder.Default
+    boolean skipMessageEdit = false;
 }

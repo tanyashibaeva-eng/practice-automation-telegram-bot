@@ -64,6 +64,23 @@ import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicat
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationHandleCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.*;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
+import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
+import ru.itmo.infra.handler.usecase.user.guide.GuideNavigateCommand;
+import ru.itmo.infra.handler.usecase.user.guide.GuideSectionOpenCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditAbortCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditConfirmCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditPickCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditPreviewCancelCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditSectionCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditStartCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualReorderDownCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualReorderEditBodyCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualReorderNoopCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualReorderUpCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionAddCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteConfirmCommand;
+import ru.itmo.infra.storage.GuideRepository;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -127,6 +144,29 @@ public class Handler {
 
         commands.add(new StatusCommand());
 
+        try {
+            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+                commands.add(new GuideSectionOpenCommand(section.getCommand(), section.getTitle()));
+            }
+        } catch (InternalException e) {
+            log.warning("Guide sections not registered: " + e.getMessage());
+        }
+        commands.add(new GuideNavigateCommand());
+        commands.add(new GuideMenuCommand());
+        commands.add(new ManualEditStartCommand());
+        commands.add(new ManualEditSectionCommand());
+        commands.add(new ManualEditPickCommand());
+        commands.add(new ManualReorderUpCommand());
+        commands.add(new ManualReorderDownCommand());
+        commands.add(new ManualReorderNoopCommand());
+        commands.add(new ManualReorderEditBodyCommand());
+        commands.add(new ManualEditAbortCommand());
+        commands.add(new ManualEditConfirmCommand());
+        commands.add(new ManualEditPreviewCancelCommand());
+        commands.add(new ManualSubsectionAddCommand());
+        commands.add(new ManualSubsectionDeleteCommand());
+        commands.add(new ManualSubsectionDeleteConfirmCommand());
+
         // для админов
         commands.add(new AddAdminCommand());
         commands.add(new BanCommand());
@@ -166,6 +206,13 @@ public class Handler {
     }
 
     public static MessageToUser handleMessage(MessageDTO message) throws Exception {
+        if (message.hasText()) {
+            var commandName = normalizeTelegramCommandToken(message.getText().split(" ")[0]);
+            if (commandsMap.containsKey(commandName)) {
+                return executeCommand(commandsMap.get(commandName), message);
+            }
+        }
+
         var nextFunc = getNextCommandFunction(message.getChatId());
 
         if (nextFunc != null) {
@@ -176,14 +223,19 @@ public class Handler {
             return MessageToUser.builder().text("").build();
         }
 
-        var commandText = message.getText();
-        var commandName = commandText.split(" ")[0];
-        if (!commandsMap.containsKey(commandName)) {
-            return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи или \"/start\" для возврата в меню").build();
-        }
+        return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи или \"/start\" для возврата в меню").build();
+    }
 
-        var command = commandsMap.get(commandName);
-        return executeCommand(command, message);
+    /** Telegram шлёт /cmd@BotName в меню команд — приводим к ключу {@link #commandsMap}. */
+    private static String normalizeTelegramCommandToken(String token) {
+        if (token == null || token.isEmpty()) {
+            return "";
+        }
+        int at = token.indexOf('@');
+        if (at > 0) {
+            return token.substring(0, at);
+        }
+        return token;
     }
 
     private static Command getNextCommandFunction(long chatId) {
@@ -218,7 +270,7 @@ public class Handler {
         if (command.isNextCallNeeded()
                 && nextCommand != null
                 && command.getClass() != nextCommand.getClass()) {
-            PracticeAutomationBot.sendToUser(response, message.getChatId(), false);
+            PracticeAutomationBot.sendToUser(response, message.getChatId(), false, null, null);
             response = executeCommand(nextCommand, message);
         }
 
@@ -267,7 +319,7 @@ public class Handler {
     private static MessageToUser permissionDenied(MessageDTO message) throws InternalException, UnknownUserException {
         ContextHolder.endCommand(message.getChatId());
         var response = MessageToUser.builder().text("Доступ запрещен").build();
-        PracticeAutomationBot.sendToUser(response, message.getChatId(), false);
+        PracticeAutomationBot.sendToUser(response, message.getChatId(), false, null, null);
         return executeCommand(new StartCommand(), message);
     }
 
@@ -290,7 +342,15 @@ public class Handler {
         if (callbackData.getKey() != null) {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
-        return executeCommand(commandsMap.get(callbackData.getCommand()), message);
+        String cmdName = normalizeTelegramCommandToken(callbackData.getCommand());
+        Command cmd = commandsMap.get(cmdName != null && !cmdName.isEmpty() ? cmdName : callbackData.getCommand());
+        if (cmd == null) {
+            return MessageToUser.builder()
+                    .text("Кнопка устарела или неизвестна. Откройте /start.")
+                    .needRewriting(true)
+                    .build();
+        }
+        return executeCommand(cmd, message);
     }
 
     public static File getFileFromMessage(MessageDTO message) throws TelegramApiException, InvalidMessageException {
@@ -369,6 +429,14 @@ public class Handler {
         addCommandIfExists(result, new HelpCommand());
         addCommandIfExists(result, new StatusCommand());
 
+        try {
+            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+                addCommandIfExists(result, new GuideSectionOpenCommand(section.getCommand(), section.getTitle()));
+            }
+        } catch (InternalException e) {
+            log.warning("Guide commands not added to menu: " + e.getMessage());
+        }
+
         // Команды, зависящие от статуса
         if (status != null) {
             getAvailableStudentCommands(status).forEach(cmd -> {
@@ -409,6 +477,8 @@ public class Handler {
         return List.of(
                 new HelpCommand(),
                 new StartCommand(),
+                new GuideMenuCommand(),
+                new ManualEditStartCommand(),
                 new BanCommand(),
                 new BanAdminCommand(),
                 new DeleteStreamCommand(),
