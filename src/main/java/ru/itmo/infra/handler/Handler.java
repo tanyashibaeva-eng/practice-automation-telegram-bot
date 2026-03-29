@@ -26,6 +26,11 @@ import ru.itmo.infra.handler.usecase.admin.ban.BanCommand;
 import ru.itmo.infra.handler.usecase.admin.ban.BanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.banadmin.BanAdminCommand;
 import ru.itmo.infra.handler.usecase.admin.banadmin.BanAdminConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.ApproveCompanyApprovalRequestCommand;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.ApproveCompanyApprovalRequestConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.ListCompanyApprovalRequestsCommand;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.RejectCompanyApprovalRequestCommand;
+import ru.itmo.infra.handler.usecase.admin.companyapproval.RejectCompanyApprovalRequestConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
@@ -52,18 +57,34 @@ import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.*;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.*;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.ErrorCompanyInputCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.PracticeConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.StudentInputConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.SubmitCompanyApprovalRequestCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingApproveNoContractCompanyCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingCompanyAddressCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingCompanyNameCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingCorporateEmailCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingInnCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingLeadJobTitleCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingLeadPhoneNumberCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingPracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoSummaryCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputApproveNoContractCompanyCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyAddressCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyNameCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCorporateEmailCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputInnValidationCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputLeadJobTitleCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputLeadPhoneNumberCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeDepartmentCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentDepartmentCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.InputITMOStudentLeadFullNameCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentFilledApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationCommand;
-import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationHandleCommand;
-import ru.itmo.infra.handler.usecase.user.studentregistration.*;
-import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
 import ru.itmo.infra.handler.usecase.user.guide.GuideNavigateCommand;
 import ru.itmo.infra.handler.usecase.user.guide.GuideSectionOpenCommand;
@@ -80,6 +101,16 @@ import ru.itmo.infra.handler.usecase.user.manual.ManualReorderUpCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionAddCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteConfirmCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentFilledApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationCommand;
+import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationHandleCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationConfirmationCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationISUCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationProcessISUCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationProcessStreamCommand;
+import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
+import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 import ru.itmo.infra.storage.GuideRepository;
 
 import java.io.File;
@@ -105,6 +136,7 @@ public class Handler {
 
         // для студентов
         commands.add(new AskingApproveNoContractCompanyCommand());
+        commands.add(new AskingCompanyAddressCommand());
         commands.add(new AskingCompanyNameCommand());
         commands.add(new AskingCorporateEmailCommand());
         commands.add(new AskingInnCommand());
@@ -113,6 +145,7 @@ public class Handler {
         commands.add(new AskingPracticeFormatCommand());
         commands.add(new CompanyInfoConfirmationCommand());
         commands.add(new CompanyInfoSummaryCommand());
+        commands.add(new InputCompanyAddressCommand());
         commands.add(new InputCompanyNameCommand());
         commands.add(new InputCorporateEmailCommand());
         commands.add(new InputInnValidationCommand());
@@ -129,6 +162,7 @@ public class Handler {
         commands.add(new ErrorCompanyInputCommand());
         commands.add(new InfoSubmittedCommand());
         commands.add(new PracticeConfirmationCommand());
+        commands.add(new SubmitCompanyApprovalRequestCommand());
         commands.add(new StudentInputConfirmationCommand());
 
         commands.add(new UploadApplicationHandleCommand());
@@ -173,8 +207,13 @@ public class Handler {
         commands.add(new BanConfirmationCommand());
         commands.add(new BanAdminCommand());
         commands.add(new BanAdminConfirmationCommand());
+        commands.add(new ApproveCompanyApprovalRequestCommand());
+        commands.add(new ApproveCompanyApprovalRequestConfirmationCommand());
         commands.add(new GetBannedCommand());
         commands.add(new ListAdminsCommand());
+        commands.add(new ListCompanyApprovalRequestsCommand());
+        commands.add(new RejectCompanyApprovalRequestCommand());
+        commands.add(new RejectCompanyApprovalRequestConfirmationCommand());
         commands.add(new DeleteStreamCommand());
         commands.add(new DeleteStreamConfirmationCommand());
         commands.add(new DownloadApplicationCommand());
@@ -206,24 +245,28 @@ public class Handler {
     }
 
     public static MessageToUser handleMessage(MessageDTO message) throws Exception {
-        if (message.hasText()) {
-            var commandName = normalizeTelegramCommandToken(message.getText().split(" ")[0]);
-            if (commandsMap.containsKey(commandName)) {
-                return executeCommand(commandsMap.get(commandName), message);
-            }
-        }
-
-        var nextFunc = getNextCommandFunction(message.getChatId());
-
-        if (nextFunc != null) {
-            return executeCommand(nextFunc, message);
-        }
-
         if (!message.hasText()) {
             return MessageToUser.builder().text("").build();
         }
 
-        return MessageToUser.builder().text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи или \"/start\" для возврата в меню").build();
+        var commandText = message.getText();
+        var commandName = resolveCommandName(commandText);
+        if (commandText.startsWith("/") && commandsMap.containsKey(commandName)) {
+            return executeCommand(commandsMap.get(commandName), message);
+        }
+
+        var nextFunc = getNextCommandFunction(message.getChatId());
+        if (nextFunc != null) {
+            return executeCommand(nextFunc, message);
+        }
+
+        if (!commandsMap.containsKey(commandName)) {
+            return MessageToUser.builder()
+                    .text("Извините, но я не понимаю такую команду. Попробуйте другую или напишите \"/help\" для помощи или \"/start\" для возврата в меню")
+                    .build();
+        }
+
+        return executeCommand(commandsMap.get(commandName), message);
     }
 
     /** Telegram шлёт /cmd@BotName в меню команд — приводим к ключу {@link #commandsMap}. */
@@ -236,6 +279,25 @@ public class Handler {
             return token.substring(0, at);
         }
         return token;
+    }
+
+    private static String resolveCommandName(String commandText) {
+        var commandName = normalizeTelegramCommandToken(commandText.split(" ")[0]);
+        if (commandsMap.containsKey(commandName)) {
+            return commandName;
+        }
+
+        var approveCommand = "/approve_company_request";
+        if (commandName.startsWith(approveCommand + "_")) {
+            return approveCommand;
+        }
+
+        var rejectCommand = "/reject_company_request";
+        if (commandName.startsWith(rejectCommand + "_")) {
+            return rejectCommand;
+        }
+
+        return commandName;
     }
 
     private static Command getNextCommandFunction(long chatId) {
@@ -339,11 +401,12 @@ public class Handler {
 
     public static MessageToUser handleCallback(MessageDTO message, String callbackDataString) throws Exception {
         var callbackData = new CallbackData(callbackDataString);
-        if (callbackData.getKey() != null) {
+        if (callbackData.getKey() != null && !callbackData.getKey().isBlank()) {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
-        String cmdName = normalizeTelegramCommandToken(callbackData.getCommand());
-        Command cmd = commandsMap.get(cmdName != null && !cmdName.isEmpty() ? cmdName : callbackData.getCommand());
+        var commandName = resolveCommandName(callbackData.getCommand());
+        message.setText(callbackData.getCommand());
+        Command cmd = commandsMap.get(commandName);
         if (cmd == null) {
             return MessageToUser.builder()
                     .text("Кнопка устарела или неизвестна. Откройте /start.")
@@ -410,7 +473,7 @@ public class Handler {
         commands.add(new StudentRegistrationStartCommand());
         commands.add(new StudentFilledApplicationCommand());
 
-        // Фильтруем только те, которые доступны для текущего статуса
+        // Фильтруем только те, которые доступны для текущего статуса.
         return commands.stream()
                 .filter(cmd -> {
                     if (cmd instanceof UserCommand) {
@@ -472,7 +535,7 @@ public class Handler {
     public static List<Command> getAdminCommands(long chatId) {
         try {
             ContextHolder.getEduStreamName(chatId);
-            return List.of(new StartCommand());
+            return List.of(new StartCommand(), new ListCompanyApprovalRequestsCommand());
         } catch (UnknownUserException ignored) { }
         return List.of(
                 new HelpCommand(),
@@ -481,6 +544,9 @@ public class Handler {
                 new ManualEditStartCommand(),
                 new BanCommand(),
                 new BanAdminCommand(),
+                new ListCompanyApprovalRequestsCommand(),
+                new ApproveCompanyApprovalRequestCommand(),
+                new RejectCompanyApprovalRequestCommand(),
                 new DeleteStreamCommand(),
                 new DownloadApplicationCommand(),
                 new ExportExcelCommand(),

@@ -6,32 +6,33 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
-public class InputCompanyNameCommand implements UserCommand {
+public class InputCompanyAddressCommand implements UserCommand {
+
+    @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
-        var companyName = message.getText().trim();
-        if (!isValidCompanyName(companyName)) {
+        var companyAddress = message.getText().trim();
+        if (companyAddress.isBlank()) {
+            ContextHolder.setNextCommand(chatId, this);
             return MessageToUser.builder()
-                    .text("Не корректный ввод")
+                    .text("Введите адрес компании корректно")
                     .keyboardMarkup(getReturnToStartMarkup())
                     .needRewriting(true)
                     .build();
         }
 
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
-        dto.setCompanyName(companyName);
+        dto.setCompanyAddress(companyAddress);
         ContextHolder.setCommandData(chatId, dto);
-        ContextHolder.setNextCommand(chatId, new AskingCompanyAddressCommand());
+        ContextHolder.setNextCommand(chatId, dto.isPresentInITMOAgreementFile()
+                ? new AskingITMOPracticeLeadFullNameCommand()
+                : new AskingApproveNoContractCompanyCommand());
         return MessageToUser.builder()
                 .text("")
-                .keyboardMarkup(getInlineKeyboard())
                 .build();
-    }
-
-    private boolean isValidCompanyName(String companyName) {
-        return companyName != null && !companyName.trim().isEmpty();
     }
 
     @Override

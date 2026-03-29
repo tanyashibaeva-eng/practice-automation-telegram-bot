@@ -1,5 +1,6 @@
 package ru.itmo.infra.handler.usecase.user.companyinfoinput.company;
 
+import lombok.extern.java.Log;
 import lombok.SneakyThrows;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.application.StudentService;
@@ -10,13 +11,15 @@ import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
+@Log
 public class InputInnValidationCommand implements UserCommand {
+    @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
         var userText = message.getText().trim();
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
-        //валидация инн
+
         var innResponse = StudentService.validateInn(userText);
         if (innResponse.getErrorText() != null) {
             ContextHolder.setNextCommand(chatId, this);
@@ -26,29 +29,37 @@ public class InputInnValidationCommand implements UserCommand {
                     .needRewriting(true)
                     .build();
         }
-        // Если ИНН начинается не с "78", идем к запросу формата практики OK тут еще добавили если формат практики онлайн
-        if (!innResponse.isSPB() && dto.getPracticeFormat() != PracticeFormat.ONLINE) {
-            ContextHolder.setNextCommand(chatId, new AskingPracticeFormatCommand());
+
+        dto.setInn(innResponse.getInn());
+        dto.setCompanyName(innResponse.getCompanyName());
+        dto.setPresentInITMOAgreementFile(innResponse.isPresentInITMOAgreementFile());
+        dto.setRequiresSpbOfficeApproval(false);
+        ContextHolder.setCommandData(chatId, dto);
+
+        boolean needsSpbOfficeApproval = dto.getPracticeFormat() != PracticeFormat.ONLINE && !innResponse.isSPB();
+        log.info("INN " + innResponse.getInn()
+                + ": practiceFormat=" + dto.getPracticeFormat()
+                + ", isSPB=" + innResponse.isSPB()
+                + ", requiresSpbOfficeApproval=" + needsSpbOfficeApproval);
+        if (needsSpbOfficeApproval) {
+            dto.setRequiresSpbOfficeApproval(true);
+            ContextHolder.setCommandData(chatId, dto);
+            ContextHolder.setNextCommand(chatId, innResponse.getCompanyName() == null
+                    ? new AskingCompanyNameCommand()
+                    : new AskingCompanyAddressCommand());
             return MessageToUser.builder()
-                    .text("Для компаний не из Санкт-Петербурга формат прохождения практики может быть только дистанционным")
+                    .text("")
                     .build();
         }
-        // Если компания не найдена, просим ввести название
+
         if (innResponse.getCompanyName() == null) {
-            dto.setInn(innResponse.getInn());
-            ContextHolder.setCommandData(chatId, dto); // сохранили инн
+            ContextHolder.setCommandData(chatId, dto);
             ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
             return MessageToUser.builder()
                     .text("")
                     .build();
         }
 
-        dto.setInn(innResponse.getInn()); //получили инн
-        // сохранение и отправка
-        dto.setCompanyName(innResponse.getCompanyName()); // сохранили название компании
-        ContextHolder.setCommandData(chatId, dto);
-
-        // Если ИНН корректен, проверяем договор с ИТМО OK
         if (!innResponse.isPresentInITMOAgreementFile()) {
             ContextHolder.setNextCommand(chatId, new AskingApproveNoContractCompanyCommand());
             return MessageToUser.builder()
@@ -59,7 +70,6 @@ public class InputInnValidationCommand implements UserCommand {
         ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
         return MessageToUser.builder()
                 .text("")
-                .keyboardMarkup(getConfirmationKeyboard())
                 .build();
     }
 

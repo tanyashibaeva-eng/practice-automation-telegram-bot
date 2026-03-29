@@ -8,18 +8,38 @@ import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 public class CompanyInfoSummaryCommand implements UserCommand {
+    @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
         ContextHolder.setNextCommand(chatId, new CompanyInfoConfirmationCommand());
+
+        var addressLine = (dto.getCompanyAddress() == null || dto.getCompanyAddress().isBlank())
+                ? ""
+                : "Адрес компании: %s.\n".formatted(dto.getCompanyAddress());
+        var confirmationLine = dto.isRequiresSpbOfficeApproval()
+                ? "Офис компании в Санкт-Петербурге будет отправлен администратору на подтверждение. Верно?"
+                : "Верно?";
+
         return MessageToUser.builder()
-                .text(("""
+                .text("""
                         Вы будете проходить практику в компании: %s, ИНН %d.
                         Формат прохождения: %s.
-                        Ваш руководитель практики: %s.\s
-                        Данные руководителя: должность: %s, номер телефона: %s, корпоративная почта %s. Верно?""")
-                        .formatted(dto.getCompanyName(), dto.getInn(), dto.getPracticeFormat().getDisplayName(), dto.getCompanyLeadFullName(), dto.getCompanyLeadJobTitle(), dto.getCompanyLeadPhone(), dto.getCompanyLeadEmail() ))
+                        %sВаш руководитель практики: %s.
+                        Данные руководителя: должность: %s, номер телефона: %s, корпоративная почта %s.
+                        %s
+                        """.formatted(
+                        dto.getCompanyName(),
+                        dto.getInn(),
+                        dto.getPracticeFormat().getDisplayName(),
+                        addressLine,
+                        dto.getCompanyLeadFullName(),
+                        dto.getCompanyLeadJobTitle(),
+                        dto.getCompanyLeadPhone(),
+                        dto.getCompanyLeadEmail(),
+                        confirmationLine
+                ).trim())
                 .keyboardMarkup(getInlineKeyboard())
                 .build();
     }

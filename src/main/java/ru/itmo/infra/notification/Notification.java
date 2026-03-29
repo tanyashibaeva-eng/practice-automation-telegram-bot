@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 
 @Getter
 @Builder
@@ -13,6 +14,7 @@ public class Notification {
 
     private long chatId;
     private String text;
+    private ReplyKeyboard keyboardMarkup;
     @Setter
     private int retryCount;
 

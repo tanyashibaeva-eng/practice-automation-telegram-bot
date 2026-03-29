@@ -73,8 +73,6 @@ public class StudentService {
         return Optional.empty();
     }
 
-    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о компании (статус соответствует),
-       ИНН валиден и соотносится с форматом прохождения практики, все остальные поля валидны */
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args) throws InternalException, BadRequestException {
         Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(args.getChatId());
         if (eduStreamNameOpt.isEmpty())
@@ -82,8 +80,13 @@ public class StudentService {
         return StudentRepository.updateCompanyInfo(args, eduStreamNameOpt.get());
     }
 
-    /* Здесь мы считаем, что студент существует, имеет право на обновление данных о практике в ИТМО (статус соответствует),
-       название подразделения и ФИО руководителя валидны */
+    public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args, String eduStreamName) throws InternalException, BadRequestException {
+        if (eduStreamName == null || eduStreamName.isBlank()) {
+            throw new BadRequestException("Не указано имя потока");
+        }
+        return StudentRepository.updateCompanyInfo(args, eduStreamName);
+    }
+
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException, BadRequestException {
         Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(args.getChatId());
         if (eduStreamNameOpt.isEmpty())
@@ -240,47 +243,51 @@ public class StudentService {
     }
 
     public static InnValidationResult validateInn(String inn) throws InternalException {
+        var resBuilder = InnValidationResult.builder();
+
+        // парсим инн
+        long innLong;
         try {
-            var resBuilder = InnValidationResult.builder();
+            innLong = TextUtils.parseDoubleStrToLong(inn);
+            resBuilder.inn(innLong);
+        } catch (BadRequestException e) {
+            return InnValidationResult.builder().errorText("ИНН должен быть числом").build();
+        }
 
-            // парсим инн
-            long innLong;
-            try {
-                innLong = TextUtils.parseDoubleStrToLong(inn);
-                resBuilder.inn(innLong);
-            } catch (BadRequestException e) {
-                return InnValidationResult.builder().errorText("ИНН должен быть числом").build();
-            }
-
-            // валидируем инн
-            if (inn.length() != 10) {
-                resBuilder.errorText("ИНН должен состоять из 10 цифр");
-                return resBuilder.build();
-            }
-
-            // если включена опция проверки ИНН на налог.ру – пытаемся найти и проставить компанию
-            if (PropertiesProvider.getInnCheck()) {
-                var companyName = NalogRuClient.getCompanyNameByInn(inn);
-                resBuilder.companyName(companyName);
-            }
-
-            // если компания не найдена/опция отключена – просим заполнить компанию
-            if (resBuilder.build().getCompanyName() == null) {
-                resBuilder.userShouldProvideCompanyName(true);
-            }
-
-            // проставляем флаг для питерских компаний
-            resBuilder.isSPB(inn.trim().startsWith("78"));
-
-            // проверяем в списке компаний с договорами
-            resBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
-
+        // валидируем инн
+        if (inn.length() != 10) {
+            resBuilder.errorText("ИНН должен состоять из 10 цифр");
             return resBuilder.build();
-        } catch (JSONException e) {
-            return InnValidationResult.builder().errorText("Не удалось найти такую компанию, попробуйте другую").build();
+        }
+
+        // проставляем флаг для компаний, у которых подтвержден офис в Санкт-Петербурге
+        resBuilder.isSPB(ApprovedCompanyRegistryService.hasOfficeInSaintPetersburg(innLong));
+
+        // проверяем в списке компаний с договорами
+        try {
+            resBuilder.isPresentInITMOAgreementFile(GoogleSheetsExporter.checkInnInCsv(innLong));
         } catch (IOException e) {
             throw new InternalException("Произошла техническая ошибка: " + e.getMessage());
         }
+
+        // если включена опция проверки ИНН на налог.ру – пытаемся найти и проставить компанию
+        if (PropertiesProvider.getInnCheck()) {
+            try {
+                var companyName = NalogRuClient.getCompanyNameByInn(inn);
+                resBuilder.companyName(companyName);
+            } catch (JSONException e) {
+                log.info("Company name was not resolved by INN " + inn + ", continuing with manual input");
+            } catch (IOException e) {
+                log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
+            }
+        }
+
+        // если компания не найдена/опция отключена – просим заполнить компанию
+        if (resBuilder.build().getCompanyName() == null) {
+            resBuilder.userShouldProvideCompanyName(true);
+        }
+
+        return resBuilder.build();
     }
 
     public static PracticeFormatValidationResult validatePracticeFormat(InnValidationResult innValidationResult, PracticeFormat practiceFormat) {
