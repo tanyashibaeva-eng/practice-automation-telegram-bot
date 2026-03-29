@@ -4,6 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.telegram.telegrambots.meta.api.objects.Document;
+import org.telegram.telegrambots.meta.api.objects.MessageEntity;
+
+import java.util.List;
 
 @AllArgsConstructor
 @Data
@@ -13,6 +16,10 @@ public class MessageDTO {
     private String username;
     private String text;
     private Document document;
+    /**
+     * Разметка входящего текста (Bot API: UTF-16 offsets). Для callback не заполняется.
+     */
+    private List<MessageEntity> entities;
 
     public boolean hasDocument() {
         return document != null;

@@ -6,8 +6,10 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.StudentStatus;
+import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.storage.GuideRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +80,16 @@ public class HelpCommand implements UserCommand {
                 helpMessages.add("- " + cmd.getName() + ": " + cmd.getDescription());
             }
         });
+
+        helpMessages.add("");
+        helpMessages.add("Разделы мануала:");
+        try {
+            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+                helpMessages.add("- " + section.getCommand() + ": " + section.getTitle());
+            }
+        } catch (InternalException ignored) {
+            // список разделов недоступен — пропускаем блок
+        }
 
         return String.join("\n", helpMessages);
     }

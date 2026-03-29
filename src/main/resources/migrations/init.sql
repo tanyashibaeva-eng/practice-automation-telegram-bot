@@ -83,3 +83,259 @@ CREATE TABLE IF NOT EXISTS student (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_isu_edu_stream_name_student ON student (isu, edu_stream_name) WHERE chat_id IS NULL;
+
+CREATE TABLE IF NOT EXISTS guide_section (
+    id                   serial PRIMARY KEY,
+    slug                 text                NOT NULL UNIQUE CHECK (slug <> ''),
+    title                text                NOT NULL CHECK (title <> ''),
+    menu_order           int                 NOT NULL UNIQUE,
+    command              text                NOT NULL UNIQUE CHECK (command <> ''),
+    is_active            boolean             NOT NULL DEFAULT TRUE
+);
+
+CREATE TABLE IF NOT EXISTS guide_subsection (
+    id                       serial PRIMARY KEY,
+    section_id               int             NOT NULL REFERENCES guide_section(id) ON DELETE CASCADE,
+    title                    text            NOT NULL CHECK (title <> ''),
+    body                     text            NOT NULL DEFAULT '',
+    prev_subsection_id       int             REFERENCES guide_subsection(id) ON DELETE SET NULL,
+    next_subsection_id       int             REFERENCES guide_subsection(id) ON DELETE SET NULL,
+    item_order               int             NOT NULL,
+    updated_at               timestamp       NOT NULL DEFAULT now(),
+    UNIQUE (section_id, item_order)
+);
+
+CREATE INDEX IF NOT EXISTS idx_guide_subsection_section ON guide_subsection (section_id);
+
+INSERT INTO guide_section (slug, title, menu_order, command, is_active) VALUES
+('practice_options', 'Способы прохождения практики', 1, '/practice_options', true),
+('practice_stages', 'Этапы прохождения практики', 2, '/practice_stages', true),
+('place_selection', 'Выбор места прохождения практики', 3, '/place_selection', true),
+('application_process', 'Процесс работы с заявкой', 4, '/application_process', true),
+('general_info', 'Общее', 5, '/general_info', true)
+ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    menu_order = EXCLUDED.menu_order,
+    command = EXCLUDED.command,
+    is_active = EXCLUDED.is_active;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Содержание', $toc_po$
+Данный раздел мануала описывает, какие способы доступны студентам для прохождения производственной практики.
+
+Всего есть 4 возможных варианта:
+
+• Практика у Маркиной Т.А.
+
+• Практика в ИТМО
+
+• В компании, подобранной самостоятельно
+
+• В компании, предложенной куратором
+
+Переходите по кнопкам ниже для изучения каждого из них по отдельности.
+$toc_po$, 1
+FROM guide_section s WHERE s.slug = 'practice_options'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Практика у Маркиной Т.А.', $po_m$
+В данном случае практика проходит под руководством Маркиной Т.А. в подразделении ИТМО.
+
+В рамках данного способа прохождения практики вам будет предложено в команде, состоящей из таких же практикантов, или индивидуально, выполнить задачу, поставленную заказчиком в лице Маркиной Т.А.
+
+Для согласования данного способа прохождения практики требуется:
+
+* Договориться с Маркиной Т.А.
+* Выбрать соответствующий вариант в боте
+$po_m$, 2
+FROM guide_section s WHERE s.slug = 'practice_options'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Практика В ИТМО', $po_itmo$
+Практику в ИТМО возможно пройти в нескольких случаях:
+
+* в лаборатории
+* по месту работы в ИТМО
+* на факультете – без привязки к лаборатории и без трудоустройства
+
+Для согласования прохождения практики в лаборатории ИТМО требуется:
+
+* Договориться с руководителем лаборатории
+* Выбрать соответствующий вариант в боте, заполнить данные
+
+Для согласования данного прохождения практики по месту работы в ИТМО требуется:
+
+* Договориться с руководителем лаборатории
+* Согласовать место практики с Маркиной Т.А.
+* Подписать уведомление у Маркиной Т.А.
+* Выбрать соответствующий вариант в боте, заполнить данные
+
+Чтобы выполнить второй пункт (согласовать работу в ИТМО как способ прохождения практики) – требуется отправить письмо следующего содержания:
+
+* ФИО студента
+* Табельный номер студента
+* Группу студента
+* Подразделение в ИТМО
+* ФИО руководителя практики
+* Табельный номер руководителя практики
+* Ссылку на руководителя в ИСУ
+* Электронную почту руководителя практики в домене @itmo.ru
+* Мобильный (не городской) номер телефона руководителя
+
+Пример письма:
+
+Я, Иванов Иван Иванович (345678), студент группы P3XXX, работаю в отделе разработки ИТМО и хочу проходить практику по месту своей работы.
+
+Мой руководитель практики: Павлов Павел Павлович (123456), +7(999)999-99-99, pppavlov@itmo.ru. Ссылка на руководителя в ИСУ: https://isu.ifmo.ru/person/123456
+$po_itmo$, 3
+FROM guide_section s WHERE s.slug = 'practice_options'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'В сторонней компании', $po_ext$
+В данном случае практика проходит в сторонней компании – из списка предложенных куратором практики, либо согласованной студентом самостоятельно.
+
+Если компанию подобрал сам студент, то для согласования данного способа прохождения практики требуется:
+
+* Согласовать место практики с Маркиной Т.А.
+* Подписать заявку в компании
+* Выбрать соответствующий вариант в боте, заполнить данные
+* Загрузить скан заявки в боте
+* Подписать уведомление у Маркиной Т.А.
+
+Для выполнения первого пункта (согласования компании как места прохождения практики), вам необходимо направить на почту markina_t@itmo.ru следующее письмо:
+
+**Тема:**
+
+Согласование места практики 4 курс, ОП <Название обр. программы>
+
+**Содержание:**
+
+1. ИНН
+2. Полное наименование компании
+3. Контакты руководителя практики от компании:
+- ФИО полностью
+- Корпоративный email (в домене компании)
+- Российский мобильный телефон (начинается с +7 или 8)
+
+Остальные шаги согласования описаны в следующих разделах данного мануала.
+
+Если компанию предложил куратор практики, то порядок согласования может отличаться. Например, заявку может составлять преподаватель, и в таком случае, требуется:
+
+* Договориться с преподавателем, убедиться, что он включил вас в заявку
+* Подписать уведомление у Маркиной Т.А.
+* Выбрать соответствующий вариант в боте, заполнить данные
+$po_ext$, 4
+FROM guide_section s WHERE s.slug = 'practice_options'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Согласование способа прохождения производственной практики', $st_agree$
+Порядок согласования зависит от места прохождения практики и описан в разделе мануала «Способы прохождения практики».
+
+/practice_options
+$st_agree$, 1
+FROM guide_section s WHERE s.slug = 'practice_stages'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Подписание заявки о прохождении практики', $st_app$
+Процесс описан в разделе мануала «Работа с заявкой на практику».
+
+/application_process
+$st_app$, 2
+FROM guide_section s WHERE s.slug = 'practice_stages'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Формирование и утверждение индивидуального задания (ИЗ)', $st_iz$
+Перед прохождением производственной практики вам необходимо будет заполнить на странице практики в my.itmo.ru индивидуальное задание.
+
+**В ИЗ есть 2 обязательных для всех этапа:**
+
+Первый этап: *Инструктаж обучающегося*
+
+Инструктаж обучающегося по ознакомлению с требованиями охраны труда, техники безопасности, пожарной безопасности, а также правилами внутреннего трудового распорядка
+
+Последний этап: *Оформление отчётных документов и получение отзыва руководителя*
+
+1. Должно быть подробное описание выполнения задач по этапам. Результаты задания необходимо разместить в приложения. 2. Оформление отчёта должно быть выполнено в соответствии с методическим пособием (https://books.ifmo.ru/file/pdf/2622.pdf) 3. Структура документа: титульный лист, введение, основная часть, заключение, приложения. 4. В основной части подробно описывается выполнение задач ***X-Y*** этапов, в приложении помещаются результаты данных этапов. 5. Отчёт необходимо подгрузить в модуле практика как "письменный отчёт"
+
+**Общие требования:**
+
+При создании всех этапов ИЗ, **кроме инструктажа,** должны указывать конкретные даты начала и конца каждого этапа. Индивидуальные задания, в которых нет дат, а есть только длительности – не принимаются.
+
+Описание задач должно содержать следующую информацию:
+
+* Что должно быть сделано
+* Требования к решению
+* Критерии приёмки
+* Как успешное выполнение задачи будет отражено в отчёте
+$st_iz$, 3
+FROM guide_section s WHERE s.slug = 'practice_stages'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Выбор места прохождения практики', $pl_main$
+
+Для того, чтобы выбрать место прохождения практики в боте, необходимо нажать на пункт меню "Выбор места практики" или воспользоваться командой /choose_place.
+
+Это доступно только в том случае, если студент выбирает место впервые, или же куратор практики вернул данные о компании на доработку.
+
+На выбор доступно 3 варианта:
+
+* Практика у Маркиной Т.А.
+* Практика в ИТМО
+* В сторонней компании
+
+В зависимости от варианта, потребуется ввести разную информацию.
+
+**Практика в ИТМО**
+
+Бот запросит следующую информацию:
+
+1. ФИО руководителя практики
+2. Подразделение ИТМО, в котором будет проходить практика
+
+**В сторонней компании**
+
+Бот запросит следующую информацию:
+
+1. Формат практики: "Очная" / "Гибридная" / "Дистанционная"
+2. ИНН компании
+3. ФИО руководителя практики
+4. Должность руководителя практики
+5. Номер телефона руководителя практики от компании
+6. Корпоративная почта руководителя практики от компании
+
+**Практика у Маркиной Т.А:**
+
+Не требуется вводить дополнительную информацию
+$pl_main$, 1
+FROM guide_section s WHERE s.slug = 'place_selection'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Контакты руководителя практики', $gi_contacts$
+
+Маркина Татьяна Анатольевна
+
+Telegram: https://t.me/TatianaMark
+
+Почта: markina_t@itmo.ru
+$gi_contacts$, 1
+FROM guide_section s WHERE s.slug = 'general_info'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+UPDATE guide_subsection u SET
+    prev_subsection_id = o.prev_id,
+    next_subsection_id = o.next_id
+FROM (
+    SELECT id,
+           lag(id) OVER (PARTITION BY section_id ORDER BY item_order) AS prev_id,
+           lead(id) OVER (PARTITION BY section_id ORDER BY item_order) AS next_id
+    FROM guide_subsection
+) o
+WHERE u.id = o.id;

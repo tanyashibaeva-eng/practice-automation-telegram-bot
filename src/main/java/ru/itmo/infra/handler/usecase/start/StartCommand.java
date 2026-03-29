@@ -18,9 +18,12 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
+import ru.itmo.infra.storage.GuideRepository;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
+import ru.itmo.infra.handler.usecase.user.manual.ManualEditStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 
@@ -137,6 +140,26 @@ public class StartCommand implements UserCommand {
                         .build()
         ));
 
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("📖 Открыть мануал")
+                        .callbackData(CallbackData.builder()
+                                .command(GuideMenuCommand.COMMAND_NAME)
+                                .build()
+                                .toString())
+                        .build()
+        ));
+
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("✏️ Редактировать мануал")
+                        .callbackData(CallbackData.builder()
+                                .command(ManualEditStartCommand.COMMAND_NAME)
+                                .build()
+                                .toString())
+                        .build()
+        ));
+
         var helpCallbackData = CallbackData.builder()
                 .command("/help")
                 .build();
@@ -151,7 +174,7 @@ public class StartCommand implements UserCommand {
     }
 
     private static ReplyKeyboard getMarkupKeyboardForStart() {
-        return InlineKeyboardMarkup.builder()
+        var markupBuilder = InlineKeyboardMarkup.builder()
                 .keyboardRow(
                         new InlineKeyboardRow(
                                 InlineKeyboardButton.builder()
@@ -162,7 +185,9 @@ public class StartCommand implements UserCommand {
                                                         .build()
                                                         .toString()
                                         ).build()
-                        )).build();
+                        ));
+        appendGuideSectionRows(markupBuilder);
+        return markupBuilder.build();
     }
 
     private static ReplyKeyboard getUserKeyboard(StudentStatus status) {
@@ -183,6 +208,8 @@ public class StartCommand implements UserCommand {
                         .build()
         ));
 
+        appendGuideSectionRows(markupBuilder);
+
         // Добавляем остальные команды
         Handler.getAvailableStudentCommands(status).forEach(cmd -> {
             if (cmd instanceof UserCommand userCmd && !cmd.getName().equals(new StatusCommand().getName())) {
@@ -200,4 +227,32 @@ public class StartCommand implements UserCommand {
         });
 
         return markupBuilder.build();
-    }}
+    }
+
+    private static void appendGuideSectionRows(InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder) {
+        try {
+            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+                markupBuilder.keyboardRow(new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text(trimForTelegramButton(section.getTitle()))
+                                .callbackData(CallbackData.builder()
+                                        .command(section.getCommand())
+                                        .build()
+                                        .toString())
+                                .build()
+                ));
+            }
+        } catch (InternalException ignored) {
+        }
+    }
+
+    private static String trimForTelegramButton(String text) {
+        if (text == null) {
+            return "";
+        }
+        if (text.length() <= 64) {
+            return text;
+        }
+        return text.substring(0, 61) + "...";
+    }
+}

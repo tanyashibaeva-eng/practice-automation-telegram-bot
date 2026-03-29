@@ -37,7 +37,7 @@ public interface Command {
         return "";
     }
 
-    default ReplyKeyboard getReturnToStartMarkup() {
+    static ReplyKeyboard returnToStartInlineMarkup() {
         return InlineKeyboardMarkup.builder()
                 .keyboardRow(
                         new InlineKeyboardRow(
@@ -50,6 +50,10 @@ public interface Command {
                                                         .toString()
                                         ).build()
                         )).build();
+    }
+
+    default ReplyKeyboard getReturnToStartMarkup() {
+        return returnToStartInlineMarkup();
     }
 
     default ReplyKeyboard getInlineKeyboard() {
