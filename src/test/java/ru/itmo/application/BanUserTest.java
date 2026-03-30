@@ -64,6 +64,7 @@ public class BanUserTest {
                 null,
                 null,
                 null,
+                null,
                 false
         );
 

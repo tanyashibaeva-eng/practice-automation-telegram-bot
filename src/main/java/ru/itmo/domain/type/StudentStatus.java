@@ -18,7 +18,8 @@ public enum StudentStatus {
     /* 7  */ APPLICATION_WAITING_APPROVAL("APPLICATION_WAITING_APPROVAL"),
     /* 8  */ APPLICATION_RETURNED("APPLICATION_RETURNED"),
     /* 9  */ APPLICATION_WAITING_SIGNING("APPLICATION_WAITING_SIGNING"),
-    /* 10 */ APPLICATION_SIGNED("APPLICATION_SIGNED");
+    /* 10 */ APPLICATION_PHOTO_UPLOADED("APPLICATION_PHOTO_UPLOADED"),
+    /* 11 */ APPLICATION_SIGNED("APPLICATION_SIGNED");
 
     private final String name;
 
@@ -55,6 +56,7 @@ public enum StudentStatus {
             case APPLICATION_WAITING_APPROVAL -> "Заявка на проверке";
             case APPLICATION_RETURNED -> "Заявка возвращена на доработку";
             case APPLICATION_WAITING_SIGNING -> "Заявка согласована и ожидает подписания";
+            case APPLICATION_PHOTO_UPLOADED -> "Фото подписанной заявки загружено";
             case APPLICATION_SIGNED -> "Заявка подписана";
         };
     }
@@ -71,6 +73,7 @@ public enum StudentStatus {
             case APPLICATION_WAITING_APPROVAL -> 46;
             case APPLICATION_RETURNED -> 51;
             case APPLICATION_WAITING_SIGNING -> 44;
+            case APPLICATION_PHOTO_UPLOADED -> 49;
             case APPLICATION_SIGNED -> 41;
         };
     }

@@ -83,3 +83,12 @@ CREATE TABLE IF NOT EXISTS student (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_isu_edu_stream_name_student ON student (isu, edu_stream_name) WHERE chat_id IS NULL;
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'APPLICATION_PHOTO_UPLOADED'
+                   AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'st_status')) THEN
+        ALTER TYPE st_status ADD VALUE 'APPLICATION_PHOTO_UPLOADED' AFTER 'APPLICATION_WAITING_SIGNING';
+    END IF;
+END $$;
+
+ALTER TABLE student ADD COLUMN IF NOT EXISTS signed_photo_path text DEFAULT NULL;

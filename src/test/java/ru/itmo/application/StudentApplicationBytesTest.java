@@ -64,6 +64,7 @@ public class StudentApplicationBytesTest {
                 null,
                 null,
                 new byte[]{123, 98, 123, 0, 22},
+                null,
                 false
         );
 

@@ -79,6 +79,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithPreviousRegistrationPrevious = new Student(
@@ -100,6 +101,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
@@ -127,6 +129,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithRegisteredStatusPrevious = new Student(
@@ -148,6 +151,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
@@ -175,6 +179,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithApplicationReturnedStatus = new Student(
@@ -199,6 +204,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithApplicationWaitingSigningStatus = new Student(
@@ -220,6 +226,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
