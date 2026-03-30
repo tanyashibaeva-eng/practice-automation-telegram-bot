@@ -12,12 +12,12 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
-import ru.itmo.infra.client.NalogRuClient;
 import ru.itmo.infra.docx.DocxGenerator;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.GoogleSheetsExporter;
 import ru.itmo.infra.excel.Parser;
 import ru.itmo.infra.html.ParserIsuXls;
+import ru.itmo.infra.storage.CachedInnRepository;
 import ru.itmo.infra.storage.EduStreamRepository;
 import ru.itmo.infra.storage.Filter;
 import ru.itmo.infra.storage.StudentRepository;
@@ -273,10 +273,16 @@ public class StudentService {
         // если включена опция проверки ИНН на налог.ру – пытаемся найти и проставить компанию
         if (PropertiesProvider.getInnCheck()) {
             try {
-                var companyName = NalogRuClient.getCompanyNameByInn(inn);
-                resBuilder.companyName(companyName);
-            } catch (JSONException e) {
-                log.info("Company name was not resolved by INN " + inn + ", continuing with manual input");
+                String[] companyInfo = CachedInnRepository.getOrFetchCompanyInfo(inn);
+                String companyName = companyInfo[0];
+                String regionName = companyInfo[1];
+
+                if (companyName == null) {
+                    log.info("Company name was not resolved by INN " + inn + ", continuing with manual input");
+                } else {
+                    resBuilder.companyName(companyName);
+                    resBuilder.isSPB(regionName.equals("Г.Санкт-Петербург") || resBuilder.build().isSPB());
+                }
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
             }
