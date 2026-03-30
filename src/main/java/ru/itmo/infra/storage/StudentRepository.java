@@ -310,6 +310,7 @@ public class StudentRepository {
                         cell_hex_color = ?,
                         managed_manually = ?,
                         application_bytes = ?,
+                        signed_photo_path = ?,
                         updated_at = now()
                     WHERE (chat_id = ? OR (chat_id IS NULL AND ? IS NULL)) AND isu = ? AND edu_stream_name = ?;
                 """
@@ -338,23 +339,39 @@ public class StudentRepository {
                 statement.setString(15, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
                 statement.setBoolean(16, student.isManagedManually());
                 statement.setBytes(17, student.getApplicationBytes());
+                statement.setString(18, student.getSignedPhotoPath());
 
                 if (student.getTelegramUser() != null) {
-                    statement.setLong(18, student.getTelegramUser().getChatId());
-                    statement.setLong(19, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
+                    statement.setLong(19, student.getTelegramUser().getChatId());
+                    statement.setLong(20, student.getTelegramUser().getChatId()); // второй параметр для проверки на
+                    // NULL
                 } else {
-                    statement.setNull(18, Types.BIGINT);
-                    statement.setNull(19, Types.BIGINT); // второй параметр для проверки на NULL
+                    statement.setNull(19, Types.BIGINT);
+                    statement.setNull(20, Types.BIGINT); // второй параметр для проверки на NULL
                 }
 
-                statement.setInt(20, student.getIsu());
-                statement.setString(21, student.getEduStream().getName());
+                statement.setInt(21, student.getIsu());
+                statement.setString(22, student.getEduStream().getName());
 
                 updated.add(statement.executeUpdate());
             }
 
             return updated.stream().mapToInt(i -> i).toArray();
 
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean updateSignedPhotoPath(long chatId, String eduStreamName, String photoPath) throws InternalException {
+        try (var statement = connection.prepareStatement(
+                "UPDATE student SET signed_photo_path = ?, status = ?, updated_at = now() WHERE chat_id = ? AND edu_stream_name = ?;"
+        )) {
+            statement.setString(1, photoPath);
+            statement.setObject(2, StudentStatus.APPLICATION_PHOTO_UPLOADED, Types.OTHER);
+            statement.setLong(3, chatId);
+            statement.setString(4, eduStreamName);
+            return 1 == statement.executeUpdate();
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
         }
@@ -432,6 +449,7 @@ public class StudentRepository {
                     rs.getTimestamp("exported_at"),
                     rs.getTimestamp("updated_at"),
                     rs.getBytes("application_bytes"),
+                    rs.getString("signed_photo_path"),
                     false
             );
         }

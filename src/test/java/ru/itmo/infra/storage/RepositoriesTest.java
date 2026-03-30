@@ -77,6 +77,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             ),
             new Student(
@@ -101,6 +102,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     new byte[]{123, 98, 123, 0, 22},
+                    null,
                     false
             ),
             new Student(
@@ -125,6 +127,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     new byte[]{0x14},
+                    null,
                     false
             )
     );

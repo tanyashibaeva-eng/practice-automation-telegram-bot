@@ -75,6 +75,7 @@ public class UserRegistrationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentAStreamB = new Student(
@@ -96,6 +97,7 @@ public class UserRegistrationTest {
                     null,
                     null,
                     false,
+                    null,
                     null,
                     null,
                     null,
