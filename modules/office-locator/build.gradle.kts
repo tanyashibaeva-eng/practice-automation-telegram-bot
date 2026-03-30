@@ -5,10 +5,9 @@ plugins {
 group = "se.ifmo.ru"
 version = "1.0-SNAPSHOT"
 
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(19)
-    }
+tasks.withType<JavaCompile>().configureEach {
+    options.release = 19
+    options.encoding = "UTF-8"
 }
 
 repositories {

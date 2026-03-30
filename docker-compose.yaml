@@ -12,13 +12,19 @@ services:
       - 5432
     networks:
       - practice-bot-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d practice_bot" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   app:
     build:
       context: .
       dockerfile: ./Dockerfile
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       BOT_TOKEN: $BOT_TOKEN
       PG_DSN: $PG_DSN
