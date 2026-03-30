@@ -5,6 +5,12 @@ plugins {
 group = "se.ifmo.ru"
 version = "1.0-SNAPSHOT"
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(19)
+    }
+}
+
 repositories {
     mavenCentral()
 }

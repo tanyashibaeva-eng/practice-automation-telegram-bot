@@ -21,7 +21,9 @@ public class FillEduStreamCommand implements AdminCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var streamName = getEduStreamNameOrThrow(message);
+            var streamName = message.hasText() && message.getText().trim().equals(getName())
+                    ? ContextHolder.getEduStreamName(message.getChatId())
+                    : getEduStreamNameOrThrow(message);
             EduStream stream = new EduStream(streamName);
 
             if (EduStreamService.findEduStreamByName(stream).isEmpty()) {
