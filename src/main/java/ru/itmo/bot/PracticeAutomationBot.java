@@ -85,12 +85,20 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             String username = (update.getMessage() == null) ? null : update.getMessage().getChat().getUserName();
             Message message = update.getMessage();
             chatId = message.getChatId();
+
+            String photoFileId = null;
+            if (message.hasPhoto() && !message.getPhoto().isEmpty()) {
+                var photos = message.getPhoto();
+                photoFileId = photos.get(photos.size() - 1).getFileId();
+            }
+
             MessageDTO messageDTO = MessageDTO.builder()
                     .chatId(chatId)
                     .username(username)
                     .text(message.getText())
                     .document(message.getDocument())
                     .entities(message.hasText() ? message.getEntities() : null)
+                    .photoFileId(photoFileId)
                     .build();
             response = Interceptor.processMessage(messageDTO);
         }

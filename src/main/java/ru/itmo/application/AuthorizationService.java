@@ -81,4 +81,8 @@ public class AuthorizationService {
         }
         return false;
     }
+
+    public static boolean canStudentUploadSignedPhoto(long chatId) throws InternalException {
+        return canStudentDoActionByStatus(chatId, Set.of(StudentStatus.APPLICATION_WAITING_SIGNING));
+    }
 }
