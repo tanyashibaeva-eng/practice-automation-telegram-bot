@@ -34,7 +34,9 @@ public class Student {
     private TelegramUser telegramUser;
     private EduStream eduStream;
     private int isu;
+    @Setter
     private String stGroup;
+    @Setter
     private String fullName;
     private StudentStatus status;
     private String comments;

@@ -11,10 +11,7 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.util.*;
 
 @Log
@@ -444,5 +441,22 @@ public class StudentRepository {
     private static InternalException handleAndWrapSQLException(SQLException ex) {
         log.severe("Ошибка во время выполнения SQL запроса: " + ex.getMessage());
         return new InternalException("Что-то пошло не так", ex.getCause());
+    }
+
+    public static void updateByIsuAndEduStream(List<Student> students) throws InternalException {
+        String sql = "UPDATE student SET fullname = ?, st_group = ?, updated_at = now() WHERE isu = ? AND edu_stream_name = ?";
+        try (Connection conn = DatabaseManager.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            for (Student s : students) {
+                ps.setString(1, s.getFullName());
+                ps.setString(2, s.getStGroup());
+                ps.setInt(3, s.getIsu());
+                ps.setString(4, s.getEduStream().getName());
+                ps.addBatch();
+            }
+            ps.executeBatch();
+        } catch (SQLException e) {
+            throw handleAndWrapSQLException(e);
+        }
     }
 }

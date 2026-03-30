@@ -54,6 +54,7 @@ import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
+import ru.itmo.infra.handler.usecase.admin.updategroup.UpdateGroupStudentsCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
@@ -235,6 +236,7 @@ public class Handler {
         commands.add(new UploadExcelCommand());
         commands.add(new UploadExcelHandleCommand());
         commands.add(new GetStudentInfoCommand());
+        commands.add(new UpdateGroupStudentsCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -562,7 +564,8 @@ public class Handler {
                 new ListAdminsCommand(),
                 new UnbanCommand(),
                 new UploadExcelCommand(),
-                new GetStudentInfoCommand()
+                new GetStudentInfoCommand(),
+                new UpdateGroupStudentsCommand()
         );
     }
 
