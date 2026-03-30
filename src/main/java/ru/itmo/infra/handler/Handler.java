@@ -245,7 +245,11 @@ public class Handler {
     }
 
     public static MessageToUser handleMessage(MessageDTO message) throws Exception {
+        var nextFunc = getNextCommandFunction(message.getChatId());
         if (!message.hasText()) {
+            if (nextFunc != null) {
+                return executeCommand(nextFunc, message);
+            }
             return MessageToUser.builder().text("").build();
         }
 
@@ -255,7 +259,6 @@ public class Handler {
             return executeCommand(commandsMap.get(commandName), message);
         }
 
-        var nextFunc = getNextCommandFunction(message.getChatId());
         if (nextFunc != null) {
             return executeCommand(nextFunc, message);
         }
