@@ -375,3 +375,10 @@ ALTER TABLE company_approval_request
 CREATE UNIQUE INDEX IF NOT EXISTS idx_company_approval_request_pending
     ON company_approval_request (student_chat_id, edu_stream_name)
     WHERE status = 'PENDING';
+
+CREATE TABLE IF NOT EXISTS cached_inn (
+    company_inn             varchar(10)         PRIMARY KEY,
+    name                    text                NOT NULL,
+    region                  text                NOT NULL,
+    cached_at               timestamp           NOT NULL DEFAULT now()
+);
