@@ -81,6 +81,40 @@ public class StudentService {
         return StudentRepository.updateCompanyInfo(args, eduStreamName);
     }
 
+    public static void changePracticeFormatForCurrentStream(long chatId, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
+            throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(chatId);
+        if (eduStreamNameOpt.isEmpty()) {
+            throw new BadRequestException("Студент не находится ни в одном активном потоке");
+        }
+        String eduStreamName = eduStreamNameOpt.get();
+        var prevStudentOpt = StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
+        String prevFormat = prevStudentOpt.map(s -> {
+            if (s.getPracticeFormatDisplayName() != null && !s.getPracticeFormatDisplayName().isBlank()) return s.getPracticeFormatDisplayName();
+            if (s.getPracticeFormat() != null) return s.getPracticeFormat().getDisplayName();
+            return "";
+        }).orElse("");
+
+        String newFormat = "";
+        if (practiceFormatId != null) {
+            var fmtOpt = PracticeFormatService.findById(practiceFormatId);
+            if (fmtOpt.isPresent()) newFormat = fmtOpt.get().getDisplayName();
+        }
+
+        boolean updated = StudentRepository.updatePracticeFormatAndResetApplication(chatId, eduStreamName, legacyPracticeFormat, practiceFormatId);
+        if (!updated) {
+            throw new InternalException("Не удалось обновить формат практики");
+        }
+
+        NotificationService.notifyAdmins("""
+                Пользователь изменил формат прохождения практики.
+                chatId: %d
+                Поток: %s
+                Было: %s
+                Стало: %s
+                """.formatted(chatId, eduStreamName, prevFormat.isBlank() ? "Не указано" : prevFormat, newFormat.isBlank() ? "Не указано" : newFormat));
+    }
+
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException, BadRequestException {
         Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(args.getChatId());
         if (eduStreamNameOpt.isEmpty())

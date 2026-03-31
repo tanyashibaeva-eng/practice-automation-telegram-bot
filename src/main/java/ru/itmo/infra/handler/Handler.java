@@ -49,6 +49,10 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCom
 import ru.itmo.infra.handler.usecase.admin.listadmins.ListAdminsCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.CreatePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.DeletePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.RenamePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.SetUserPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
@@ -237,6 +241,10 @@ public class Handler {
         commands.add(new UploadExcelHandleCommand());
         commands.add(new GetStudentInfoCommand());
         commands.add(new UpdateGroupStudentsCommand());
+        commands.add(new CreatePracticeFormatCommand());
+        commands.add(new RenamePracticeFormatCommand());
+        commands.add(new DeletePracticeFormatCommand());
+        commands.add(new SetUserPracticeFormatCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -565,7 +573,11 @@ public class Handler {
                 new UnbanCommand(),
                 new UploadExcelCommand(),
                 new GetStudentInfoCommand(),
-                new UpdateGroupStudentsCommand()
+                new UpdateGroupStudentsCommand(),
+                new CreatePracticeFormatCommand(),
+                new DeletePracticeFormatCommand(),
+                new RenamePracticeFormatCommand(),
+                new SetUserPracticeFormatCommand()
         );
     }
 

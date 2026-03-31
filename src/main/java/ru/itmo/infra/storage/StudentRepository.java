@@ -219,6 +219,7 @@ public class StudentRepository {
                         status = ?,
                         practice_place = ?,
                         practice_format = ?,
+                        practice_format_id = COALESCE(?, (SELECT id FROM practice_format WHERE lower(code) = lower(?) LIMIT 1)),
                         company_inn = ?,
                         company_name = ?,
                         company_lead_fullname = ?,
@@ -231,15 +232,23 @@ public class StudentRepository {
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
             statement.setObject(2, PracticePlace.OTHER_COMPANY, Types.OTHER);
+            
             statement.setObject(3, args.getPracticeFormat(), Types.OTHER);
-            statement.setLong(4, args.getInn());
-            statement.setString(5, args.getCompanyName());
-            statement.setString(6, args.getCompanyLeadFullName());
-            statement.setString(7, args.getCompanyLeadPhone());
-            statement.setString(8, args.getCompanyLeadEmail());
-            statement.setString(9, args.getCompanyLeadJobTitle());
-            statement.setLong(10, args.getChatId());
-            statement.setString(11, eduStreamName);
+            if (args.getPracticeFormatId() == null) {
+                statement.setNull(4, Types.BIGINT);
+            } else {
+                statement.setLong(4, args.getPracticeFormatId());
+            }
+            statement.setString(5, args.getPracticeFormat() == null ? null : args.getPracticeFormat().name());
+
+            statement.setLong(6, args.getInn());
+            statement.setString(7, args.getCompanyName());
+            statement.setString(8, args.getCompanyLeadFullName());
+            statement.setString(9, args.getCompanyLeadPhone());
+            statement.setString(10, args.getCompanyLeadEmail());
+            statement.setString(11, args.getCompanyLeadJobTitle());
+            statement.setLong(12, args.getChatId());
+            statement.setString(13, eduStreamName);
             return 1 == statement.executeUpdate();
 
         } catch (SQLException ex) {
@@ -273,10 +282,17 @@ public class StudentRepository {
 
     public static List<Student> exportAll(EduStream eduStream) throws InternalException {
         try (var statement = connection.prepareStatement("""
-                UPDATE student
-                SET exported_at = now()
-                WHERE edu_stream_name = ?
-                RETURNING *;
+                WITH updated AS (
+                    UPDATE student
+                    SET exported_at = now()
+                    WHERE edu_stream_name = ?
+                    RETURNING *
+                )
+                SELECT u.*,
+                    pf.code as pf_code,
+                    pf.display_name as pf_display_name
+                FROM updated u
+                LEFT JOIN practice_format pf ON u.practice_format_id = pf.id;
                 """
         )) {
             statement.setString(1, eduStream.getName());
@@ -301,6 +317,7 @@ public class StudentRepository {
                         call_status_comments = ?,
                         practice_place = ?,
                         practice_format = ?,
+                        practice_format_id = COALESCE(?, (SELECT id FROM practice_format WHERE lower(code) = lower(?) LIMIT 1)),
                         company_inn = ?,
                         company_name = ?,
                         company_lead_fullname = ?,
@@ -324,31 +341,38 @@ public class StudentRepository {
                 statement.setString(6, student.getCallStatusComments() == null ? "" : student.getCallStatusComments());
                 statement.setObject(7, student.getPracticePlace(), Types.OTHER);
                 statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
+                
+                if (student.getPracticeFormatId() == null) {
+                    statement.setNull(9, Types.BIGINT);
+                } else {
+                    statement.setLong(9, student.getPracticeFormatId());
+                }
+                statement.setString(10, student.getPracticeFormat() == null ? null : student.getPracticeFormat().name());
 
                 Long companyINN = student.getCompanyINN();
                 if (companyINN == null) {
-                    statement.setNull(9, Types.INTEGER);
-                } else statement.setLong(9, student.getCompanyINN());
+                    statement.setNull(11, Types.INTEGER);
+                } else statement.setLong(11, student.getCompanyINN());
 
-                statement.setString(10, student.getCompanyName());
-                statement.setString(11, student.getCompanyLeadFullName());
-                statement.setString(12, student.getCompanyLeadPhone());
-                statement.setString(13, student.getCompanyLeadEmail());
-                statement.setString(14, student.getCompanyLeadJobTitle());
-                statement.setString(15, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
-                statement.setBoolean(16, student.isManagedManually());
-                statement.setBytes(17, student.getApplicationBytes());
+                statement.setString(12, student.getCompanyName());
+                statement.setString(13, student.getCompanyLeadFullName());
+                statement.setString(14, student.getCompanyLeadPhone());
+                statement.setString(15, student.getCompanyLeadEmail());
+                statement.setString(16, student.getCompanyLeadJobTitle());
+                statement.setString(17, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
+                statement.setBoolean(18, student.isManagedManually());
+                statement.setBytes(19, student.getApplicationBytes());
 
                 if (student.getTelegramUser() != null) {
-                    statement.setLong(18, student.getTelegramUser().getChatId());
-                    statement.setLong(19, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
+                    statement.setLong(20, student.getTelegramUser().getChatId());
+                    statement.setLong(21, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
                 } else {
-                    statement.setNull(18, Types.BIGINT);
-                    statement.setNull(19, Types.BIGINT); // второй параметр для проверки на NULL
+                    statement.setNull(20, Types.BIGINT);
+                    statement.setNull(21, Types.BIGINT); // второй параметр для проверки на NULL
                 }
 
-                statement.setInt(20, student.getIsu());
-                statement.setString(21, student.getEduStream().getName());
+                statement.setInt(22, student.getIsu());
+                statement.setString(23, student.getEduStream().getName());
 
                 updated.add(statement.executeUpdate());
             }
@@ -370,6 +394,91 @@ public class StudentRepository {
             statement.setString(4, eduStreamName);
             return 1 == statement.executeUpdate();
 
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean updatePracticeFormatAndResetApplication(
+            long chatId,
+            String eduStreamName,
+            PracticeFormat legacyPracticeFormat,
+            Long practiceFormatId
+    ) throws InternalException {
+        try (var statement = connection.prepareStatement("""
+                UPDATE student
+                SET practice_format = ?,
+                    practice_format_id = COALESCE(?, (SELECT id FROM practice_format WHERE lower(code) = lower(?) LIMIT 1)),
+                    application_bytes = NULL,
+                    status = CASE
+                        WHEN status IN ('APPLICATION_WAITING_APPROVAL', 'APPLICATION_WAITING_SIGNING', 'APPLICATION_SIGNED')
+                            THEN 'APPLICATION_WAITING_SUBMISSION'::st_status
+                        WHEN status = 'APPLICATION_RETURNED'
+                            THEN 'APPLICATION_RETURNED'::st_status
+                        ELSE status
+                    END,
+                    updated_at = now()
+                WHERE chat_id = ? AND edu_stream_name = ?;
+                """)) {
+            statement.setObject(1, legacyPracticeFormat, Types.OTHER);
+            if (practiceFormatId == null) {
+                statement.setNull(2, Types.BIGINT);
+            } else {
+                statement.setLong(2, practiceFormatId);
+            }
+            statement.setString(3, legacyPracticeFormat == null ? null : legacyPracticeFormat.name());
+            statement.setLong(4, chatId);
+            statement.setString(5, eduStreamName);
+            return 1 == statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<Long> findChatIdsByPracticeFormatIdInActiveStreams(long practiceFormatId) throws InternalException {
+        try (var st = connection.prepareStatement("""
+                SELECT s.chat_id
+                FROM student s
+                JOIN edu_stream es ON es.name = s.edu_stream_name
+                WHERE es.date_to > now()::date
+                  AND s.chat_id IS NOT NULL
+                  AND s.practice_format_id = ?;
+                """)) {
+            st.setLong(1, practiceFormatId);
+            var rs = st.executeQuery();
+            List<Long> res = new ArrayList<>();
+            while (rs.next()) {
+                res.add(rs.getLong("chat_id"));
+            }
+            return res;
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static int resetApplicationsByPracticeFormatIdInActiveStreams(long practiceFormatId, boolean clearPracticeFormat) throws InternalException {
+        try (var st = connection.prepareStatement("""
+                UPDATE student s
+                SET application_bytes = NULL,
+                    status = CASE
+                        WHEN s.status IN ('APPLICATION_WAITING_APPROVAL', 'APPLICATION_WAITING_SIGNING', 'APPLICATION_SIGNED')
+                            THEN 'APPLICATION_WAITING_SUBMISSION'::st_status
+                        WHEN s.status = 'APPLICATION_RETURNED'
+                            THEN 'APPLICATION_RETURNED'::st_status
+                        ELSE s.status
+                    END,
+                    practice_format_id = CASE WHEN ? THEN NULL ELSE s.practice_format_id END,
+                    practice_format = CASE WHEN ? THEN 'NOT_SPECIFIED'::st_practice_format ELSE s.practice_format END,
+                    updated_at = now()
+                FROM edu_stream es
+                WHERE es.name = s.edu_stream_name
+                  AND es.date_to > now()::date
+                  AND s.practice_format_id = ?;
+                """)) {
+            st.setBoolean(1, clearPracticeFormat);
+            st.setBoolean(2, clearPracticeFormat);
+            st.setLong(3, practiceFormatId);
+            return st.executeUpdate();
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
         }
