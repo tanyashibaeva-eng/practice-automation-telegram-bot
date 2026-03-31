@@ -21,6 +21,7 @@ import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.admin.companyapproval.ListCompanyApprovalRequestsCommand;
 import ru.itmo.infra.handler.usecase.admin.gotostream.GotoStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.ListPracticeOptionsCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualEditStartCommand;
@@ -176,6 +177,16 @@ public class StartCommand implements UserCommand {
                 InlineKeyboardButton.builder()
                         .text("Заявки на компании")
                         .callbackData(requestsCallbackData.toString())
+                        .build()
+        ));
+
+        var practiceOptionsCallbackData = CallbackData.builder()
+                .command(new ListPracticeOptionsCommand().getName())
+                .build();
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("🏢 Редактирование мест практики")
+                        .callbackData(practiceOptionsCallbackData.toString())
                         .build()
         ));
 

@@ -49,6 +49,12 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCom
 import ru.itmo.infra.handler.usecase.admin.listadmins.ListAdminsCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.AddPracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.DeletePracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.ListPracticeOptionsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.RenamePracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.SetPracticeOptionFlagsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.TogglePracticeOptionCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
@@ -75,7 +81,6 @@ import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingLeadPho
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoConfirmationCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoSummaryCommand;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputApproveNoContractCompanyCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyAddressCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyNameCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCorporateEmailCommand;
@@ -239,6 +244,12 @@ public class Handler {
         commands.add(new InitEduStreamEndDateCommand());
         commands.add(new CreateAdminFromUserCommand());
         commands.add(new PingStudentsCommand());
+        commands.add(new ListPracticeOptionsCommand());
+        commands.add(new AddPracticeOptionCommand());
+        commands.add(new DeletePracticeOptionCommand());
+        commands.add(new TogglePracticeOptionCommand());
+        commands.add(new RenamePracticeOptionCommand());
+        commands.add(new SetPracticeOptionFlagsCommand());
         commands.add(new UnbanCommand());
         commands.add(new UnbanConfirmationCommand());
         commands.add(new UploadExcelCommand());
@@ -309,6 +320,11 @@ public class Handler {
         var rejectCommand = "/reject_company_request";
         if (commandName.startsWith(rejectCommand + "_")) {
             return rejectCommand;
+        }
+
+        var practiceOptionsCommand = "/practice_option_list";
+        if (commandName.startsWith(practiceOptionsCommand + "_")) {
+            return practiceOptionsCommand;
         }
 
         return commandName;
@@ -571,6 +587,12 @@ public class Handler {
                 new AddAdminCommand(),
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
+                new ListPracticeOptionsCommand(),
+                new AddPracticeOptionCommand(),
+                new DeletePracticeOptionCommand(),
+                new TogglePracticeOptionCommand(),
+                new RenamePracticeOptionCommand(),
+                new SetPracticeOptionFlagsCommand(),
                 new GetBannedCommand(),
                 new ListAdminsCommand(),
                 new UnbanCommand(),
