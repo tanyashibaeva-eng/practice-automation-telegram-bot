@@ -83,12 +83,55 @@ CREATE TABLE IF NOT EXISTS student (
     company_lead_phone      text                DEFAULT NULL,
     company_lead_email      text                DEFAULT NULL,
     company_lead_job_title  text                DEFAULT NULL,
+    practice_option_id      bigint              DEFAULT NULL,
     cell_hex_color          varchar(32)         NOT NULL DEFAULT 'FFFFFF',
     managed_manually        boolean             NOT NULL DEFAULT false,
     exported_at             timestamp           NOT NULL DEFAULT now(),
     updated_at              timestamp           NOT NULL DEFAULT now(),
     application_bytes       bytea               DEFAULT NULL
 );
+
+CREATE TABLE IF NOT EXISTS practice_option (
+    id                      bigserial           PRIMARY KEY,
+    title                   text                NOT NULL UNIQUE CHECK (title <> ''),
+    enabled                 boolean             NOT NULL DEFAULT TRUE,
+    requires_itmo_info      boolean             NOT NULL DEFAULT FALSE,
+    requires_company_info   boolean             NOT NULL DEFAULT TRUE
+);
+
+ALTER TABLE practice_option
+    ADD COLUMN IF NOT EXISTS requires_itmo_info boolean NOT NULL DEFAULT FALSE;
+ALTER TABLE practice_option
+    ADD COLUMN IF NOT EXISTS requires_company_info boolean NOT NULL DEFAULT TRUE;
+
+ALTER TABLE student
+    ADD COLUMN IF NOT EXISTS practice_option_id bigint DEFAULT NULL;
+
+DO $$ BEGIN
+    ALTER TABLE student
+        ADD CONSTRAINT fk_student_practice_option
+            FOREIGN KEY (practice_option_id) REFERENCES practice_option(id) ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+INSERT INTO practice_option (title, enabled, requires_itmo_info, requires_company_info) VALUES
+('Практика в лаборатории ИТМО', TRUE, TRUE, FALSE),
+('Практика в сторонней компании', TRUE, FALSE, TRUE),
+('Практика в ИТМО (работаю)', TRUE, TRUE, FALSE),
+('Практика на факультете', TRUE, TRUE, FALSE),
+('Практика по целевому обучению', TRUE, FALSE, TRUE)
+ON CONFLICT (title) DO NOTHING;
+
+UPDATE student s
+SET practice_option_id = po.id
+FROM practice_option po
+WHERE s.practice_option_id IS NULL
+  AND (
+    (s.practice_place = 'ITMO_UNIVERSITY' AND po.title = 'Практика в лаборатории ИТМО')
+    OR (s.practice_place = 'OTHER_COMPANY' AND po.title = 'Практика в сторонней компании')
+    OR (s.practice_place = 'ITMO_MARKINA' AND po.title = 'Практика в ИТМО (работаю)')
+  );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;
 

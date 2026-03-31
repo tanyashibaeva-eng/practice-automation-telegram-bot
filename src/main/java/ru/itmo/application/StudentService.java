@@ -1,10 +1,10 @@
 package ru.itmo.application;
 
 import lombok.extern.java.Log;
-import org.json.JSONException;
 import ru.itmo.domain.dto.*;
 import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
+import ru.itmo.domain.model.PracticeOption;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.exception.BadRequestException;
@@ -86,6 +86,14 @@ public class StudentService {
         if (eduStreamNameOpt.isEmpty())
             throw new BadRequestException("Студент не находится ни в одном активном потоке");
         return StudentRepository.updateITMOPracticeInfo(args, eduStreamNameOpt.get());
+    }
+
+    public static boolean choosePracticeOption(long chatId, PracticeOption option) throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(chatId);
+        if (eduStreamNameOpt.isEmpty()) {
+            throw new BadRequestException("Студент не находится ни в одном активном потоке");
+        }
+        return StudentRepository.updatePracticeOption(chatId, eduStreamNameOpt.get(), option.getId());
     }
 
     public static FileStreamDTO getApplication(long chatId) throws InternalException, BadRequestException {

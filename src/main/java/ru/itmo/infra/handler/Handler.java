@@ -49,6 +49,12 @@ import ru.itmo.infra.handler.usecase.admin.initedustream.InitEduStreamEndDateCom
 import ru.itmo.infra.handler.usecase.admin.listadmins.ListAdminsCommand;
 import ru.itmo.infra.handler.usecase.admin.mentor.CreateAdminFromUserCommand;
 import ru.itmo.infra.handler.usecase.admin.pingstudents.PingStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.AddPracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.DeletePracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.ListPracticeOptionsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.RenamePracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.SetPracticeOptionFlagsCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceoption.TogglePracticeOptionCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
@@ -239,6 +245,12 @@ public class Handler {
         commands.add(new InitEduStreamEndDateCommand());
         commands.add(new CreateAdminFromUserCommand());
         commands.add(new PingStudentsCommand());
+        commands.add(new ListPracticeOptionsCommand());
+        commands.add(new AddPracticeOptionCommand());
+        commands.add(new DeletePracticeOptionCommand());
+        commands.add(new TogglePracticeOptionCommand());
+        commands.add(new RenamePracticeOptionCommand());
+        commands.add(new SetPracticeOptionFlagsCommand());
         commands.add(new UnbanCommand());
         commands.add(new UnbanConfirmationCommand());
         commands.add(new UploadExcelCommand());
@@ -571,6 +583,12 @@ public class Handler {
                 new AddAdminCommand(),
                 new CreateAdminFromUserCommand(),
                 new PingStudentsCommand(),
+                new ListPracticeOptionsCommand(),
+                new AddPracticeOptionCommand(),
+                new DeletePracticeOptionCommand(),
+                new TogglePracticeOptionCommand(),
+                new RenamePracticeOptionCommand(),
+                new SetPracticeOptionFlagsCommand(),
                 new GetBannedCommand(),
                 new ListAdminsCommand(),
                 new UnbanCommand(),

@@ -495,6 +495,38 @@ public class StudentRepository {
         return new InternalException("Что-то пошло не так", ex.getCause());
     }
 
+    public static boolean updatePracticeOption(long chatId, String eduStreamName, long optionId) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
+                     UPDATE student
+                     SET practice_option_id = ?, updated_at = now()
+                     WHERE chat_id = ? AND edu_stream_name = ?;
+                     """)) {
+            statement.setLong(1, optionId);
+            statement.setLong(2, chatId);
+            statement.setString(3, eduStreamName);
+            return statement.executeUpdate() == 1;
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean existsByPracticeOptionId(long optionId) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
+                     SELECT 1
+                     FROM student
+                     WHERE practice_option_id = ?
+                     LIMIT 1;
+                     """)) {
+            statement.setLong(1, optionId);
+            var rs = statement.executeQuery();
+            return rs.next();
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static void updateByIsuAndEduStream(List<Student> students) throws InternalException {
         String sql = "UPDATE student SET fullname = ?, st_group = ?, updated_at = now() WHERE isu = ? AND edu_stream_name = ?";
         try (var connection = DatabaseManager.getConnection();

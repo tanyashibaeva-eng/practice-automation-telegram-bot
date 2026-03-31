@@ -3,6 +3,8 @@ package ru.itmo.infra.handler.usecase.user.companyinfoinput;
 import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import ru.itmo.application.ContextHolder;
+import ru.itmo.application.PracticeOptionService;
+import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
@@ -20,9 +22,41 @@ public class PracticeConfirmationCommand implements UserCommand {
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         var chatId = message.getChatId();
+        if ("Вернуться в меню".equals(message.getText())) {
+            ContextHolder.endCommand(chatId);
+            return MessageToUser.builder()
+                    .text("")
+                    .keyboardMarkup(new ReplyKeyboardRemove(true))
+                    .build();
+        }
 
-        switch (message.getText()) {
-            case "Практика у Маркиной Т.А":
+        try {
+            var selectedOption = PracticeOptionService.getEnabledOptionByTitleChecked(message.getText());
+            StudentService.choosePracticeOption(chatId, selectedOption);
+            if (selectedOption.isRequiresItmoInfo()) {
+                ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
+                ContextHolder.setCommandData(chatId, ITMOPracticeInfoUpdateArgs.builder()
+                        .chatId(chatId)
+                        .practicePlace(PracticePlace.ITMO_UNIVERSITY)
+                        .build()
+                );
+                return MessageToUser.builder()
+                        .text("")
+                        .keyboardMarkup(new ReplyKeyboardRemove(true))
+                        .build();
+            }
+            if (selectedOption.isRequiresCompanyInfo()) {
+                ContextHolder.setNextCommand(chatId, new AskingPracticeFormatCommand());
+                ContextHolder.setCommandData(chatId, CompanyInfoUpdateArgs.builder()
+                        .chatId(chatId)
+                        .build()
+                );
+                return MessageToUser.builder()
+                        .text("")
+                        .keyboardMarkup(new ReplyKeyboardRemove(true))
+                        .build();
+            }
+
                 ContextHolder.setNextCommand(chatId, new InfoSubmittedCommand());
                 ContextHolder.setCommandData(chatId, ITMOPracticeInfoUpdateArgs.builder()
                         .chatId(chatId)
@@ -35,39 +69,12 @@ public class PracticeConfirmationCommand implements UserCommand {
                         .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .build();
-            case "Практика в ИТМО":
-                ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
-                ContextHolder.setCommandData(chatId, ITMOPracticeInfoUpdateArgs.builder()
-                        .chatId(chatId)
-                        .practicePlace(PracticePlace.ITMO_UNIVERSITY)
-                        .build()
-                );
-                return MessageToUser.builder()
-                        .text("")
-                        .keyboardMarkup(new ReplyKeyboardRemove(true))
-                        .build();
-            case "В сторонней компании":
-                ContextHolder.setNextCommand(chatId, new AskingPracticeFormatCommand());
-                ContextHolder.setCommandData(chatId, CompanyInfoUpdateArgs.builder()
-                        .chatId(chatId)
-                        .build()
-                );
-                return MessageToUser.builder()
-                        .text("")
-                        .keyboardMarkup(new ReplyKeyboardRemove(true))
-                        .build();
-            case "Вернуться в меню":
-                ContextHolder.endCommand(chatId);
-                return MessageToUser.builder()
-                        .text("")
-                        .keyboardMarkup(new ReplyKeyboardRemove(true))
-                        .build();
-            default:
-                ContextHolder.setNextCommand(chatId, this);
-                return MessageToUser.builder()
-                        .text("Извините, я вас не понимаю, ответьте \"Практика у Маркиной Т.А\", \"Практика в ИТМО\", \"В сторонней компании\" или \"Вернуться в меню\"")
-                        .keyboardMarkup(getPracticePlaceKeyboard())
-                        .build();
+        } catch (Exception e) {
+            ContextHolder.setNextCommand(chatId, this);
+            return MessageToUser.builder()
+                    .text("Извините, я вас не понимаю. Выберите вариант места практики из списка или \"Вернуться в меню\"")
+                    .keyboardMarkup(getPracticePlaceKeyboard())
+                    .build();
         }
     }
 
