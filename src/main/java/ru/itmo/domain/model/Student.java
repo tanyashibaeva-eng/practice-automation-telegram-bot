@@ -46,6 +46,9 @@ public class Student {
     private String callStatusComments;
     private PracticePlace practicePlace;
     private PracticeFormat practiceFormat;
+    private Long practiceFormatId;
+    private String practiceFormatCode;
+    private String practiceFormatDisplayName;
     private Long companyINN;
     private String companyName;
     private String companyLeadFullName;
@@ -67,32 +70,88 @@ public class Student {
         this.fullName = s.getFullName();
         this.status = StudentStatus.REGISTERED;
     }
+    
+    // обратная совместимость
+    public Student(
+        TelegramUser telegramUser,
+        EduStream eduStream,
+        int isu,
+        String stGroup,
+        String fullName,
+        StudentStatus status,
+        String comments,
+        String callStatusComments,
+        PracticePlace practicePlace,
+        PracticeFormat practiceFormat,
+        Long companyINN,
+        String companyName,
+        String companyLeadFullName,
+        String companyLeadPhone,
+        String companyLeadEmail,
+        String companyLeadJobTitle,
+        String cellHexColor,
+        boolean managedManually,
+        Timestamp exportedAt,
+        Timestamp updatedAt,
+        byte[] applicationBytes,
+        String signedPhotoPath,
+        boolean isPingNeeded
+    ) {
+        this(
+                telegramUser,
+                eduStream,
+                isu,
+                stGroup,
+                fullName,
+                status,
+                comments,
+                callStatusComments,
+                practicePlace,
+                practiceFormat,
+                null,
+                null,
+                null,
+                companyINN,
+                companyName,
+                companyLeadFullName,
+                companyLeadPhone,
+                companyLeadEmail,
+                companyLeadJobTitle,
+                cellHexColor,
+                managedManually,
+                exportedAt,
+                updatedAt,
+                applicationBytes,
+                signedPhotoPath,
+                isPingNeeded
+        );
+    }
 
     public Student duplicateBase() {
         return new Student(
-                null,
-                this.getEduStream(),
-                this.getIsu(),
-                this.getStGroup(),
-                this.getFullName(),
-                StudentStatus.NOT_REGISTERED,
-                "",
-                "",
-                PracticePlace.NOT_SPECIFIED,
-                PracticeFormat.NOT_SPECIFIED,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                "FFFFFF",
-                false,
-                null,
-                null,
-                null,
-                null,
-                false
+            null,
+            this.getEduStream(),
+            this.getIsu(),
+            this.getStGroup(),
+            this.getFullName(),
+            StudentStatus.NOT_REGISTERED,
+            "",
+            "",
+            PracticePlace.NOT_SPECIFIED,
+            PracticeFormat.NOT_SPECIFIED,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "FFFFFF",
+            false,
+            null,
+            null,
+            null,
+            null,
+            false
         );
     }
 

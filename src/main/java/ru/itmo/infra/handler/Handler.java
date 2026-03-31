@@ -55,6 +55,10 @@ import ru.itmo.infra.handler.usecase.admin.practiceoption.ListPracticeOptionsCom
 import ru.itmo.infra.handler.usecase.admin.practiceoption.RenamePracticeOptionCommand;
 import ru.itmo.infra.handler.usecase.admin.practiceoption.SetPracticeOptionFlagsCommand;
 import ru.itmo.infra.handler.usecase.admin.practiceoption.TogglePracticeOptionCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.CreatePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.DeletePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.RenamePracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.practiceformat.SetUserPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
@@ -108,6 +112,7 @@ import ru.itmo.infra.handler.usecase.user.manual.ManualReorderUpCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionAddCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteConfirmCommand;
+import ru.itmo.infra.handler.usecase.user.practiceformat.ChangePracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentFilledApplicationCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationCommand;
@@ -174,6 +179,8 @@ public class Handler {
         commands.add(new PracticeConfirmationCommand());
         commands.add(new SubmitCompanyApprovalRequestCommand());
         commands.add(new StudentInputConfirmationCommand());
+
+        commands.add(new ChangePracticeFormatCommand());
 
         commands.add(new UploadApplicationHandleCommand());
         commands.add(new StudentDownloadApplicationCommand());
@@ -257,6 +264,10 @@ public class Handler {
         commands.add(new ViewStudentPhotoCommand());
         commands.add(new GetStudentInfoCommand());
         commands.add(new UpdateGroupStudentsCommand());
+        commands.add(new CreatePracticeFormatCommand());
+        commands.add(new RenamePracticeFormatCommand());
+        commands.add(new DeletePracticeFormatCommand());
+        commands.add(new SetUserPracticeFormatCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -504,6 +515,7 @@ public class Handler {
         commands.add(new StudentFilledApplicationCommand());
         commands.add(new UploadSignedPhotoStartCommand());
         commands.add(new ViewSignedPhotoCommand());
+        commands.add(new ChangePracticeFormatCommand());
 
         // Фильтруем только те, которые доступны для текущего статуса.
         return commands.stream()
@@ -599,7 +611,10 @@ public class Handler {
                 new UploadExcelCommand(),
                 new GetStudentInfoCommand(),
                 new UpdateGroupStudentsCommand(),
-                new ViewStudentPhotoCommand()
+                new CreatePracticeFormatCommand(),
+                new DeletePracticeFormatCommand(),
+                new RenamePracticeFormatCommand(),
+                new SetUserPracticeFormatCommand()
         );
     }
 

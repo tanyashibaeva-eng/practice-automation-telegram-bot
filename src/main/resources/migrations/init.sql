@@ -66,6 +66,25 @@ CREATE TABLE IF NOT EXISTS edu_stream (
     date_to                 date                NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS practice_format (
+    id                      bigserial           PRIMARY KEY,
+    code                    text                NOT NULL,
+    display_name            text                NOT NULL,
+    is_active               boolean             NOT NULL DEFAULT TRUE,
+    created_at              timestamp           NOT NULL DEFAULT now(),
+    updated_at              timestamp           NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_practice_format_code_unique ON practice_format (lower(code));
+CREATE UNIQUE INDEX IF NOT EXISTS idx_practice_format_display_name_unique ON practice_format (lower(display_name));
+
+INSERT INTO practice_format (code, display_name)
+VALUES
+    ('OFFLINE', 'Очно'),
+    ('HYBRID', 'Очно с применением дистанционных технологий'),
+    ('ONLINE', 'С применением дистанционных технологий')
+ON CONFLICT DO NOTHING;
+
 CREATE TABLE IF NOT EXISTS student (
     chat_id                 bigint              REFERENCES tg_user(chat_id) ON DELETE CASCADE DEFAULT NULL,
     edu_stream_name         text                NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE ON UPDATE CASCADE,
@@ -132,6 +151,24 @@ WHERE s.practice_option_id IS NULL
     OR (s.practice_place = 'OTHER_COMPANY' AND po.title = 'Практика в сторонней компании')
     OR (s.practice_place = 'ITMO_MARKINA' AND po.title = 'Практика в ИТМО (работаю)')
   );
+
+ALTER TABLE student ADD IF NOT EXISTS practice_format_id bigint;
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_student_practice_format_id ON student (practice_format_id);
+
+-- backfill
+DO $$ BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM pg_constraint
+        WHERE conname = 'fk_student_practice_format_id'
+    ) THEN
+        ALTER TABLE student
+            ADD CONSTRAINT fk_student_practice_format_id
+            FOREIGN KEY (practice_format_id) REFERENCES practice_format(id)
+            ON DELETE SET NULL;
+    END IF;
+END $$;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_pk_student ON student (chat_id, edu_stream_name) WHERE chat_id IS NOT NULL;
 

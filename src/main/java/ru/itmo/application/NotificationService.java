@@ -57,6 +57,21 @@ public class NotificationService {
         }
     }
 
+    public static void notifyUser(long chatId, String message) {
+        Notifier.notifyAsync(
+                Notification.builder()
+                        .chatId(chatId)
+                        .text(message)
+                        .build()
+        );
+    }
+
+    public static void notifyUsers(List<Long> chatIds, String message) {
+        for (var chatId : chatIds) {
+            notifyUser(chatId, message);
+        }
+    }
+
     private static String getMessageForStatus(StudentStatus status) {
         return switch (status) {
             case REGISTERED -> """

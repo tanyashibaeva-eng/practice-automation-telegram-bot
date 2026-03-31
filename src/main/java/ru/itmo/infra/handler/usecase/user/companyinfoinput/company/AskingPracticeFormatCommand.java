@@ -5,6 +5,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import ru.itmo.application.ContextHolder;
+import ru.itmo.application.PracticeFormatService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
@@ -33,15 +34,30 @@ public class AskingPracticeFormatCommand implements UserCommand {
         replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
 
         var keyboard = new ArrayList<KeyboardRow>();
-        var keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add("Очная практика");
-        keyboardFirstRow.add("Гибридная практика");
-        keyboard.add(keyboardFirstRow);
+        try {
+            var formats = PracticeFormatService.findAllActive();
+            for (int i = 0; i < formats.size(); i += 2) {
+                var row = new KeyboardRow();
+                row.add(formats.get(i).getDisplayName());
+                if (i + 1 < formats.size()) {
+                    row.add(formats.get(i + 1).getDisplayName());
+                }
+                keyboard.add(row);
+            }
+        } catch (Exception ignored) {
+            var keyboardFirstRow = new KeyboardRow();
+            keyboardFirstRow.add("Очно");
+            keyboardFirstRow.add("Очно с применением дистанционных технологий");
+            keyboard.add(keyboardFirstRow);
 
-        var keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add("Дистанционная практика");
-        keyboardSecondRow.add(returnIcon + " Вернуться в меню");
-        keyboard.add(keyboardSecondRow);
+            var keyboardSecondRow = new KeyboardRow();
+            keyboardSecondRow.add("С применением дистанционных технологий");
+            keyboard.add(keyboardSecondRow);
+        }
+
+        var keyboardReturnRow = new KeyboardRow();
+        keyboardReturnRow.add(returnIcon + " Вернуться в меню");
+        keyboard.add(keyboardReturnRow);
         replyKeyboardMarkupBuilder.keyboard(keyboard);
 
         return replyKeyboardMarkupBuilder.build();

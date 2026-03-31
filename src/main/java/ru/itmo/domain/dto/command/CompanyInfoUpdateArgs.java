@@ -13,6 +13,8 @@ import ru.itmo.domain.type.PracticeFormat;
 public class CompanyInfoUpdateArgs {
     private long chatId;
     private PracticeFormat practiceFormat;
+    private Long practiceFormatId;
+    private String practiceFormatDisplayName;
     private long inn;
     private String companyName;
     private String companyAddress;

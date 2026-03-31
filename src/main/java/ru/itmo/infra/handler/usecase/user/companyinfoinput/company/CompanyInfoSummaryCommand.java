@@ -15,6 +15,11 @@ public class CompanyInfoSummaryCommand implements UserCommand {
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
         ContextHolder.setNextCommand(chatId, new CompanyInfoConfirmationCommand());
 
+        var formatDisplay = dto.getPracticeFormatDisplayName();
+        if (formatDisplay == null || formatDisplay.isBlank()) {
+            formatDisplay = dto.getPracticeFormat() == null ? "" : dto.getPracticeFormat().getDisplayName();
+        }
+
         var addressLine = (dto.getCompanyAddress() == null || dto.getCompanyAddress().isBlank())
                 ? ""
                 : "Адрес компании: %s.\n".formatted(dto.getCompanyAddress());
@@ -32,7 +37,7 @@ public class CompanyInfoSummaryCommand implements UserCommand {
                         """.formatted(
                         dto.getCompanyName(),
                         dto.getInn(),
-                        dto.getPracticeFormat().getDisplayName(),
+                        formatDisplay,
                         addressLine,
                         dto.getCompanyLeadFullName(),
                         dto.getCompanyLeadJobTitle(),
