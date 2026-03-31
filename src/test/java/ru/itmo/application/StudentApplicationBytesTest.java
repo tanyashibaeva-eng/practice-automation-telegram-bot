@@ -64,6 +64,7 @@ public class StudentApplicationBytesTest {
                 null,
                 null,
                 new byte[]{123, 98, 123, 0, 22},
+                null,
                 false
         );
 
@@ -103,10 +104,9 @@ public class StudentApplicationBytesTest {
 
     @AfterAll
     static void teardown() throws SQLException {
-        Connection connection = DatabaseManager.getConnection();
-
-        try (var statement = connection.prepareStatement(
-                "TRUNCATE TABLE student, tg_user, edu_stream RESTART IDENTITY;"
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "TRUNCATE TABLE student, tg_user, edu_stream, admin_token RESTART IDENTITY CASCADE;"
         )) {
             statement.executeUpdate();
         }

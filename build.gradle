@@ -56,6 +56,20 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    workingDir = rootProject.projectDir
+
+    def envFile = file('.env')
+    if (envFile.exists()) {
+        envFile.readLines().each { line ->
+            line = line.trim()
+            if (!line.isEmpty() && !line.startsWith('#') && line.contains('=')) {
+                def key = line.split('=', 2)[0].trim()
+                def value = line.split('=', 2)[1].trim().replaceAll('^"|"$', '')
+                environment key, value
+            }
+        }
+    }
+
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "full"

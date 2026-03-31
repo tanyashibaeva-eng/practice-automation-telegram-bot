@@ -10,10 +10,9 @@ import java.sql.SQLException;
 @Log
 public class AdminTokenRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static void save(AdminToken adminToken) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "INSERT INTO admin_token (token) VALUES (?);"
         )) {
             statement.setObject(1, adminToken.getToken());
@@ -25,7 +24,8 @@ public class AdminTokenRepository {
     }
 
     public static boolean delete(AdminToken adminToken) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "DELETE FROM admin_token WHERE token = ?;"
         )) {
             statement.setObject(1, adminToken.getToken());
@@ -36,11 +36,35 @@ public class AdminTokenRepository {
         }
     }
 
+    public static boolean deleteTransactional(AdminToken adminToken, Connection transactionConnection)
+            throws SQLException {
+        try (var statement = transactionConnection.prepareStatement(
+                "DELETE FROM admin_token WHERE token = ?;"
+        )) {
+            statement.setObject(1, adminToken.getToken());
+            return 1 == statement.executeUpdate();
+        }
+    }
+
     public static boolean deleteAll() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "DELETE FROM admin_token;"
         )) {
             return statement.executeUpdate() > 0;
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static boolean exists(AdminToken adminToken) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "SELECT 1 FROM admin_token WHERE token = ? LIMIT 1;"
+        )) {
+            statement.setObject(1, adminToken.getToken());
+            return statement.executeQuery().next();
 
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);

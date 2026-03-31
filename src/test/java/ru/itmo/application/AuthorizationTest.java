@@ -79,6 +79,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithPreviousRegistrationPrevious = new Student(
@@ -100,6 +101,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
@@ -127,6 +129,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithRegisteredStatusPrevious = new Student(
@@ -148,6 +151,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
@@ -175,6 +179,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithApplicationReturnedStatus = new Student(
@@ -199,6 +204,7 @@ public class AuthorizationTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             );
             studentWithApplicationWaitingSigningStatus = new Student(
@@ -220,6 +226,7 @@ public class AuthorizationTest {
                     "manager",
                     "123123",
                     false,
+                    null,
                     null,
                     null,
                     null,
@@ -329,10 +336,9 @@ public class AuthorizationTest {
 
     @AfterAll
     static void teardown() throws SQLException {
-        Connection connection = DatabaseManager.getConnection();
-
-        try (var statement = connection.prepareStatement(
-                "TRUNCATE TABLE student, tg_user, edu_stream RESTART IDENTITY;"
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "TRUNCATE TABLE student, tg_user, edu_stream, admin_token RESTART IDENTITY CASCADE;"
         )) {
             statement.executeUpdate();
         }

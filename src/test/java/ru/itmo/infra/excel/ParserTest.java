@@ -243,7 +243,11 @@ public class ParserTest {
 
         assertEquals(1, result.getErrorsByRows().size());
         var errors = result.getErrorsByRows().get(1);
-        assertTrue(errors.contains("значение в колонке \"Статус\" может быть одним из \"Не зарегистрирован\", \"Зарегистрирован\", \"Практика в ИТМО у Маркиной Т. А.\", \"Данные о компании на проверке\", \"Данные о компании возвращены на доработку\", \"Практика в ИТМО\", \"Данные о компании утверждены и ожидается заполнение заявки\", \"Заявка на проверке\", \"Заявка возвращена на доработку\", \"Заявка согласована и ожидает подписания\", \"Заявка подписана\""));
+        String expectedStatuses = java.util.Arrays.stream(StudentStatus.values())
+                .map(StudentStatus::getDisplayName)
+                .map(s -> "\"" + s + "\"")
+                .collect(java.util.stream.Collectors.joining(", "));
+        assertTrue(errors.contains("значение в колонке \"Статус\" может быть одним из " + expectedStatuses));
     }
 
     @Test

@@ -7,6 +7,7 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.util.TextUtils;
@@ -66,6 +67,16 @@ public class GetStudentInfoCommand implements AdminCommand {
                 }
                 if (student.getCompanyLeadJobTitle() != null && !student.getCompanyLeadJobTitle().isBlank()) {
                     textBuilder.append("Должность руководителя: ").append(student.getCompanyLeadJobTitle()).append("\n");
+                }
+                if (student.getSignedPhotoPath() != null && !student.getSignedPhotoPath().isBlank()) {
+                    if (student.getStatus() == StudentStatus.APPLICATION_RETURNED) {
+                        textBuilder.append("Фото заявки: загружено, заявка возвращена на доработку\n");
+                    } else {
+                        textBuilder.append("Фото заявки: загружено\n");
+                    }
+                    textBuilder.append("  /view_student_photo ").append(chatId).append(" — посмотреть фото\n");
+                } else {
+                    textBuilder.append("Фото заявки: не загружено\n");
                 }
                 textBuilder.append("\n");
             }

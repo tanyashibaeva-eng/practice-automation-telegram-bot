@@ -28,7 +28,8 @@ public class Student {
             StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.PRACTICE_APPROVED, StudentStatus.APPLICATION_WAITING_SUBMISSION),
             StudentStatus.APPLICATION_WAITING_SUBMISSION, Set.of(StudentStatus.COMPANY_INFO_RETURNED),
             StudentStatus.APPLICATION_WAITING_APPROVAL, Set.of(StudentStatus.COMPANY_INFO_RETURNED, StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_WAITING_SIGNING),
-            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_SIGNED)
+            StudentStatus.APPLICATION_WAITING_SIGNING, Set.of(StudentStatus.APPLICATION_RETURNED, StudentStatus.APPLICATION_PHOTO_UPLOADED, StudentStatus.APPLICATION_SIGNED),
+            StudentStatus.APPLICATION_PHOTO_UPLOADED, Set.of(StudentStatus.APPLICATION_SIGNED, StudentStatus.APPLICATION_RETURNED)
     );
     @Setter
     private TelegramUser telegramUser;
@@ -57,6 +58,7 @@ public class Student {
     private Timestamp exportedAt;
     private Timestamp updatedAt;
     private byte[] applicationBytes;
+    private String signedPhotoPath;
     private boolean isPingNeeded;
 
     public Student(ExcelStudentInfoDTO s, EduStream eduStream) {
@@ -147,6 +149,7 @@ public class Student {
                 null,
                 null,
                 null,
+                null,
                 false
         );
     }
@@ -223,7 +226,7 @@ public class Student {
         this.cellHexColor = dto.getCellHexColor() == null ? "FFFFFF" : dto.getCellHexColor().replace("#", "");
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();
-        if (this.updatedAt.before(this.exportedAt)) {
+        if (this.updatedAt != null && this.exportedAt != null && this.updatedAt.before(this.exportedAt)) {
             if (status == dto.getStatus()
                     || possibleAdminStatusChangesMap.containsKey(status)
                     && possibleAdminStatusChangesMap.get(status).contains(dto.getStatus())) {
@@ -308,7 +311,7 @@ public class Student {
                     isCompanyInfoFieldsFilled(dto);
             case APPLICATION_WAITING_APPROVAL, APPLICATION_RETURNED, APPLICATION_WAITING_SIGNING ->
                     isApplicationInfoFieldsFilled(dto, student);
-            case PRACTICE_APPROVED, APPLICATION_SIGNED -> true;
+            case PRACTICE_APPROVED, APPLICATION_PHOTO_UPLOADED, APPLICATION_SIGNED -> true;
         };
     }
 
@@ -332,7 +335,9 @@ public class Student {
                     new String[]{StudentStatus.APPLICATION_WAITING_APPROVAL.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.COMPANY_INFO_RETURNED.getDisplayName()};
             case APPLICATION_RETURNED -> new String[]{StudentStatus.APPLICATION_RETURNED.getDisplayName()};
             case APPLICATION_WAITING_SIGNING ->
-                    new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_SIGNED.getDisplayName()};
+                    new String[]{StudentStatus.APPLICATION_WAITING_SIGNING.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName(), StudentStatus.APPLICATION_PHOTO_UPLOADED.getDisplayName(), StudentStatus.APPLICATION_SIGNED.getDisplayName()};
+            case APPLICATION_PHOTO_UPLOADED ->
+                    new String[]{StudentStatus.APPLICATION_PHOTO_UPLOADED.getDisplayName(), StudentStatus.APPLICATION_SIGNED.getDisplayName(), StudentStatus.APPLICATION_RETURNED.getDisplayName()};
             case APPLICATION_SIGNED -> new String[]{StudentStatus.APPLICATION_SIGNED.getDisplayName()};
             case PRACTICE_APPROVED ->
                     new String[]{StudentStatus.PRACTICE_APPROVED.getDisplayName()};
