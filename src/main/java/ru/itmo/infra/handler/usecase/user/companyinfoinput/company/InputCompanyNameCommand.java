@@ -5,7 +5,9 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
 public class InputCompanyNameCommand implements UserCommand {
     @SneakyThrows
@@ -22,8 +24,17 @@ public class InputCompanyNameCommand implements UserCommand {
 
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
         dto.setCompanyName(companyName);
+
         ContextHolder.setCommandData(chatId, dto);
-        ContextHolder.setNextCommand(chatId, new AskingCompanyAddressCommand());
+
+        if (dto.getPracticeFormat() != PracticeFormat.ONLINE) {
+            ContextHolder.setNextCommand(chatId, new AskingCompanyAddressCommand());
+        } else {
+            ContextHolder.setNextCommand(chatId, dto.isPresentInITMOAgreementFile()
+                    ? new AskingITMOPracticeLeadFullNameCommand()
+                    : new AskingApproveNoContractCompanyCommand());
+        }
+
         return MessageToUser.builder()
                 .text("")
                 .keyboardMarkup(getInlineKeyboard())
