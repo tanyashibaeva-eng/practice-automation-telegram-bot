@@ -457,7 +457,8 @@ public class StudentRepository {
             PracticeFormat legacyPracticeFormat,
             Long practiceFormatId
     ) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+            var statement = connection.prepareStatement("""
                 UPDATE student
                 SET practice_format = ?,
                     practice_format_id = COALESCE(?, (SELECT id FROM practice_format WHERE lower(code) = lower(?) LIMIT 1)),
@@ -488,7 +489,8 @@ public class StudentRepository {
     }
 
     public static List<Long> findChatIdsByPracticeFormatIdInActiveStreams(long practiceFormatId) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+            var st = connection.prepareStatement("""
                 SELECT s.chat_id
                 FROM student s
                 JOIN edu_stream es ON es.name = s.edu_stream_name
@@ -509,7 +511,8 @@ public class StudentRepository {
     }
 
     public static int resetApplicationsByPracticeFormatIdInActiveStreams(long practiceFormatId, boolean clearPracticeFormat) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+            var st = connection.prepareStatement("""
                 UPDATE student s
                 SET application_bytes = NULL,
                     status = CASE

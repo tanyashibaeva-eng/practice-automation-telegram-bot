@@ -92,6 +92,7 @@ public class Student {
         Timestamp exportedAt,
         Timestamp updatedAt,
         byte[] applicationBytes,
+        String signedPhotoPath,
         boolean isPingNeeded
     ) {
         this(
@@ -119,38 +120,36 @@ public class Student {
                 exportedAt,
                 updatedAt,
                 applicationBytes,
+                signedPhotoPath,
                 isPingNeeded
         );
     }
 
     public Student duplicateBase() {
         return new Student(
-                null,
-                this.getEduStream(),
-                this.getIsu(),
-                this.getStGroup(),
-                this.getFullName(),
-                StudentStatus.NOT_REGISTERED,
-                "",
-                "",
-                PracticePlace.NOT_SPECIFIED,
-                PracticeFormat.NOT_SPECIFIED,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                "FFFFFF",
-                false,
-                null,
-                null,
-                null,
-                null,
-                false
+            null,
+            this.getEduStream(),
+            this.getIsu(),
+            this.getStGroup(),
+            this.getFullName(),
+            StudentStatus.NOT_REGISTERED,
+            "",
+            "",
+            PracticePlace.NOT_SPECIFIED,
+            PracticeFormat.NOT_SPECIFIED,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "FFFFFF",
+            false,
+            null,
+            null,
+            null,
+            null,
+            false
         );
     }
 
