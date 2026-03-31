@@ -106,6 +106,7 @@ import ru.itmo.infra.handler.usecase.user.manual.ManualReorderUpCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionAddCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualSubsectionDeleteConfirmCommand;
+import ru.itmo.infra.handler.usecase.user.practiceformat.ChangePracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentDownloadApplicationCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.StudentFilledApplicationCommand;
 import ru.itmo.infra.handler.usecase.user.studentapplicationinput.UploadApplicationCommand;
@@ -169,6 +170,8 @@ public class Handler {
         commands.add(new PracticeConfirmationCommand());
         commands.add(new SubmitCompanyApprovalRequestCommand());
         commands.add(new StudentInputConfirmationCommand());
+
+        commands.add(new ChangePracticeFormatCommand());
 
         commands.add(new UploadApplicationHandleCommand());
         commands.add(new StudentDownloadApplicationCommand());
@@ -485,6 +488,7 @@ public class Handler {
         commands.add(new UploadApplicationCommand());
         commands.add(new StudentRegistrationStartCommand());
         commands.add(new StudentFilledApplicationCommand());
+        commands.add(new ChangePracticeFormatCommand());
 
         // Фильтруем только те, которые доступны для текущего статуса.
         return commands.stream()
