@@ -87,8 +87,10 @@ public class ApprovedCompanyRegistryService {
 
         synchronized (LOCK) {
             if (companyService == null || !csvPath.equals(loadedCsvPath)) {
+                log.info("Loading Saint Petersburg office registry into memory from " + csvPath);
                 companyService = new CompanyService(csvPath.toString());
                 loadedCsvPath = csvPath;
+                log.info("Saint Petersburg office registry cached in memory");
             }
             return companyService;
         }
