@@ -14,10 +14,9 @@ import java.util.Optional;
 @Log
 public class TelegramUserRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static void save(TelegramUser telegramUser) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "INSERT INTO tg_user (chat_id, is_admin, is_banned, username) VALUES (?, ?, ?, ?)"
         )) {
             statement.setLong(1, telegramUser.getChatId());
@@ -44,7 +43,8 @@ public class TelegramUserRepository {
     }
 
     public static List<TelegramUser> findAll() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user;"
         )) {
             var rs = statement.executeQuery();
@@ -56,7 +56,8 @@ public class TelegramUserRepository {
     }
 
     public static List<TelegramUser> findAllNotBannedAdmins() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE is_admin = true AND is_banned = false;"
         )) {
             var rs = statement.executeQuery();
@@ -68,7 +69,8 @@ public class TelegramUserRepository {
     }
 
     public static List<TelegramUser> findAllAdmins() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE is_admin = true;"
         )) {
             var rs = statement.executeQuery();
@@ -80,7 +82,8 @@ public class TelegramUserRepository {
     }
 
     public static boolean existsByChatId(long chatId) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -93,7 +96,8 @@ public class TelegramUserRepository {
     }
 
     public static Optional<TelegramUser> findByChatId(long chatId) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -106,7 +110,8 @@ public class TelegramUserRepository {
     }
 
     public static boolean deleteByChatId(long chatId) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "DELETE FROM tg_user WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -118,7 +123,8 @@ public class TelegramUserRepository {
     }
 
     public static boolean updateByChatId(TelegramUser telegramUser) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "UPDATE tg_user SET is_admin = ?, is_banned = ?, username = ? WHERE chat_id = ?;"
         )) {
             statement.setBoolean(1, telegramUser.isAdmin());
@@ -132,8 +138,22 @@ public class TelegramUserRepository {
         }
     }
 
+    public static boolean updateByChatIdTransactional(TelegramUser telegramUser, Connection transactionConnection)
+            throws SQLException {
+        try (var statement = transactionConnection.prepareStatement(
+                "UPDATE tg_user SET is_admin = ?, is_banned = ?, username = ? WHERE chat_id = ?;"
+        )) {
+            statement.setBoolean(1, telegramUser.isAdmin());
+            statement.setBoolean(2, telegramUser.isBanned());
+            statement.setString(3, telegramUser.getUsername());
+            statement.setLong(4, telegramUser.getChatId());
+            return 1 == statement.executeUpdate();
+        }
+    }
+
     public static Long getAdminsCount() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT COUNT(*) as total FROM tg_user WHERE is_admin = true;"
         )) {
             var rs = statement.executeQuery();
@@ -146,7 +166,8 @@ public class TelegramUserRepository {
     }
 
     public static List<TelegramUser> findAllBanned() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM tg_user WHERE is_banned = true;"
         )) {
             var rs = statement.executeQuery();

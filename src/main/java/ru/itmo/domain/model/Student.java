@@ -166,7 +166,7 @@ public class Student {
         this.cellHexColor = dto.getCellHexColor() == null ? "FFFFFF" : dto.getCellHexColor().replace("#", "");
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();
-        if (this.updatedAt.before(this.exportedAt)) {
+        if (this.updatedAt != null && this.exportedAt != null && this.updatedAt.before(this.exportedAt)) {
             if (status == dto.getStatus()
                     || possibleAdminStatusChangesMap.containsKey(status)
                     && possibleAdminStatusChangesMap.get(status).contains(dto.getStatus())) {

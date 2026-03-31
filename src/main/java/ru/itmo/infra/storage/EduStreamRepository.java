@@ -5,7 +5,6 @@ import ru.itmo.domain.model.EduStream;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,10 +15,9 @@ import java.util.Optional;
 @Log
 public class EduStreamRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static void save(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "INSERT INTO edu_stream (name, year, date_from, date_to) VALUES (?, ?, ?, ?);"
         )) {
             statement.setString(1, eduStream.getName());
@@ -34,7 +32,8 @@ public class EduStreamRepository {
     }
 
     public static List<EduStream> findAll() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream;"
         )) {
             var rs = statement.executeQuery();
@@ -54,7 +53,8 @@ public class EduStreamRepository {
     }
 
     public static List<String> findAllNames() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT name FROM edu_stream ORDER BY date_from DESC;"
         )) {
             var rs = statement.executeQuery();
@@ -72,7 +72,8 @@ public class EduStreamRepository {
     }
 
     public static List<String> findAllGroupsByStreamName(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     SELECT student.st_group
                     FROM edu_stream LEFT JOIN student ON edu_stream.name = student.edu_stream_name
                     WHERE edu_stream.name = ?
@@ -94,7 +95,8 @@ public class EduStreamRepository {
     }
 
     public static boolean existsByName(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE name = ?;"
         )) {
             statement.setString(1, eduStream.getName());
@@ -107,7 +109,8 @@ public class EduStreamRepository {
     }
 
     public static Optional<EduStream> findByName(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM edu_stream WHERE name = ?;"
         )) {
             statement.setString(1, eduStream.getName());
@@ -120,7 +123,8 @@ public class EduStreamRepository {
     }
 
     public static boolean deleteByName(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "DELETE FROM edu_stream WHERE name = ?;"
         )) {
             statement.setString(1, eduStream.getName());
@@ -132,7 +136,8 @@ public class EduStreamRepository {
     }
 
     public static boolean updateByName(EduStream oldEduStream, EduStream newEduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "UPDATE edu_stream SET name = ?, year = ?, date_from = ?, date_to = ? WHERE name = ?;"
         )) {
             statement.setString(1, newEduStream.getName());

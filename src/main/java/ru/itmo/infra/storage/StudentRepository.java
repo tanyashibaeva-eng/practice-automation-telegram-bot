@@ -17,10 +17,9 @@ import java.util.*;
 @Log
 public class StudentRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static void saveBaseBatch(List<Student> students) throws InternalException, BadRequestException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     INSERT INTO student (
                         edu_stream_name,
                         isu,
@@ -39,7 +38,6 @@ public class StudentRepository {
             statement.executeBatch();
 
         } catch (SQLException ex) {
-            /* violates index "idx_isu_edu_stream_name_student" constraint */
             if (ex.getSQLState().equals("23505")) {
                 throw new BadRequestException("Некоторые из переданных в файле студентов уже существуют в потоке, загрузите новый файл. При переходе обратно в меню все загруженные на данный момент файлы уже сохранены");
             }
@@ -86,7 +84,8 @@ public class StudentRepository {
     }
 
     public static List<Student> findAll() throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM student;"
         )) {
             var rs = statement.executeQuery();
@@ -101,11 +100,17 @@ public class StudentRepository {
         if (filter.isEmpty())
             return findAll();
 
-        String query = buildFilteringQuery(filter);
+        var queryAndParams = buildFilteringQuery(filter);
+        String query = queryAndParams.query;
+        List<Object> params = queryAndParams.params;
 
         log.info("built query with filters: " + query);
 
-        try (var statement = connection.prepareStatement(query)) {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(query)) {
+            for (int i = 0; i < params.size(); i++) {
+                statement.setObject(i + 1, params.get(i));
+            }
             var rs = statement.executeQuery();
             List<Student> result = mapToStudentList(rs);
             result.sort(Comparator.comparing(Student::getFullName));
@@ -116,35 +121,45 @@ public class StudentRepository {
         }
     }
 
-    private static String buildFilteringQuery(Filter filter) {
+    private record FilterQuery(String query, List<Object> params) {}
+
+    private static FilterQuery buildFilteringQuery(Filter filter) {
         String query = "SELECT * FROM student WHERE ";
         StringJoiner stringJoiner = new StringJoiner(" AND ");
+        List<Object> params = new ArrayList<>();
 
         EduStream eduStream = filter.getEduStream();
-        if (eduStream != null)
-            stringJoiner.add("edu_stream_name = '%s'".formatted(eduStream.getName()));
+        if (eduStream != null) {
+            stringJoiner.add("edu_stream_name = ?");
+            params.add(eduStream.getName());
+        }
 
         List<String> stGroups = filter.getStGroups();
         if (stGroups != null && !stGroups.isEmpty()) {
             StringJoiner sj = new StringJoiner(" OR ");
-            for (var stGroup : stGroups)
-                sj.add("st_group = '%s'".formatted(stGroup));
+            for (var stGroup : stGroups) {
+                sj.add("st_group = ?");
+                params.add(stGroup);
+            }
             stringJoiner.add("(" + sj + ")");
         }
 
         List<StudentStatus> stStatuses = filter.getStStatuses();
         if (stStatuses != null && !stStatuses.isEmpty()) {
             StringJoiner sj = new StringJoiner(" OR ");
-            for (var stStatus : stStatuses)
-                sj.add("status = '%s'".formatted(stStatus.name().toUpperCase()));
+            for (var stStatus : stStatuses) {
+                sj.add("status = CAST(? AS st_status)");
+                params.add(stStatus.name().toUpperCase());
+            }
             stringJoiner.add("(" + sj + ")");
         }
 
-        return query + stringJoiner + ";";
+        return new FilterQuery(query + stringJoiner + ";", params);
     }
 
     public static boolean existsByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -158,7 +173,8 @@ public class StudentRepository {
     }
 
     public static List<Student> findAllByChatId(long chatId) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -171,7 +187,8 @@ public class StudentRepository {
     }
 
     public static Optional<Student> findByChatIdAndEduStreamName(long chatId, EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -185,7 +202,8 @@ public class StudentRepository {
     }
 
     public static List<Student> findAllByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "SELECT * FROM student WHERE isu = ? AND edu_stream_name = ?;"
         )) {
             statement.setInt(1, isu);
@@ -202,7 +220,8 @@ public class StudentRepository {
     }
 
     public static boolean deleteByChatId(long chatId) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "DELETE FROM student WHERE chat_id = ?;"
         )) {
             statement.setLong(1, chatId);
@@ -213,8 +232,19 @@ public class StudentRepository {
         }
     }
 
+    public static boolean deleteByChatIdTransactional(long chatId, Connection transactionConnection)
+            throws SQLException {
+        try (var statement = transactionConnection.prepareStatement(
+                "DELETE FROM student WHERE chat_id = ?;"
+        )) {
+            statement.setLong(1, chatId);
+            return 1 == statement.executeUpdate();
+        }
+    }
+
     public static boolean updateCompanyInfo(CompanyInfoUpdateArgs args, String eduStreamName) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     UPDATE student SET
                         status = ?,
                         practice_place = ?,
@@ -248,7 +278,8 @@ public class StudentRepository {
     }
 
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args, String eduStreamName) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     UPDATE student SET
                         status = ?,
                         practice_place = ?,
@@ -272,7 +303,8 @@ public class StudentRepository {
     }
 
     public static List<Student> exportAll(EduStream eduStream) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 UPDATE student
                 SET exported_at = now()
                 WHERE edu_stream_name = ?
@@ -291,7 +323,8 @@ public class StudentRepository {
     }
 
     public static int[] updateBatchByChatIdAndEduStreamName(List<Student> students) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     UPDATE student SET
                         isu = ?,
                         st_group = ?,
@@ -343,11 +376,10 @@ public class StudentRepository {
 
                 if (student.getTelegramUser() != null) {
                     statement.setLong(19, student.getTelegramUser().getChatId());
-                    statement.setLong(20, student.getTelegramUser().getChatId()); // второй параметр для проверки на
-                    // NULL
+                    statement.setLong(20, student.getTelegramUser().getChatId());
                 } else {
                     statement.setNull(19, Types.BIGINT);
-                    statement.setNull(20, Types.BIGINT); // второй параметр для проверки на NULL
+                    statement.setNull(20, Types.BIGINT);
                 }
 
                 statement.setInt(21, student.getIsu());
@@ -364,7 +396,8 @@ public class StudentRepository {
     }
 
     public static boolean updateSignedPhotoPath(long chatId, String eduStreamName, String photoPath) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "UPDATE student SET signed_photo_path = ?, status = ?, updated_at = now() WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setString(1, photoPath);
@@ -378,7 +411,8 @@ public class StudentRepository {
     }
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
-        try (var statement = connection.prepareStatement(
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
                 "UPDATE student SET application_bytes = ?, status = ? WHERE chat_id = ? AND edu_stream_name = ?;"
         )) {
             statement.setBytes(1, newBytes);
@@ -463,8 +497,8 @@ public class StudentRepository {
 
     public static void updateByIsuAndEduStream(List<Student> students) throws InternalException {
         String sql = "UPDATE student SET fullname = ?, st_group = ?, updated_at = now() WHERE isu = ? AND edu_stream_name = ?";
-        try (Connection conn = DatabaseManager.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (var connection = DatabaseManager.getConnection();
+             var ps = connection.prepareStatement(sql)) {
             for (Student s : students) {
                 ps.setString(1, s.getFullName());
                 ps.setString(2, s.getStGroup());
