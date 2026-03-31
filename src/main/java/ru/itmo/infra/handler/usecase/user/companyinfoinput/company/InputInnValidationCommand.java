@@ -47,8 +47,15 @@ public class InputInnValidationCommand implements UserCommand {
             ContextHolder.setNextCommand(chatId, innResponse.getCompanyName() == null
                     ? new AskingCompanyNameCommand()
                     : new AskingCompanyAddressCommand());
+            var text = innResponse.isNonSpbCompany() && innResponse.getCompanyName() != null
+                    ? "Компания не зарегистрирована в СПб. Не удалось определить адрес офиса в СПб."
+                    : (
+                            innResponse.getCompanyName() == null
+                            ? "Не удалось получить данные о компании через egrul.nalog.ru."
+                            : ""
+                    );
             return MessageToUser.builder()
-                    .text("")
+                    .text(text)
                     .build();
         }
 
@@ -56,20 +63,28 @@ public class InputInnValidationCommand implements UserCommand {
             ContextHolder.setCommandData(chatId, dto);
             ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
             return MessageToUser.builder()
-                    .text("")
+                    .text("Не удалось получить данные о компании через egrul.nalog.ru")
                     .build();
         }
+
+        var text = innResponse.isNonSpbCompany()
+                ? "Компания не зарегистрирована в СПб. Офис в СПб был найден."
+                : "Подтверждена регистрация компании в СПб";
+
+        text = dto.getPracticeFormat() != PracticeFormat.ONLINE
+                ? text
+                : "";
 
         if (!innResponse.isPresentInITMOAgreementFile()) {
             ContextHolder.setNextCommand(chatId, new AskingApproveNoContractCompanyCommand());
             return MessageToUser.builder()
-                    .text("")
+                    .text(text)
                     .build();
         }
 
         ContextHolder.setNextCommand(chatId, new AskingITMOPracticeLeadFullNameCommand());
         return MessageToUser.builder()
-                .text("")
+                .text(text)
                 .build();
     }
 
