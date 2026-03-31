@@ -282,6 +282,7 @@ public class StudentService {
                 } else {
                     resBuilder.companyName(companyName);
                     resBuilder.isSPB(regionName.equals("Г.Санкт-Петербург") || resBuilder.build().isSPB());
+                    resBuilder.nonSpbCompany(!regionName.equals("Г.Санкт-Петербург"));
                 }
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
