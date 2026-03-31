@@ -9,6 +9,7 @@ public class InnValidationResult {
     private long inn;
     private String companyName;
     private boolean userShouldProvideCompanyName;
+    private boolean nonSpbCompany;
     private boolean isPresentInITMOAgreementFile;
     private boolean isSPB;
     private String errorText;

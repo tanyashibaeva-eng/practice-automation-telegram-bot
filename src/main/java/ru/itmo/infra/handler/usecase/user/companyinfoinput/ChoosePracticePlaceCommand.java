@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
+import ru.itmo.application.PracticeOptionService;
 import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
@@ -11,6 +12,7 @@ import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ChoosePracticePlaceCommand implements UserCommand {
     @Override
@@ -56,15 +58,28 @@ public class ChoosePracticePlaceCommand implements UserCommand {
         replyKeyboardMarkupBuilder.oneTimeKeyboard(true);
 
         var keyboard = new ArrayList<KeyboardRow>();
-        var keyboardFirstRow = new KeyboardRow();
-        keyboardFirstRow.add("Практика у Маркиной Т.А");
-        keyboardFirstRow.add("Практика в ИТМО");
-        keyboard.add(keyboardFirstRow);
+        List<String> titles;
+        try {
+            titles = PracticeOptionService.getEnabledOptions()
+                    .stream()
+                    .map(o -> o.getTitle())
+                    .toList();
+        } catch (Exception e) {
+            titles = List.of();
+        }
 
-        var keyboardSecondRow = new KeyboardRow();
-        keyboardSecondRow.add("В сторонней компании");
-        keyboardSecondRow.add(returnIcon + " Вернуться в меню");
-        keyboard.add(keyboardSecondRow);
+        for (int i = 0; i < titles.size(); i += 2) {
+            var row = new KeyboardRow();
+            row.add(titles.get(i));
+            if (i + 1 < titles.size()) {
+                row.add(titles.get(i + 1));
+            }
+            keyboard.add(row);
+        }
+
+        var returnRow = new KeyboardRow();
+        returnRow.add(returnIcon + " Вернуться в меню");
+        keyboard.add(returnRow);
         replyKeyboardMarkupBuilder.keyboard(keyboard);
 
         return replyKeyboardMarkupBuilder.build();

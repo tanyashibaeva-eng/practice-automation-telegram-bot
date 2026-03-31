@@ -1,6 +1,7 @@
 package ru.itmo.domain.model;
 
 import lombok.*;
+import ru.itmo.application.ApprovedCompanyRegistryService;
 import ru.itmo.domain.dto.ExcelStudentDTO;
 import ru.itmo.domain.dto.ExcelStudentInfoDTO;
 import ru.itmo.domain.dto.ForceUpdateDTO;
@@ -8,6 +9,7 @@ import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.exception.InternalException;
 import ru.itmo.util.TextUtils;
 
 import java.sql.Timestamp;
@@ -258,6 +260,13 @@ public class Student {
     }
 
     private boolean isPracticeFormatValid(Long companyINN, PracticeFormat practiceFormat) {
+        try {
+            if (ApprovedCompanyRegistryService.hasOfficeInSaintPetersburg(companyINN)) {
+                return true;
+            }
+        } catch (InternalException ignored) {
+            // Fallback to the legacy prefix check if the registry is unavailable.
+        }
         if (companyINN.toString().startsWith("78")) {
             return true;
         }

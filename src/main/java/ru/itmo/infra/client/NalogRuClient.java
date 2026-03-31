@@ -13,6 +13,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -22,8 +23,10 @@ import java.nio.charset.StandardCharsets;
 @Log
 public class NalogRuClient {
     private static Long lastRequestTime = System.currentTimeMillis();   // Время последнего запроса к сайту
-    private static final Long REQUEST_TIME_PERIOD = 1500L;              // Период, выдерживаемый между запросами
-    private static final Integer CONNECTION_TIMEOUT = 2000;             // Таймаут для подключения к сайту
+    private static final Long REQUEST_TIME_PERIOD = 1700L;              // Период, выдерживаемый между запросами
+    private static final Integer CONNECTION_TIMEOUT = 3000;             // Таймаут для подключения к сайту
+    private static final Integer MAX_WAIT_STATUS_TIMES = 1;             // Количество сообщений status: wait, которое
+                                                                        // будет приниматься от egrul.nalog.ru
     private static final String BASE_URL = "https://egrul.nalog.ru/";
     private static final String POST_URL = BASE_URL;
     private static final String GET_URL_TEMPLATE = BASE_URL + "search-result/%s";
@@ -33,6 +36,7 @@ public class NalogRuClient {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setConnectTimeout(CONNECTION_TIMEOUT);
+        connection.setReadTimeout(CONNECTION_TIMEOUT);
         connection.setDoOutput(true);
         connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
@@ -59,6 +63,7 @@ public class NalogRuClient {
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(CONNECTION_TIMEOUT);
+        connection.setReadTimeout(CONNECTION_TIMEOUT);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
             String line;
@@ -94,6 +99,11 @@ public class NalogRuClient {
             lastRequestTime = System.currentTimeMillis();
         }
 
+        if (jsonResponse.has("status") && Objects.equals(jsonResponse.getString("status"), "wait")) {
+            log.severe("egrul.nalog.ru sent {\"status\":\"wait\"}");
+            return getCompanyInfoByInnAgain(inn, 1);
+        }
+
         try {
             JSONObject company;
             JSONArray rows = jsonResponse.getJSONArray("rows"); // массив с результатами
@@ -108,7 +118,66 @@ public class NalogRuClient {
 
             if (rows.length() == 1) {
                 company = rows.getJSONObject(0);
-                String companyName = company.getString("c");
+                String companyName = company.has("c") ? company.getString("c") : company.getString("n");
+                String region = company.getString("rn");
+                return new String[] { companyName, region };
+            } else {
+                return new String[] { null, null };
+            }
+        } catch (JSONException ex) {
+            return new String[] { null, null };
+        }
+    }
+
+    /**
+     * Метод для повторной попытки получения названия и региона регистрации компании по ИНН через запрос
+     * к egrul.nalog.ru, если был получен ответ {"status":"wait"}
+     * @param inn ИНН компании
+     * @param time Сколько раз уже был выполнен запрос по этому ИНН
+     * @return массив из названия и региона регистрации компании, если была найдена ровно одна подходящая компания,
+     * иначе массив из null
+     */
+    private static String[] getCompanyInfoByInnAgain(String inn, int time) throws IOException {
+        JSONObject jsonResponse;
+
+        synchronized(NalogRuClient.class) { // блок отправки запроса к сайту
+            Long time_bonus = (long) (Math.random() * 250L);    // надбавка ко времени, для динамичности времени между
+            // запросами
+
+            // Ожидание таймаута для нового запроса. Необходимо выдерживать для избежания появления капчи
+            while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {}
+
+            // следующие запросы могут вызвать ошибку, поэтому время обновляется до и после
+            lastRequestTime = System.currentTimeMillis();
+            String key = sendPostRequest(inn);
+            jsonResponse = sendGetRequest(key);
+            lastRequestTime = System.currentTimeMillis();
+        }
+
+        if (jsonResponse.has("status") && Objects.equals(jsonResponse.getString("status"), "wait")) {
+            if (time >= MAX_WAIT_STATUS_TIMES) {
+                return new String[] { null, null };
+            } else {
+                log.severe("egrul.nalog.ru sent {\"status\":\"wait\"}");
+                return getCompanyInfoByInnAgain(inn, time + 1);
+            }
+        }
+
+        try {
+            JSONObject company;
+            JSONArray rows = jsonResponse.getJSONArray("rows"); // массив с результатами
+            for (int i = rows.length() - 1; i >= 0; i--) {
+                company = rows.getJSONObject(i);
+                // поля e и v есть только у недействительных компаний
+                if (company.has("e") || company.has("v")) {
+                    rows.remove(i);
+                }
+            }
+
+
+            if (rows.length() == 1) {
+                company = rows.getJSONObject(0);
+                String companyName = company.has("c") ? company.getString("c") : company.getString("n");
                 String region = company.getString("rn");
                 return new String[] { companyName, region };
             } else {

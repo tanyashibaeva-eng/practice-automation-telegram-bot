@@ -121,6 +121,17 @@ public class CompanyService {
     public CompanyService() {
     }
 
+    private String normalizeINN(String INN) {
+        if (INN == null) {
+            return null;
+        }
+        String normalized = INN.trim();
+        if (normalized.matches("\\d{1,9}")) {
+            return "0".repeat(10 - normalized.length()) + normalized;
+        }
+        return normalized;
+    }
+
     private void validateINN(String INN) throws InvalidInnException {
         if (INN == null) {
             throw new InvalidInnException("INN is null");
@@ -132,6 +143,7 @@ public class CompanyService {
     }
 
     public CompanyRecord findCompanyRecordByINN(String INN) throws InvalidInnException, CompanyNotFoundException {
+        INN = normalizeINN(INN);
         validateINN(INN);
         lock.readLock().lock();
         try {
@@ -152,6 +164,7 @@ public class CompanyService {
         if (address == null || address.isBlank()) {
             throw new InvalidCompanyDataException("Address must be provided");
         }
+        INN = normalizeINN(INN);
         validateINN(INN);
         lock.writeLock().lock();
         try {
@@ -183,6 +196,7 @@ public class CompanyService {
 
     public void removeCompanyRecordByINN(String INN)
             throws InvalidInnException, CompanyNotFoundException, CsvWriteException {
+        INN = normalizeINN(INN);
         validateINN(INN);
         lock.writeLock().lock();
         try {

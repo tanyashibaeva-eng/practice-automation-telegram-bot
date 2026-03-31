@@ -6,6 +6,7 @@ import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
@@ -156,6 +157,10 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             return;
         }
 
+        if (response.isNeedRewriting()) {
+            deletePreviousRewriteMessage(chatId);
+        }
+
         if (response.getFileStream() == null) {
             sendMessage(response, chatId);
         } else {
@@ -245,6 +250,20 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
         try {
             telegramClient.execute(editMessage);
         } catch (TelegramApiException ex) {
+        }
+    }
+
+    private static void deletePreviousRewriteMessage(long chatId) {
+        int previous = ContextHolder.getLastMessageId(chatId);
+        if (previous <= 0) {
+            return;
+        }
+        try {
+            telegramClient.execute(DeleteMessage.builder()
+                    .chatId(String.valueOf(chatId))
+                    .messageId(previous)
+                    .build());
+        } catch (TelegramApiException ignored) {
         }
     }
 }
