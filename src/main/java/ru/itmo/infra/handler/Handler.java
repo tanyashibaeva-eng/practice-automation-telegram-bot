@@ -81,7 +81,6 @@ import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingLeadPho
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.AskingPracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoConfirmationCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.CompanyInfoSummaryCommand;
-import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputApproveNoContractCompanyCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyAddressCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCompanyNameCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.company.InputCorporateEmailCommand;
@@ -321,6 +320,11 @@ public class Handler {
         var rejectCommand = "/reject_company_request";
         if (commandName.startsWith(rejectCommand + "_")) {
             return rejectCommand;
+        }
+
+        var practiceOptionsCommand = "/practice_option_list";
+        if (commandName.startsWith(practiceOptionsCommand + "_")) {
+            return practiceOptionsCommand;
         }
 
         return commandName;

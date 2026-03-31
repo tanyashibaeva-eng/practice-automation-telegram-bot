@@ -14,36 +14,9 @@ public class AddPracticeOptionCommand implements AdminCommand {
         var text = message.getText() == null ? "" : message.getText().trim();
         var payload = text.replaceFirst("^/practice_option_add\\s*", "");
         if (payload.isBlank()) {
-            throw new BadRequestException("Формат: /practice_option_add <itmo|company|none> <название>");
+            throw new BadRequestException("Формат: /practice_option_add <название>");
         }
-        var parts = payload.split(" +", 2);
-        String mode;
-        String title;
-        if (parts.length == 1) {
-            mode = "company";
-            title = parts[0];
-        } else {
-            mode = parts[0].trim().toLowerCase();
-            title = parts[1].trim();
-        }
-        boolean requiresItmoInfo;
-        boolean requiresCompanyInfo;
-        switch (mode) {
-            case "itmo" -> {
-                requiresItmoInfo = true;
-                requiresCompanyInfo = false;
-            }
-            case "none" -> {
-                requiresItmoInfo = false;
-                requiresCompanyInfo = false;
-            }
-            case "company" -> {
-                requiresItmoInfo = false;
-                requiresCompanyInfo = true;
-            }
-            default -> throw new BadRequestException("Первый аргумент: itmo, company или none");
-        }
-        var option = PracticeOptionService.addOption(title, requiresItmoInfo, requiresCompanyInfo);
+        var option = PracticeOptionService.addOption(payload);
         return MessageToUser.builder()
                 .text("Добавлен вариант: id=%d, title=%s".formatted(option.getId(), option.getTitle()))
                 .build();
@@ -61,6 +34,6 @@ public class AddPracticeOptionCommand implements AdminCommand {
 
     @Override
     public String getDescription() {
-        return "Добавить место: /practice_option_add <itmo|company|none> <название>";
+        return "Добавить место: /practice_option_add <название>";
     }
 }

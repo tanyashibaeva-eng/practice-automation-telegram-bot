@@ -17,7 +17,7 @@ public class PracticeOptionService {
     }
 
     public static PracticeOption addOption(String title) throws InternalException, BadRequestException {
-        return addOption(title, false, true);
+        return addOption(title, false, false);
     }
 
     public static PracticeOption addOption(String title, boolean requiresItmoInfo, boolean requiresCompanyInfo) throws InternalException, BadRequestException {
