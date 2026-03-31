@@ -31,4 +31,9 @@ public class UpdateGroupStudentsCommand implements AdminCommand {
     public String getName() {
         return "/update_group_students";
     }
+
+    @Override
+    public String getDescription() {
+        return "Обновить состав студентов группы по номеру группы";
+    }
 }
