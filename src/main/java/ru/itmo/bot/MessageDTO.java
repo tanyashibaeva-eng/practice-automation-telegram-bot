@@ -20,6 +20,7 @@ public class MessageDTO {
      * Разметка входящего текста (Bot API: UTF-16 offsets). Для callback не заполняется.
      */
     private List<MessageEntity> entities;
+    private String photoFileId;
 
     public boolean hasDocument() {
         return document != null;
@@ -27,5 +28,9 @@ public class MessageDTO {
 
     public boolean hasText() {
         return text != null && !text.trim().isEmpty();
+    }
+
+    public boolean hasPhoto() {
+        return photoFileId != null && !photoFileId.isEmpty();
     }
 }

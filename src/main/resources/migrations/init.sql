@@ -382,3 +382,12 @@ CREATE TABLE IF NOT EXISTS cached_inn (
     region                  text                NOT NULL,
     cached_at               timestamp           NOT NULL DEFAULT now()
 );
+
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'APPLICATION_PHOTO_UPLOADED'
+                   AND enumtypid = (SELECT oid FROM pg_type WHERE typname = 'st_status')) THEN
+        ALTER TYPE st_status ADD VALUE 'APPLICATION_PHOTO_UPLOADED' AFTER 'APPLICATION_WAITING_SIGNING';
+    END IF;
+END $$;
+
+ALTER TABLE student ADD COLUMN IF NOT EXISTS signed_photo_path text DEFAULT NULL;

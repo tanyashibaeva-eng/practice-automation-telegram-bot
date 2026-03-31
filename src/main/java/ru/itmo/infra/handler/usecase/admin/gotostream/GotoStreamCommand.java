@@ -15,6 +15,7 @@ import ru.itmo.infra.handler.usecase.admin.AdminCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
+import ru.itmo.infra.handler.usecase.admin.updategroup.UpdateGroupStudentsCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 
 @NoArgsConstructor
@@ -80,6 +81,16 @@ public class GotoStreamCommand implements AdminCommand {
                                 .callbackData(
                                         CallbackData.builder()
                                                 .command(new DeleteStreamCommand().getName())
+                                                .build()
+                                                .toString()
+                                ).build()
+                ))
+                .keyboardRow(new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text(updateIcon + " Обновить список студентов в группе")
+                                .callbackData(
+                                        CallbackData.builder()
+                                                .command(new UpdateGroupStudentsCommand().getName())
                                                 .build()
                                                 .toString()
                                 ).build()

@@ -33,6 +33,8 @@ public class NotificationService {
     }
 
     public static void pingStudent(Student student) {
+        if (student.getTelegramUser() == null)
+            return;
         if (!statusRequiresPingSet.contains(student.getStatus()))
             return;
 
@@ -77,8 +79,11 @@ public class NotificationService {
                     !!! Уведомление от администратора !!!
                     Заявка о прохождении практики в сторонней компании была утверждена преподавателем. Вам необходимо отнести ее на подписание
                     """;
+            case APPLICATION_PHOTO_UPLOADED -> """
+                    !!! Уведомление от администратора !!!
+                    Фото подписанной заявки загружено. Ожидайте подтверждения от преподавателя.
+                    """;
             default -> null;
         };
     }
-
 }

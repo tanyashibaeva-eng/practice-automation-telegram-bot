@@ -37,6 +37,22 @@ public class CompanyServiceTest {
     }
 
     @Test
+    void findCompanyRecordByINN_restoresLeadingZeroForShortNumericInput(@TempDir Path tempDir) throws Exception {
+        Path csv = tempDir.resolve("companies.csv");
+        Files.write(csv, List.of(
+                "No;Name;RegNumber;Address;TaxId",
+                "1;Company A;123;Address A;0123456789"
+        ), StandardCharsets.UTF_8);
+        CompanyService service = new CompanyService(csv.toString());
+
+        CompanyRecord record = service.findCompanyRecordByINN("123456789");
+
+        assertEquals("Company A", record.getName());
+        assertEquals("Address A", record.getAddress());
+        assertEquals("0123456789", record.getINN());
+    }
+
+    @Test
     void addCompanyRecord_persistsToCsv(@TempDir Path tempDir) throws Exception {
         Path csv = createSampleCsv(tempDir);
         CompanyService service = new CompanyService(csv.toString());

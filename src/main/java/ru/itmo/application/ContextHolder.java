@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -27,10 +26,8 @@ public class ContextHolder {
     }
 
     public static void setNextCommand(Long chatId, Command command) {
-        if (!contextMap.containsKey(chatId)) {
-            contextMap.put(chatId, new HashMap<>());
-        }
-        contextMap.get(chatId).put(ContextHolderType.COMMAND, command);
+        contextMap.computeIfAbsent(chatId, k -> new ConcurrentHashMap<>())
+                .put(ContextHolderType.COMMAND, command);
     }
 
     public static String getEduStreamName(long chatId) throws UnknownUserException {
@@ -44,10 +41,8 @@ public class ContextHolder {
     }
 
     public static void setEduStreamName(Long chatId, String streamName) {
-        if (!contextMap.containsKey(chatId)) {
-            contextMap.put(chatId, new HashMap<>());
-        }
-        contextMap.get(chatId).put(ContextHolderType.EDU_STREAM_NAME, streamName);
+        contextMap.computeIfAbsent(chatId, k -> new ConcurrentHashMap<>())
+                .put(ContextHolderType.EDU_STREAM_NAME, streamName);
     }
 
     public static Object getCommandData(long chatId) throws UnknownUserException {
@@ -61,10 +56,8 @@ public class ContextHolder {
     }
 
     public static void setCommandData(Long chatId, Object commandData) {
-        if (!contextMap.containsKey(chatId)) {
-            contextMap.put(chatId, new HashMap<>());
-        }
-        contextMap.get(chatId).put(ContextHolderType.COMMAND_DATA, commandData);
+        contextMap.computeIfAbsent(chatId, k -> new ConcurrentHashMap<>())
+                .put(ContextHolderType.COMMAND_DATA, commandData);
     }
 
     public static Integer getLastMessageId(long chatId) {

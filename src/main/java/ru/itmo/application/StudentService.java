@@ -2,10 +2,7 @@ package ru.itmo.application;
 
 import lombok.extern.java.Log;
 import org.json.JSONException;
-import ru.itmo.domain.dto.ApplicationDTO;
-import ru.itmo.domain.dto.ExcelStudentDTO;
-import ru.itmo.domain.dto.FileStreamDTO;
-import ru.itmo.domain.dto.ForceUpdateDTO;
+import ru.itmo.domain.dto.*;
 import ru.itmo.domain.dto.command.*;
 import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.Student;
@@ -30,10 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Log
 public class StudentService {
@@ -372,6 +366,89 @@ public class StudentService {
         } catch (BadRequestException e) {
             return List.of(e.getMessage());
         }
+    }
+
+    public static UpdateResult updateGroupStudents(String groupNumber, String eduStreamName, File file) throws InternalException, BadRequestException {
+        EduStream eduStream;
+        try {
+            eduStream = new EduStream(eduStreamName);
+        } catch (BadRequestException e) {
+            throw new BadRequestException("Неверное имя потока: " + eduStreamName);
+        }
+        var existingStream = EduStreamRepository.findByName(eduStream);
+        if (existingStream.isEmpty()) {
+            throw new BadRequestException("Поток с названием " + eduStreamName + " не найден");
+        }
+        eduStream = existingStream.get();
+
+        List<ExcelStudentInfoDTO> parsedStudents;
+        try {
+            parsedStudents = ParserIsuXls.parseISUXls(file);
+        } catch (Exception e) {
+            throw new BadRequestException("Ошибка при чтении файла: " + e.getMessage());
+        }
+
+        List<String> errors = new ArrayList<>();
+        Map<Integer, ExcelStudentInfoDTO> fileStudentsByIsu = new HashMap<>();
+        for (var dto : parsedStudents) {
+            if (!dto.getErrors().isEmpty()) {
+                errors.add("Строка " + dto.getRow() + ": " + String.join(", ", dto.getErrors()));
+            } else {
+                if (!groupNumber.equals(dto.getGroup())) {
+                    errors.add("Строка " + dto.getRow() + ": группа в файле (" + dto.getGroup() + ") не совпадает с ожидаемой группой " + groupNumber);
+                }
+                fileStudentsByIsu.put(dto.getIsu(), dto);
+            }
+        }
+        if (!errors.isEmpty()) {
+            return UpdateResult.builder().errors(errors).build();
+        }
+
+        List<Student> existingStudents = StudentRepository.findAll(Filter.builder().eduStream(eduStream).build());
+        Map<Integer, Student> existingByIsu = new HashMap<>();
+        for (var s : existingStudents) {
+            existingByIsu.put(s.getIsu(), s);
+        }
+
+        int added = 0;
+        int updated = 0;
+        List<Student> studentsToInsert = new ArrayList<>();
+        List<Student> studentsToUpdate = new ArrayList<>();
+
+        for (Map.Entry<Integer, ExcelStudentInfoDTO> entry : fileStudentsByIsu.entrySet()) {
+            int isu = entry.getKey();
+            ExcelStudentInfoDTO dto = entry.getValue();
+            if (existingByIsu.containsKey(isu)) {
+                Student existing = existingByIsu.get(isu);
+                boolean needUpdate = false;
+                if (!existing.getFullName().equals(dto.getFullName())) {
+                    existing.setFullName(dto.getFullName());
+                    needUpdate = true;
+                }
+                if (!existing.getStGroup().equals(groupNumber)) {
+                    existing.setStGroup(groupNumber);
+                    needUpdate = true;
+                }
+                if (needUpdate) {
+                    studentsToUpdate.add(existing);
+                    updated++;
+                }
+            } else {
+                Student newStudent = new Student(dto, eduStream);
+                newStudent.setStGroup(groupNumber);
+                studentsToInsert.add(newStudent);
+                added++;
+            }
+        }
+
+        if (!studentsToInsert.isEmpty()) {
+            StudentRepository.saveBaseBatch(studentsToInsert);
+        }
+        if (!studentsToUpdate.isEmpty()) {
+            StudentRepository.updateByIsuAndEduStream(studentsToUpdate);
+        }
+
+        return UpdateResult.builder().added(added).updated(updated).errors(errors).build();
     }
 
 }

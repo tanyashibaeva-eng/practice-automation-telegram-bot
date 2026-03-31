@@ -5,7 +5,6 @@ import ru.itmo.exception.InternalException;
 import ru.itmo.infra.client.NalogRuClient;
 
 import java.io.IOException;
-import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -14,10 +13,9 @@ import java.sql.SQLException;
 @Log
 public class CachedInnRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static String findRegionByInn(String inn) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT region
                 FROM cached_inn
                 WHERE company_inn = ?;
@@ -37,7 +35,8 @@ public class CachedInnRepository {
     }
 
     public static String findNameByInn(String inn) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT name
                 FROM cached_inn
                 WHERE company_inn = ?;
@@ -57,7 +56,8 @@ public class CachedInnRepository {
     }
 
     public static void saveInn(String inn, String name, String region) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 INSERT INTO cached_inn (company_inn, name, region, cached_at)
                 VALUES (?, ?, ?, now())
                 """

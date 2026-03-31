@@ -20,6 +20,7 @@ public interface Command {
     String RemoveIcon = "\uD83D\uDDD1\uFE0F";
     String helpIcon = "\uD83D\uDCA1";
     String registerIcon = "\uD83C\uDD95";
+    String updateIcon = "\uD83D\uDD04";
 
     MessageToUser execute(MessageDTO message);
 

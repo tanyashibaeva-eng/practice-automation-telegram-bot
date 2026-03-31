@@ -54,6 +54,8 @@ import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
+import ru.itmo.infra.handler.usecase.admin.updategroup.UpdateGroupStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.viewstudentphoto.ViewStudentPhotoCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
@@ -112,6 +114,9 @@ import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistratio
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
 import ru.itmo.infra.storage.GuideRepository;
+import ru.itmo.infra.handler.usecase.user.uploadsignedphoto.UploadSignedPhotoStartCommand;
+import ru.itmo.infra.handler.usecase.user.uploadsignedphoto.UploadSignedPhotoHandleCommand;
+import ru.itmo.infra.handler.usecase.user.uploadsignedphoto.ViewSignedPhotoCommand;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -169,6 +174,10 @@ public class Handler {
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new StudentFilledApplicationCommand());
         commands.add(new UploadApplicationCommand());
+
+        commands.add(new UploadSignedPhotoStartCommand());
+        commands.add(new UploadSignedPhotoHandleCommand());
+        commands.add(new ViewSignedPhotoCommand());
 
         commands.add(new StudentRegistrationConfirmationCommand());
         commands.add(new StudentRegistrationISUCommand());
@@ -234,7 +243,9 @@ public class Handler {
         commands.add(new UnbanConfirmationCommand());
         commands.add(new UploadExcelCommand());
         commands.add(new UploadExcelHandleCommand());
+        commands.add(new ViewStudentPhotoCommand());
         commands.add(new GetStudentInfoCommand());
+        commands.add(new UpdateGroupStudentsCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -475,6 +486,8 @@ public class Handler {
         commands.add(new UploadApplicationCommand());
         commands.add(new StudentRegistrationStartCommand());
         commands.add(new StudentFilledApplicationCommand());
+        commands.add(new UploadSignedPhotoStartCommand());
+        commands.add(new ViewSignedPhotoCommand());
 
         // Фильтруем только те, которые доступны для текущего статуса.
         return commands.stream()
@@ -562,7 +575,9 @@ public class Handler {
                 new ListAdminsCommand(),
                 new UnbanCommand(),
                 new UploadExcelCommand(),
-                new GetStudentInfoCommand()
+                new GetStudentInfoCommand(),
+                new UpdateGroupStudentsCommand(),
+                new ViewStudentPhotoCommand()
         );
     }
 

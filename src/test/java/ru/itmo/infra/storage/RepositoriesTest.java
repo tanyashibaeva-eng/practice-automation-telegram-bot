@@ -77,6 +77,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     null,
+                    null,
                     false
             ),
             new Student(
@@ -101,6 +102,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     new byte[]{123, 98, 123, 0, 22},
+                    null,
                     false
             ),
             new Student(
@@ -125,6 +127,7 @@ public class RepositoriesTest {
                     null,
                     null,
                     new byte[]{0x14},
+                    null,
                     false
             )
     );
@@ -265,18 +268,17 @@ public class RepositoriesTest {
 
     @AfterAll
     static void teardown() throws SQLException {
-        Connection connection = DatabaseManager.getConnection();
-
-        try (var statement = connection.prepareStatement(
-                "TRUNCATE TABLE student, tg_user, edu_stream RESTART IDENTITY;"
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "TRUNCATE TABLE student, tg_user, edu_stream, admin_token RESTART IDENTITY CASCADE;"
         )) {
             statement.executeUpdate();
         }
     }
 
     public static void saveBatch(List<Student> students) throws InternalException, SQLException {
-        final Connection connection = DatabaseManager.getConnection();
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                     INSERT INTO student (
                         edu_stream_name,
                         isu,
