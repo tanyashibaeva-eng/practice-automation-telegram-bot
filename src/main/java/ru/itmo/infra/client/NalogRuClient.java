@@ -22,8 +22,8 @@ import java.nio.charset.StandardCharsets;
 @Log
 public class NalogRuClient {
     private static Long lastRequestTime = System.currentTimeMillis();   // Время последнего запроса к сайту
-    private static final Long REQUEST_TIME_PERIOD = 1500L;              // Период, выдерживаемый между запросами
-    private static final Integer CONNECTION_TIMEOUT = 2000;             // Таймаут для подключения к сайту
+    private static final Long REQUEST_TIME_PERIOD = 2000L;              // Период, выдерживаемый между запросами
+    private static final Integer CONNECTION_TIMEOUT = 3000;             // Таймаут для подключения к сайту
     private static final String BASE_URL = "https://egrul.nalog.ru/";
     private static final String POST_URL = BASE_URL;
     private static final String GET_URL_TEMPLATE = BASE_URL + "search-result/%s";
@@ -108,7 +108,7 @@ public class NalogRuClient {
 
             if (rows.length() == 1) {
                 company = rows.getJSONObject(0);
-                String companyName = company.getString("c");
+                String companyName = company.has("c") ? company.getString("c") : company.getString("n");
                 String region = company.getString("rn");
                 return new String[] { companyName, region };
             } else {
