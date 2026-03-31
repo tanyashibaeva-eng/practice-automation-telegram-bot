@@ -336,10 +336,9 @@ public class AuthorizationTest {
 
     @AfterAll
     static void teardown() throws SQLException {
-        Connection connection = DatabaseManager.getConnection();
-
-        try (var statement = connection.prepareStatement(
-                "TRUNCATE TABLE student, tg_user, edu_stream RESTART IDENTITY;"
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "TRUNCATE TABLE student, tg_user, edu_stream, admin_token RESTART IDENTITY CASCADE;"
         )) {
             statement.executeUpdate();
         }

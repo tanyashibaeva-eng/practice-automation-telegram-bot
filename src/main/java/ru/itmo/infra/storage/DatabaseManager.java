@@ -1,6 +1,5 @@
 package ru.itmo.infra.storage;
 
-import lombok.Getter;
 import lombok.extern.java.Log;
 import ru.itmo.util.PropertiesProvider;
 
@@ -16,22 +15,27 @@ public class DatabaseManager {
 
     private static final String INIT_SCRIPT_PATH = "src/main/resources/migrations/init.sql";
 
-    @Getter
-    private static final Connection connection;
-
     static {
-        connection = initializeConnection();
-
-        String sql = loadScript();
-        try (var statement = connection.createStatement()) {
-            statement.executeUpdate(sql);
+        try (Connection initConnection = createConnection()) {
+            String sql = loadScript();
+            try (var statement = initConnection.createStatement()) {
+                statement.executeUpdate(sql);
+            }
         } catch (SQLException ex) {
             log.severe(ex.getMessage());
-            throw new RuntimeException();
+            throw new RuntimeException(ex);
         }
     }
 
+    public static Connection getConnection() {
+        return createConnection();
+    }
+
     public static Connection initializeConnection() {
+        return createConnection();
+    }
+
+    private static Connection createConnection() {
         try {
             return DriverManager.getConnection(PropertiesProvider.getDsn());
         } catch (SQLException ex) {

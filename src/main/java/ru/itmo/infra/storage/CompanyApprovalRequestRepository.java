@@ -16,10 +16,9 @@ import java.util.Optional;
 @Log
 public class CompanyApprovalRequestRepository {
 
-    private static final java.sql.Connection connection = DatabaseManager.getConnection();
-
     public static long save(CompanyApprovalRequest request) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 INSERT INTO company_approval_request (
                     student_chat_id,
                     edu_stream_name,
@@ -50,7 +49,8 @@ public class CompanyApprovalRequestRepository {
     }
 
     public static boolean updatePendingDraft(CompanyApprovalRequest request) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 UPDATE company_approval_request
                 SET inn = ?,
                     company_name = ?,
@@ -82,7 +82,8 @@ public class CompanyApprovalRequestRepository {
     }
 
     public static Optional<CompanyApprovalRequest> findPendingByStudentChatIdAndEduStreamName(long studentChatId, String eduStreamName) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT * FROM company_approval_request
                 WHERE student_chat_id = ? AND edu_stream_name = ? AND status = 'PENDING';
                 """
@@ -97,7 +98,8 @@ public class CompanyApprovalRequestRepository {
     }
 
     public static Optional<CompanyApprovalRequest> findPendingById(long id) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT * FROM company_approval_request
                 WHERE id = ? AND status = 'PENDING';
                 """
@@ -111,7 +113,8 @@ public class CompanyApprovalRequestRepository {
     }
 
     public static List<CompanyApprovalRequest> findAllPending() throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT * FROM company_approval_request
                 WHERE status = 'PENDING'
                 ORDER BY created_at ASC;
@@ -125,7 +128,8 @@ public class CompanyApprovalRequestRepository {
     }
 
     public static boolean updateStatus(long id, CompanyApprovalRequestStatus status, Long processedByChatId) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 UPDATE company_approval_request
                 SET status = ?,
                     processed_by_chat_id = ?,

@@ -33,6 +33,8 @@ public class NotificationService {
     }
 
     public static void pingStudent(Student student) {
+        if (student.getTelegramUser() == null)
+            return;
         if (!statusRequiresPingSet.contains(student.getStatus()))
             return;
 

@@ -16,10 +16,9 @@ import java.util.Optional;
 @Log
 public class GuideRepository {
 
-    private static final Connection connection = DatabaseManager.getConnection();
-
     public static List<GuideSection> findAllActiveSectionsOrdered() throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, slug, title, menu_order, command, is_active
                 FROM guide_section
                 WHERE is_active = TRUE
@@ -37,7 +36,8 @@ public class GuideRepository {
     }
 
     public static Optional<GuideSection> findSectionById(int sectionId) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, slug, title, menu_order, command, is_active
                 FROM guide_section
                 WHERE id = ?;
@@ -54,7 +54,8 @@ public class GuideRepository {
     }
 
     public static Optional<GuideSection> findActiveSectionByCommand(String command) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, slug, title, menu_order, command, is_active
                 FROM guide_section
                 WHERE is_active = TRUE AND command = ?;
@@ -71,7 +72,8 @@ public class GuideRepository {
     }
 
     public static Optional<GuideSubsection> findSubsectionById(int id) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, section_id, title, body, prev_subsection_id, next_subsection_id, item_order
                 FROM guide_subsection
                 WHERE id = ?;
@@ -88,7 +90,8 @@ public class GuideRepository {
     }
 
     public static Optional<GuideSubsection> findFirstSubsectionBySectionId(int sectionId) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, section_id, title, body, prev_subsection_id, next_subsection_id, item_order
                 FROM guide_subsection
                 WHERE section_id = ?
@@ -108,7 +111,8 @@ public class GuideRepository {
 
     public static List<GuideSubsection> findSubsectionsBySectionIdExcept(int sectionId, int excludeSubsectionId)
             throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, section_id, title, body, prev_subsection_id, next_subsection_id, item_order
                 FROM guide_subsection
                 WHERE section_id = ? AND id <> ?
@@ -128,7 +132,8 @@ public class GuideRepository {
     }
 
     public static List<GuideSubsection> findSubsectionsBySectionOrdered(int sectionId) throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, section_id, title, body, prev_subsection_id, next_subsection_id, item_order
                 FROM guide_subsection
                 WHERE section_id = ?
@@ -147,7 +152,8 @@ public class GuideRepository {
     }
 
     public static void updateSubsectionBody(int subsectionId, String body) throws InternalException, BadRequestException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 UPDATE guide_subsection
                 SET body = ?, updated_at = now()
                 WHERE id = ?;
@@ -187,37 +193,36 @@ public class GuideRepository {
         GuideSubsection neighbor = neighborOpt.get();
         int ordA = cur.getItemOrder();
         int ordB = neighbor.getItemOrder();
-        int tempOrder = maxItemOrderInSection(cur.getSectionId()) + 1;
-        boolean oldAutoCommit;
-        try {
-            oldAutoCommit = connection.getAutoCommit();
-        } catch (SQLException e) {
-            throw handle(e);
-        }
-        try {
+        try (var connection = DatabaseManager.getConnection()) {
             connection.setAutoCommit(false);
-            setSubsectionItemOrder(cur.getId(), tempOrder);
-            setSubsectionItemOrder(neighbor.getId(), ordA);
-            setSubsectionItemOrder(cur.getId(), ordB);
-            connection.commit();
+            try {
+                int tempOrder = maxItemOrderInSection(connection, cur.getSectionId()) + 1;
+                setSubsectionItemOrder(connection, cur.getId(), tempOrder);
+                setSubsectionItemOrder(connection, neighbor.getId(), ordA);
+                setSubsectionItemOrder(connection, cur.getId(), ordB);
+                connection.commit();
+            } catch (SQLException ex) {
+                try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
+                throw handle(ex);
+            } catch (InternalException ex) {
+                try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
+                throw ex;
+            }
         } catch (SQLException ex) {
-            try {
-                connection.rollback();
-            } catch (SQLException rb) {
-                log.severe("GuideRepository rollback failed: " + rb.getMessage());
-            }
             throw handle(ex);
-        } finally {
-            try {
-                connection.setAutoCommit(oldAutoCommit);
-            } catch (SQLException ac) {
-                log.severe("GuideRepository setAutoCommit restore failed: " + ac.getMessage());
-            }
         }
         relinkSubsectionChains();
     }
 
     private static int maxItemOrderInSection(int sectionId) throws InternalException {
+        try (var connection = DatabaseManager.getConnection()) {
+            return maxItemOrderInSection(connection, sectionId);
+        } catch (SQLException ex) {
+            throw handle(ex);
+        }
+    }
+
+    private static int maxItemOrderInSection(Connection connection, int sectionId) throws InternalException {
         try (var statement = connection.prepareStatement("""
                 SELECT COALESCE(MAX(item_order), 0) AS m
                 FROM guide_subsection
@@ -235,6 +240,21 @@ public class GuideRepository {
     }
 
     private static void setSubsectionItemOrder(int subsectionId, int newOrder) throws SQLException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
+                UPDATE guide_subsection
+                SET item_order = ?
+                WHERE id = ?;
+                """)) {
+            statement.setInt(1, newOrder);
+            statement.setInt(2, subsectionId);
+            if (statement.executeUpdate() != 1) {
+                throw new SQLException("UPDATE guide_subsection item_order: expected 1 row, id=" + subsectionId);
+            }
+        }
+    }
+
+    private static void setSubsectionItemOrder(Connection connection, int subsectionId, int newOrder) throws SQLException {
         try (var statement = connection.prepareStatement("""
                 UPDATE guide_subsection
                 SET item_order = ?
@@ -249,6 +269,14 @@ public class GuideRepository {
     }
 
     public static void relinkSubsectionChains() throws InternalException {
+        try (var connection = DatabaseManager.getConnection()) {
+            relinkSubsectionChains(connection);
+        } catch (SQLException ex) {
+            throw handle(ex);
+        }
+    }
+
+    public static void relinkSubsectionChains(Connection connection) throws InternalException {
         try (var statement = connection.createStatement()) {
             statement.executeUpdate("""
                     UPDATE guide_subsection u SET
@@ -269,7 +297,8 @@ public class GuideRepository {
 
     private static Optional<GuideSubsection> findSubsectionBySectionAndItemOrder(int sectionId, int itemOrder)
             throws InternalException {
-        try (var statement = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
                 SELECT id, section_id, title, body, prev_subsection_id, next_subsection_id, item_order
                 FROM guide_subsection
                 WHERE section_id = ? AND item_order = ?;
@@ -288,50 +317,46 @@ public class GuideRepository {
 
     public static int insertSubsection(int sectionId, String title) throws InternalException {
         boolean isToc = ru.itmo.application.GuideService.TOC_SUBSECTION_TITLE.equals(title);
-        boolean oldAutoCommit;
-        try {
-            oldAutoCommit = connection.getAutoCommit();
-        } catch (SQLException e) {
-            throw handle(e);
-        }
-        try {
+        try (var connection = DatabaseManager.getConnection()) {
             connection.setAutoCommit(false);
-            if (isToc) {
-                try (var shift = connection.prepareStatement("""
-                        UPDATE guide_subsection SET item_order = item_order + 1
-                        WHERE section_id = ?;
+            try {
+                if (isToc) {
+                    try (var shift = connection.prepareStatement("""
+                            UPDATE guide_subsection SET item_order = item_order + 1
+                            WHERE section_id = ?;
+                            """)) {
+                        shift.setInt(1, sectionId);
+                        shift.executeUpdate();
+                    }
+                }
+                int insertOrder = isToc ? 1 : maxItemOrderInSection(connection, sectionId) + 1;
+                int newId;
+                try (var statement = connection.prepareStatement("""
+                        INSERT INTO guide_subsection (section_id, title, body, item_order)
+                        VALUES (?, ?, '', ?)
+                        RETURNING id;
                         """)) {
-                    shift.setInt(1, sectionId);
-                    shift.executeUpdate();
+                    statement.setInt(1, sectionId);
+                    statement.setString(2, title);
+                    statement.setInt(3, insertOrder);
+                    var rs = statement.executeQuery();
+                    if (!rs.next()) {
+                        throw new InternalException("Не удалось создать подраздел", null);
+                    }
+                    newId = rs.getInt(1);
                 }
+                connection.commit();
+                relinkSubsectionChains();
+                return newId;
+            } catch (InternalException ex) {
+                try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
+                throw ex;
+            } catch (SQLException ex) {
+                try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
+                throw handle(ex);
             }
-            int insertOrder = isToc ? 1 : maxItemOrderInSection(sectionId) + 1;
-            int newId;
-            try (var statement = connection.prepareStatement("""
-                    INSERT INTO guide_subsection (section_id, title, body, item_order)
-                    VALUES (?, ?, '', ?)
-                    RETURNING id;
-                    """)) {
-                statement.setInt(1, sectionId);
-                statement.setString(2, title);
-                statement.setInt(3, insertOrder);
-                var rs = statement.executeQuery();
-                if (!rs.next()) {
-                    throw new InternalException("Не удалось создать подраздел", null);
-                }
-                newId = rs.getInt(1);
-            }
-            connection.commit();
-            relinkSubsectionChains();
-            return newId;
-        } catch (InternalException ex) {
-            try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
-            throw ex;
         } catch (SQLException ex) {
-            try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
             throw handle(ex);
-        } finally {
-            try { connection.setAutoCommit(oldAutoCommit); } catch (SQLException ac) { log.severe("GuideRepository setAutoCommit restore failed: " + ac.getMessage()); }
         }
     }
 
@@ -341,45 +366,33 @@ public class GuideRepository {
             throw new BadRequestException("Подраздел не найден");
         }
         int sectionId = subOpt.get().getSectionId();
-        boolean oldAutoCommit;
-        try {
-            oldAutoCommit = connection.getAutoCommit();
-        } catch (SQLException e) {
-            throw handle(e);
-        }
-        try {
+        try (var connection = DatabaseManager.getConnection()) {
             connection.setAutoCommit(false);
-            try (var del = connection.prepareStatement("DELETE FROM guide_subsection WHERE id = ?")) {
-                del.setInt(1, subsectionId);
-                del.executeUpdate();
+            try {
+                try (var del = connection.prepareStatement("DELETE FROM guide_subsection WHERE id = ?")) {
+                    del.setInt(1, subsectionId);
+                    del.executeUpdate();
+                }
+                try (var cmp = connection.prepareStatement("""
+                        UPDATE guide_subsection u
+                        SET item_order = o.new_order
+                        FROM (
+                            SELECT id, ROW_NUMBER() OVER (ORDER BY item_order) AS new_order
+                            FROM guide_subsection
+                            WHERE section_id = ?
+                        ) o
+                        WHERE u.id = o.id;
+                        """)) {
+                    cmp.setInt(1, sectionId);
+                    cmp.executeUpdate();
+                }
+                connection.commit();
+            } catch (SQLException ex) {
+                try { connection.rollback(); } catch (SQLException rb) { log.severe("GuideRepository rollback failed: " + rb.getMessage()); }
+                throw handle(ex);
             }
-            try (var cmp = connection.prepareStatement("""
-                    UPDATE guide_subsection u
-                    SET item_order = o.new_order
-                    FROM (
-                        SELECT id, ROW_NUMBER() OVER (ORDER BY item_order) AS new_order
-                        FROM guide_subsection
-                        WHERE section_id = ?
-                    ) o
-                    WHERE u.id = o.id;
-                    """)) {
-                cmp.setInt(1, sectionId);
-                cmp.executeUpdate();
-            }
-            connection.commit();
         } catch (SQLException ex) {
-            try {
-                connection.rollback();
-            } catch (SQLException rb) {
-                log.severe("GuideRepository rollback failed: " + rb.getMessage());
-            }
             throw handle(ex);
-        } finally {
-            try {
-                connection.setAutoCommit(oldAutoCommit);
-            } catch (SQLException ac) {
-                log.severe("GuideRepository setAutoCommit restore failed: " + ac.getMessage());
-            }
         }
         relinkSubsectionChains();
     }
