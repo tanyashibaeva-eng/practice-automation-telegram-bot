@@ -38,9 +38,22 @@ public class ApprovedCompanyRegistryService {
     public static boolean hasOfficeInSaintPetersburg(long inn) throws InternalException {
         try {
             getCompanyService().findCompanyRecordByINN(Long.toString(inn));
+            getCompanyService().findCompanyRecordByINN(Long.toString(inn)).getName();
             return true;
         } catch (CompanyNotFoundException e) {
             return false;
+        } catch (CompanyServiceException e) {
+            log.severe("Failed to check Saint Petersburg office presence: " + e.getMessage());
+            throw new InternalException("Не удалось проверить наличие офиса компании в Санкт-Петербурге", e);
+        }
+    }
+
+    public static String getCompanyName(long inn) throws InternalException {
+        try {
+            var record = getCompanyService().findCompanyRecordByINN(Long.toString(inn));
+            return (record != null) ? record.getName() : null;
+        } catch (CompanyNotFoundException e) {
+            return null;
         } catch (CompanyServiceException e) {
             log.severe("Failed to check Saint Petersburg office presence: " + e.getMessage());
             throw new InternalException("Не удалось проверить наличие офиса компании в Санкт-Петербурге", e);

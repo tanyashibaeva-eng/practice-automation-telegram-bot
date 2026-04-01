@@ -27,10 +27,7 @@ public class InputCompanyNameCommand implements UserCommand {
 
         ContextHolder.setCommandData(chatId, dto);
 
-        if (
-                dto.getPracticeFormat() != PracticeFormat.ONLINE
-                && dto.isRequiresSpbOfficeApproval()
-        ) {
+        if (dto.getPracticeFormat() != PracticeFormat.ONLINE) {
             ContextHolder.setNextCommand(chatId, new AskingCompanyAddressCommand());
         } else {
             ContextHolder.setNextCommand(chatId, dto.isPresentInITMOAgreementFile()

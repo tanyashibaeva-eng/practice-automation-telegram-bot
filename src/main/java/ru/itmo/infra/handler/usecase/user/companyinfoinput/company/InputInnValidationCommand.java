@@ -63,7 +63,7 @@ public class InputInnValidationCommand implements UserCommand {
             ContextHolder.setCommandData(chatId, dto);
             ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
             return MessageToUser.builder()
-                    .text("Не удалось получить данные о компании через egrul.nalog.ru. Офис в СПб был найден.")
+                    .text("Не удалось получить данные о компании.")
                     .build();
         }
 
