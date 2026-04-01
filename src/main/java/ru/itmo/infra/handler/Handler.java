@@ -72,6 +72,7 @@ import ru.itmo.infra.handler.usecase.admin.viewstudentphoto.ViewStudentPhotoComm
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChangePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ErrorCompanyInputCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
@@ -177,6 +178,7 @@ public class Handler {
         commands.add(new InputITMOStudentLeadFullNameCommand());
 
         commands.add(new ChoosePracticePlaceCommand());
+        commands.add(new ChangePracticePlaceCommand());
         commands.add(new ErrorCompanyInputCommand());
         commands.add(new InfoSubmittedCommand());
         commands.add(new PracticeConfirmationCommand());
@@ -518,6 +520,7 @@ public class Handler {
         List<Command> commands = new ArrayList<>();
 
         commands.add(new ChoosePracticePlaceCommand());
+        commands.add(new ChangePracticePlaceCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new UploadApplicationCommand());
         commands.add(new StudentRegistrationStartCommand());
