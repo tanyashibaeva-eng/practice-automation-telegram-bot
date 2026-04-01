@@ -21,8 +21,8 @@ class StudentTest {
     void testValidUpdate() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.NOT_SPECIFIED,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.NOT_SPECIFIED,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null
                 , null, false
         );
@@ -30,7 +30,7 @@ class StudentTest {
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -46,15 +46,15 @@ class StudentTest {
     void testInvalidPhoneNumber() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "123456789L0", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -67,15 +67,15 @@ class StudentTest {
     void testInvalidPracticeFormat() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.OFFLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -88,15 +88,15 @@ class StudentTest {
     void testInvalidStatusTransition() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_WAITING_APPROVAL,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -109,13 +109,13 @@ class StudentTest {
     void testMissingRequiredFields() {
         Student student = new Student(
                 null, null, 0, null, null, StudentStatus.REGISTERED,
-                null, null, null, null, null, null, null, null, null, null, null, false, timestamp1, timestamp2, null, null, false
+                null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 0, null, null, StudentStatus.REGISTERED,
-                null, null, null, null, null, null, null, null, null, null, "#FFFFFF", null
+                null, null, null, null, null, null, null, null, null, null, null, null, "#FFFFFF", null
         );
 
         List<String> errors = student.updateOrGetErrors(dto);
@@ -126,15 +126,15 @@ class StudentTest {
     void testInvalidCompanyINNForNonPetersburgCompany() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.OFFLINE, 100000000L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -147,15 +147,15 @@ class StudentTest {
     void testValidPracticeFormatForPetersburgCompany() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.ONLINE, 781234567L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -168,15 +168,15 @@ class StudentTest {
     void testMissingStudentGroup() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, null, "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -189,15 +189,15 @@ class StudentTest {
     void testInvalidStatusChange() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_WAITING_APPROVAL,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -210,15 +210,15 @@ class StudentTest {
     void testValidStatusChange() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_WAITING_APPROVAL,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.COMPANY_INFO_RETURNED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -232,15 +232,15 @@ class StudentTest {
     void testPracticePlace() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", null
         );
@@ -253,15 +253,15 @@ class StudentTest {
     void testMissingCompanyLeadFullName() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_UNIVERSITY,
                 null, null, null, null, null, null, null, null, null
         );
 
@@ -273,15 +273,15 @@ class StudentTest {
     void testValidPhoneNumber() {
         Student student = new Student(
                 null, null, 12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                "Комментарий", "Комментарий звонка", PracticePlace.NOT_SPECIFIED,
-                PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.NOT_SPECIFIED,
+                PracticeFormat.ONLINE, null, null, null, 123456789L, "Компания", "Руководитель",
                 "+7 123 456 7890", "lead@company.com", "Руководитель", "#FFFFFF", false, timestamp1, timestamp2, null, null, false
         );
 
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
+                "applications", "notifications", "Комментарий", "Комментарий звонка", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.ONLINE, 123456789L, "Компания", "Руководитель",
                 "+7 987 654 3210", "lead@company.com", "Руководитель", "#FFFFFF", null
         );

@@ -54,7 +54,7 @@ public class HelpCommand implements UserCommand {
 
         for (var cmd : commands) {
             String name = cmd.getName();
-            if (name != null && !name.isBlank()) {
+            if (name != null && !name.isBlank() && !cmd.getDescription().isBlank()) {
                 helpMessages.add("- " + name + ": " + cmd.getDescription() + "\n");
             }
         }

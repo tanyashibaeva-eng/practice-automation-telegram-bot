@@ -25,6 +25,8 @@ public class ParserTest {
             "Группа",
             "ФИО",
             "Статус",
+            "Заявка",
+            "Уведомления",
             "Комментарий",
             "Комментарий по звонкам руководителю",
             "Место практики",
@@ -66,16 +68,18 @@ public class ParserTest {
         dataRow.createCell(2).setCellValue("Group1");
         dataRow.createCell(3).setCellValue("John Doe");
         dataRow.createCell(4).setCellValue("Зарегистрирован");
-        dataRow.createCell(5).setCellValue("No comment");
-        dataRow.createCell(6).setCellValue("didn't answer");
-        dataRow.createCell(7).setCellValue("Практика в ИТМО");
-        dataRow.createCell(8).setCellValue("Онлайн");
-        dataRow.createCell(9).setCellValue(123456789);
-        dataRow.createCell(10).setCellValue("Company1");
-        dataRow.createCell(11).setCellValue("Jane Doe");
-        dataRow.createCell(12).setCellValue("+7 925 123 45 67");
-        dataRow.createCell(13).setCellValue("jane.doe@example.com");
-        dataRow.createCell(14).setCellValue("Manager");
+        dataRow.createCell(5).setCellValue("Заявка");
+        dataRow.createCell(6).setCellValue("Уведомления");
+        dataRow.createCell(7).setCellValue("No comment");
+        dataRow.createCell(8).setCellValue("didn't answer");
+        dataRow.createCell(9).setCellValue("Практика в ИТМО");
+        dataRow.createCell(10).setCellValue("Онлайн");
+        dataRow.createCell(11).setCellValue(123456789);
+        dataRow.createCell(12).setCellValue("Company1");
+        dataRow.createCell(13).setCellValue("Jane Doe");
+        dataRow.createCell(14).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(15).setCellValue("jane.doe@example.com");
+        dataRow.createCell(16).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
@@ -94,6 +98,8 @@ public class ParserTest {
         assertEquals("Group1", student.getStGroup());
         assertEquals("John Doe", student.getFullName());
         assertEquals(StudentStatus.REGISTERED, student.getStatus());
+        assertEquals("Заявка", student.getApplication());
+        assertEquals("Уведомления", student.getNotifications());
         assertEquals("No comment", student.getComments());
         assertEquals("didn't answer", student.getCallStatusComments());
         assertEquals(PracticePlace.ITMO_MARKINA, student.getPracticePlace());
@@ -143,16 +149,18 @@ public class ParserTest {
         dataRow.createCell(1).setCellValue("Group1");
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("A");
-        dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("ITMO_MARKINA");
-        dataRow.createCell(7).setCellValue("NOT_SPECIFIED");
-        dataRow.createCell(8).setCellValue(123456789);
-        dataRow.createCell(9).setCellValue("Company1");
-        dataRow.createCell(10).setCellValue("Jane Doe");
-        dataRow.createCell(11).setCellValue("+7 (925) 123-45-67");
-        dataRow.createCell(12).setCellValue("jane.doe@example.com");
-        dataRow.createCell(13).setCellValue("Manager");
+        dataRow.createCell(4).setCellValue("Заявка");
+        dataRow.createCell(5).setCellValue("Уведомления");
+        dataRow.createCell(6).setCellValue("No comment");
+        dataRow.createCell(7).setCellValue("didn't answer");
+        dataRow.createCell(8).setCellValue("ITMO_MARKINA");
+        dataRow.createCell(9).setCellValue("NOT_SPECIFIED");
+        dataRow.createCell(10).setCellValue(123456789);
+        dataRow.createCell(11).setCellValue("Company1");
+        dataRow.createCell(12).setCellValue("Jane Doe");
+        dataRow.createCell(13).setCellValue("+7 (925) 123-45-67");
+        dataRow.createCell(14).setCellValue("jane.doe@example.com");
+        dataRow.createCell(15).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file-with-errors", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
@@ -183,15 +191,17 @@ public class ParserTest {
         dataRow.createCell(1).setCellValue("Group1");
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("Зарегистрирован");
-        dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("Практика в ИТМО");
-        dataRow.createCell(8).setCellValue(123456789);
-        dataRow.createCell(9).setCellValue("Company1");
-        dataRow.createCell(10).setCellValue("Jane Doe");
-        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
-        dataRow.createCell(12).setCellValue("jane.doe@example.com");
-        dataRow.createCell(13).setCellValue("Manager");
+        dataRow.createCell(4).setCellValue("Заявка");
+        dataRow.createCell(5).setCellValue("Уведомления");
+        dataRow.createCell(6).setCellValue("No comment");
+        dataRow.createCell(7).setCellValue("didn't answer");
+        dataRow.createCell(8).setCellValue("Практика в ИТМО");
+        dataRow.createCell(9).setCellValue(123456789);
+        dataRow.createCell(10).setCellValue("Company1");
+        dataRow.createCell(11).setCellValue("Jane Doe");
+        dataRow.createCell(12).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(13).setCellValue("jane.doe@example.com");
+        dataRow.createCell(14).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file-with-empty-values", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
@@ -222,15 +232,17 @@ public class ParserTest {
         dataRow.createCell(1).setCellValue("Group1");
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("InvalidStatus");
-        dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("Практика в ИТМО");
-        dataRow.createCell(8).setCellValue(123456789);
-        dataRow.createCell(9).setCellValue("Company1");
-        dataRow.createCell(10).setCellValue("Jane Doe");
-        dataRow.createCell(11).setCellValue("+7 925 123 45 67");
-        dataRow.createCell(12).setCellValue("jane.doe@example.com");
-        dataRow.createCell(13).setCellValue("Manager");
+        dataRow.createCell(4).setCellValue("Заявка");
+        dataRow.createCell(5).setCellValue("Уведомления");
+        dataRow.createCell(6).setCellValue("No comment");
+        dataRow.createCell(7).setCellValue("didn't answer");
+        dataRow.createCell(8).setCellValue("Практика в ИТМО");
+        dataRow.createCell(9).setCellValue(123456789);
+        dataRow.createCell(10).setCellValue("Company1");
+        dataRow.createCell(11).setCellValue("Jane Doe");
+        dataRow.createCell(12).setCellValue("+7 925 123 45 67");
+        dataRow.createCell(13).setCellValue("jane.doe@example.com");
+        dataRow.createCell(14).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file-invalid-status", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {
@@ -265,15 +277,17 @@ public class ParserTest {
         dataRow.createCell(1).setCellValue("Group1");
         dataRow.createCell(2).setCellValue("John Doe");
         dataRow.createCell(3).setCellValue("Зарегистрирован");
-        dataRow.createCell(4).setCellValue("No comment");
-        dataRow.createCell(5).setCellValue("didn't answer");
-        dataRow.createCell(6).setCellValue("Практика в ИТМО");
-        dataRow.createCell(8).setCellValue(123456789);
-        dataRow.createCell(9).setCellValue("Company1");
-        dataRow.createCell(10).setCellValue("Jane Doe");
-        dataRow.createCell(11).setCellValue("12345");
-        dataRow.createCell(12).setCellValue("jane.doe@example.com");
-        dataRow.createCell(13).setCellValue("Manager");
+        dataRow.createCell(4).setCellValue("Заявка");
+        dataRow.createCell(5).setCellValue("Уведомления");
+        dataRow.createCell(6).setCellValue("No comment");
+        dataRow.createCell(7).setCellValue("didn't answer");
+        dataRow.createCell(8).setCellValue("Практика в ИТМО");
+        dataRow.createCell(9).setCellValue(123456789);
+        dataRow.createCell(10).setCellValue("Company1");
+        dataRow.createCell(11).setCellValue("Jane Doe");
+        dataRow.createCell(12).setCellValue("12345");
+        dataRow.createCell(13).setCellValue("jane.doe@example.com");
+        dataRow.createCell(14).setCellValue("Manager");
 
         var testFile = File.createTempFile("test-file-invalid-phone", ".xlsx");
         try (var fos = new FileOutputStream(testFile)) {

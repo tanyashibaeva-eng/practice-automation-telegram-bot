@@ -14,6 +14,7 @@ import ru.itmo.infra.docx.DocxGenerator;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.GoogleSheetsExporter;
 import ru.itmo.infra.excel.Parser;
+import ru.itmo.infra.handler.usecase.admin.configureexport.StudentColumn;
 import ru.itmo.infra.html.ParserIsuXls;
 import ru.itmo.infra.storage.CachedInnRepository;
 import ru.itmo.infra.storage.EduStreamRepository;
@@ -264,6 +265,25 @@ public class StudentService {
         }
 
         return Generator.generateExcel(groupToStudents, groups, eduStream);
+    }
+
+    public static FileStreamDTO customExportStudentsToExcel(String eduStreamName, Set<StudentColumn> selectedColumns) throws InternalException, BadRequestException {
+        var eduStream = new EduStream(eduStreamName);
+        var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
+        var students = StudentRepository.exportAll(eduStream);
+        var groupToStudents = new HashMap<String, List<Student>>();
+
+        for (var s : students) {
+            if (!groupToStudents.containsKey(s.getStGroup())) {
+                groupToStudents.put(s.getStGroup(), new ArrayList<>());
+            }
+            groupToStudents.get(s.getStGroup()).add(s);
+        }
+        var orderedColumns = Arrays.stream(StudentColumn.values())
+                .filter(selectedColumns::contains)
+                .toList();
+
+        return Generator.generateExcel(groupToStudents, groups, eduStream, orderedColumns);
     }
 
     public static IsuValidationResult validateIsu(String isuText, String eduStreamName) throws InternalException {

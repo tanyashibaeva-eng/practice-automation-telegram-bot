@@ -14,6 +14,8 @@ public class ExcelStudentDTO {
     private String stGroup;
     private String fullName;
     private StudentStatus status;
+    private String application;
+    private String notifications;
     private String comments;
     private String callStatusComments;
     private PracticePlace practicePlace;

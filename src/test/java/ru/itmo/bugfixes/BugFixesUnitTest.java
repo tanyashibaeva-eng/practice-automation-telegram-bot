@@ -163,7 +163,7 @@ class BugFixesUnitTest {
             ExcelStudentDTO dto = new ExcelStudentDTO(
                     12345L,
                     12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                    "", "", PracticePlace.NOT_SPECIFIED,
+                    "", "", "", "", PracticePlace.NOT_SPECIFIED,
                     PracticeFormat.NOT_SPECIFIED, null, null, null,
                     null, null, null, "FFFFFF", null
             );
@@ -185,7 +185,7 @@ class BugFixesUnitTest {
             ExcelStudentDTO dto = new ExcelStudentDTO(
                     12345L,
                     12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                    "", "", PracticePlace.NOT_SPECIFIED,
+                    "", "", "", "", PracticePlace.NOT_SPECIFIED,
                     PracticeFormat.NOT_SPECIFIED, null, null, null,
                     null, null, null, "FFFFFF", null
             );
@@ -206,7 +206,7 @@ class BugFixesUnitTest {
             ExcelStudentDTO dto = new ExcelStudentDTO(
                     12345L,
                     12345, "A1", "Иванов Иван", StudentStatus.REGISTERED,
-                    "", "", PracticePlace.NOT_SPECIFIED,
+                    "", "", "", "", PracticePlace.NOT_SPECIFIED,
                     PracticeFormat.NOT_SPECIFIED, null, null, null,
                     null, null, null, "FFFFFF", null
             );
@@ -231,7 +231,7 @@ class BugFixesUnitTest {
             ExcelStudentDTO dto = new ExcelStudentDTO(
                     12345L,
                     12345, "A1", "Иванов Иван", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                    "", "", PracticePlace.ITMO_MARKINA,
+                    "", "", "", "", PracticePlace.ITMO_MARKINA,
                     PracticeFormat.NOT_SPECIFIED, null, null, null,
                     null, null, null, "FFFFFF", null
             );

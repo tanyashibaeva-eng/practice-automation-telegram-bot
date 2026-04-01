@@ -28,6 +28,8 @@ public class Parser {
             "Группа",
             "ФИО",
             "Статус",
+            "Заявка",
+            "Уведомления",
             "Комментарий",
             "Комментарий по звонкам руководителю",
             "Место практики",
@@ -119,16 +121,18 @@ public class Parser {
                 var group = parseString(row.getCell(2), errorsByRows, false);
                 var fullName = parseString(row.getCell(3), errorsByRows, false);
                 var status = parseStatus(row.getCell(4), errorsByRows);
-                var comment = parseString(row.getCell(5), errorsByRows, true);
-                var callStatusComments = parseString(row.getCell(6), errorsByRows, true);
-                var practicePlace = parsePracticePlace(row.getCell(7), errorsByRows);
-                var practiceFormat = parsePracticeFormat(row.getCell(8), errorsByRows);
-                var companyINN = parseLong(row.getCell(9), errorsByRows, true);
-                var companyName = parseString(row.getCell(10), errorsByRows, true);
-                var leadFullName = parseString(row.getCell(11), errorsByRows, true);
-                var leadPhone = parsePhone(row.getCell(12), errorsByRows, true);
-                var leadEmail = parseEmail(row.getCell(13), errorsByRows, true);
-                var leadJobTitle = parseString(row.getCell(14), errorsByRows, true);
+                var application = parseString(row.getCell(5), errorsByRows, true);
+                var notifications = parseString(row.getCell(6), errorsByRows, true);
+                var comment = parseString(row.getCell(7), errorsByRows, true);
+                var callStatusComments = parseString(row.getCell(8), errorsByRows, true);
+                var practicePlace = parsePracticePlace(row.getCell(9), errorsByRows);
+                var practiceFormat = parsePracticeFormat(row.getCell(10), errorsByRows);
+                var companyINN = parseLong(row.getCell(11), errorsByRows, true);
+                var companyName = parseString(row.getCell(12), errorsByRows, true);
+                var leadFullName = parseString(row.getCell(13), errorsByRows, true);
+                var leadPhone = parsePhone(row.getCell(14), errorsByRows, true);
+                var leadEmail = parseEmail(row.getCell(15), errorsByRows, true);
+                var leadJobTitle = parseString(row.getCell(16), errorsByRows, true);
                 var cellHexColor = parseCellColor(row.getCell(3));
 
                 if (cellHexColor.isEmpty() || cellHexColor.equals("0") || cellHexColor.equals("000000")) {
@@ -141,6 +145,8 @@ public class Parser {
                         group,
                         fullName,
                         status,
+                        application,
+                        notifications,
                         comment,
                         callStatusComments,
                         practicePlace,
