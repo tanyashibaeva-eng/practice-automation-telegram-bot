@@ -8,6 +8,7 @@ import lombok.Getter;
 public class InnValidationResult {
     private long inn;
     private String companyName;
+    private String companyAddress;
     private boolean userShouldProvideCompanyName;
     private boolean nonSpbCompany;
     private boolean isPresentInITMOAgreementFile;

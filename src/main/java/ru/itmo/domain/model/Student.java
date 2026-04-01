@@ -265,7 +265,8 @@ public class Student {
                 return true;
             }
         } catch (InternalException ignored) {
-            // Fallback to the legacy prefix check if the registry is unavailable.
+            // Avoid a false validation error when the registry is temporarily unavailable.
+            return true;
         }
         if (companyINN.toString().startsWith("78")) {
             return true;

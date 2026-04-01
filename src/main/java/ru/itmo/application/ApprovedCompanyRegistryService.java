@@ -10,6 +10,7 @@ import se.ifmo.ru.exception.CsvReadException;
 import se.ifmo.ru.exception.CsvWriteException;
 import se.ifmo.ru.exception.InvalidCompanyDataException;
 import se.ifmo.ru.exception.InvalidInnException;
+import se.ifmo.ru.parser.CompanyRecord;
 import se.ifmo.ru.service.CompanyService;
 
 import java.nio.file.Files;
@@ -36,28 +37,17 @@ public class ApprovedCompanyRegistryService {
     }
 
     public static boolean hasOfficeInSaintPetersburg(long inn) throws InternalException {
-        try {
-            getCompanyService().findCompanyRecordByINN(Long.toString(inn));
-            getCompanyService().findCompanyRecordByINN(Long.toString(inn)).getName();
-            return true;
-        } catch (CompanyNotFoundException e) {
-            return false;
-        } catch (CompanyServiceException e) {
-            log.severe("Failed to check Saint Petersburg office presence: " + e.getMessage());
-            throw new InternalException("Не удалось проверить наличие офиса компании в Санкт-Петербурге", e);
-        }
+        return findCompanyRecord(inn) != null;
     }
 
     public static String getCompanyName(long inn) throws InternalException {
-        try {
-            var record = getCompanyService().findCompanyRecordByINN(Long.toString(inn));
-            return (record != null) ? record.getName() : null;
-        } catch (CompanyNotFoundException e) {
-            return null;
-        } catch (CompanyServiceException e) {
-            log.severe("Failed to check Saint Petersburg office presence: " + e.getMessage());
-            throw new InternalException("Не удалось проверить наличие офиса компании в Санкт-Петербурге", e);
-        }
+        CompanyRecord companyRecord = findCompanyRecord(inn);
+        return companyRecord == null ? null : companyRecord.getName();
+    }
+
+    public static String getCompanyAddress(long inn) throws InternalException {
+        CompanyRecord companyRecord = findCompanyRecord(inn);
+        return companyRecord == null ? null : companyRecord.getAddress();
     }
 
     public static void saveApprovedCompany(CompanyApprovalRequest request) throws InternalException {
@@ -106,6 +96,17 @@ public class ApprovedCompanyRegistryService {
                 log.info("Saint Petersburg office registry cached in memory");
             }
             return companyService;
+        }
+    }
+
+    private static CompanyRecord findCompanyRecord(long inn) throws InternalException {
+        try {
+            return getCompanyService().findCompanyRecordByINN(Long.toString(inn));
+        } catch (CompanyNotFoundException e) {
+            return null;
+        } catch (CompanyServiceException e) {
+            log.severe("Failed to read company data from Saint Petersburg registry: " + e.getMessage());
+            throw new InternalException("Не удалось получить данные компании из реестра офисов в Санкт-Петербурге", e);
         }
     }
 
