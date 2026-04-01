@@ -7,6 +7,7 @@ import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.PracticeOption;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.docx.DocxGenerator;
@@ -161,6 +162,10 @@ public class StudentService {
 
     public static boolean updateApplicationBytesByChatIdAndEduStreamName(long chatId, String eduStreamName, byte[] newBytes) throws InternalException {
         return StudentRepository.updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, newBytes);
+    }
+
+    public static boolean updateStatusByChatIdAndEduStreamName(long chatId, String eduStreamName, StudentStatus status) throws InternalException {
+        return StudentRepository.updateStatusByChatIdAndEduStreamName(chatId, eduStreamName, status);
     }
 
     public static Optional<FileStreamDTO> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
