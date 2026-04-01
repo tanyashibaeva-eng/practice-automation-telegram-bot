@@ -58,6 +58,14 @@ public class CompanyApprovalRequestService {
             request.setId(requestId);
         }
 
+        if (!StudentService.updateStatusByChatIdAndEduStreamName(
+                args.getChatId(),
+                eduStreamName,
+                StudentStatus.COMPANY_INFO_WAITING_APPROVAL
+        )) {
+            throw new InternalException("Не удалось обновить статус студента после отправки заявки");
+        }
+
         notifyAdminsAboutPendingRequest(request);
         return requestId;
     }

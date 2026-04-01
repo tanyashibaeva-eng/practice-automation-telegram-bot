@@ -304,6 +304,7 @@ public class StudentService {
         // проставляем флаг для компаний, у которых подтвержден офис в Санкт-Петербурге
         resBuilder.isSPB(ApprovedCompanyRegistryService.hasOfficeInSaintPetersburg(innLong));
         String companyNameFromLocalBase = ApprovedCompanyRegistryService.getCompanyName(innLong);
+        String companyAddressFromLocalBase = ApprovedCompanyRegistryService.getCompanyAddress(innLong);
 
         // проверяем в списке компаний с договорами
         try {
@@ -333,6 +334,9 @@ public class StudentService {
 
         if (resBuilder.build().getCompanyName() == null) {
             resBuilder.companyName(companyNameFromLocalBase);
+        }
+        if (resBuilder.build().getCompanyAddress() == null) {
+            resBuilder.companyAddress(companyAddressFromLocalBase);
         }
 
         // если компания не найдена/опция отключена – просим заполнить компанию

@@ -32,6 +32,7 @@ public class InputInnValidationCommand implements UserCommand {
 
         dto.setInn(innResponse.getInn());
         dto.setCompanyName(innResponse.getCompanyName());
+        dto.setCompanyAddress(innResponse.getCompanyAddress());
         dto.setPresentInITMOAgreementFile(innResponse.isPresentInITMOAgreementFile());
         dto.setRequiresSpbOfficeApproval(false);
         ContextHolder.setCommandData(chatId, dto);

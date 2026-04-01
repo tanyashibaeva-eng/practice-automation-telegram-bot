@@ -6,9 +6,11 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.InfoSubmittedCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.SubmitCompanyApprovalRequestCommand;
+import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
 public class CompanyInfoConfirmationCommand implements UserCommand {
     @Override
@@ -19,7 +21,7 @@ public class CompanyInfoConfirmationCommand implements UserCommand {
 
         switch (message.getText()) {
             case "Да":
-                ContextHolder.setNextCommand(chatId, dto.isRequiresSpbOfficeApproval()
+                ContextHolder.setNextCommand(chatId, shouldSubmitForAdminApproval(dto)
                         ? new SubmitCompanyApprovalRequestCommand()
                         : new InfoSubmittedCommand());
                 return MessageToUser.builder()
@@ -28,7 +30,7 @@ public class CompanyInfoConfirmationCommand implements UserCommand {
                         .needRewriting(false)
                         .build();
             case "Нет":
-                ContextHolder.setNextCommand(chatId, new AskingCompanyNameCommand());
+                ContextHolder.setNextCommand(chatId, getRetryCommand(dto));
                 return MessageToUser.builder()
                         .text("")
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
@@ -51,5 +53,20 @@ public class CompanyInfoConfirmationCommand implements UserCommand {
     @Override
     public boolean isNextCallNeeded() {
         return true;
+    }
+
+    private UserCommand getRetryCommand(CompanyInfoUpdateArgs dto) {
+        if (dto.getCompanyName() == null || dto.getCompanyName().isBlank()) {
+            return new AskingCompanyNameCommand();
+        }
+        if (dto.getPracticeFormat() != PracticeFormat.ONLINE
+                && (dto.getCompanyAddress() == null || dto.getCompanyAddress().isBlank())) {
+            return new AskingCompanyAddressCommand();
+        }
+        return new AskingITMOPracticeLeadFullNameCommand();
+    }
+
+    private boolean shouldSubmitForAdminApproval(CompanyInfoUpdateArgs dto) {
+        return dto.isRequiresSpbOfficeApproval() || !dto.isPresentInITMOAgreementFile();
     }
 }
