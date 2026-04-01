@@ -460,7 +460,7 @@ CREATE TABLE IF NOT EXISTS company_approval_request (
     edu_stream_name         text                    NOT NULL REFERENCES edu_stream(name) ON DELETE CASCADE ON UPDATE CASCADE,
     inn                     bigint                  NOT NULL,
     company_name            text                    NOT NULL,
-    company_address         text                    NOT NULL,
+    company_address         text                    ,
     practice_format         st_practice_format      NOT NULL,
     company_lead_fullname   text                    NOT NULL,
     company_lead_phone      text                    NOT NULL,
