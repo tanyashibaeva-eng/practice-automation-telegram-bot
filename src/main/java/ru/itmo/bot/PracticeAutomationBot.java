@@ -205,11 +205,15 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
     }
 
     private static void editMessage(MessageToUser message, Integer messageId, long chatId) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = null;
+        if (message.getKeyboardMarkup() instanceof InlineKeyboardMarkup markup) {
+            inlineKeyboardMarkup = markup;
+        }
         var editBuilder = EditMessageText.builder()
                 .chatId(String.valueOf(chatId))
                 .messageId(messageId)
                 .text(message.getText())
-                .replyMarkup((InlineKeyboardMarkup) message.getKeyboardMarkup());
+                .replyMarkup(inlineKeyboardMarkup);
         if (message.getParseMode() != null && !message.getParseMode().isBlank()) {
             editBuilder.parseMode(message.getParseMode());
         }

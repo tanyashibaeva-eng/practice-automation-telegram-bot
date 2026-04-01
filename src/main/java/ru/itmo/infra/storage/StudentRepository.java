@@ -451,6 +451,20 @@ public class StudentRepository {
         }
     }
 
+    public static boolean updateStatusByChatIdAndEduStreamName(long chatId, String eduStreamName, StudentStatus status) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                     "UPDATE student SET status = ?, updated_at = now() WHERE chat_id = ? AND edu_stream_name = ?;"
+             )) {
+            statement.setObject(1, status, Types.OTHER);
+            statement.setLong(2, chatId);
+            statement.setString(3, eduStreamName);
+            return 1 == statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static boolean updatePracticeFormatAndResetApplication(
             long chatId,
             String eduStreamName,

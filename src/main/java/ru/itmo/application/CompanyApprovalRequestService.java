@@ -7,6 +7,7 @@ import ru.itmo.bot.CallbackData;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.model.CompanyApprovalRequest;
 import ru.itmo.domain.type.CompanyApprovalRequestStatus;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.usecase.admin.companyapproval.ListCompanyApprovalRequestsCommand;
