@@ -303,6 +303,7 @@ public class StudentService {
 
         // проставляем флаг для компаний, у которых подтвержден офис в Санкт-Петербурге
         resBuilder.isSPB(ApprovedCompanyRegistryService.hasOfficeInSaintPetersburg(innLong));
+        String companyNameFromLocalBase = ApprovedCompanyRegistryService.getCompanyName(innLong);
 
         // проверяем в списке компаний с договорами
         try {
@@ -328,6 +329,10 @@ public class StudentService {
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
             }
+        }
+
+        if (resBuilder.build().getCompanyName() == null) {
+            resBuilder.companyName(companyNameFromLocalBase);
         }
 
         // если компания не найдена/опция отключена – просим заполнить компанию
