@@ -83,17 +83,27 @@ public class StudentService {
 
     public static void changePracticeFormatForCurrentStream(long chatId, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
             throws InternalException, BadRequestException {
-        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(chatId);
-        if (eduStreamNameOpt.isEmpty()) {
+        var prevStudentOpt = StudentRepository.findAllByChatId(chatId).stream()
+            .filter(s -> EduStreamChecker.isActiveStream(s.getEduStream()))
+            .findFirst();
+        if (prevStudentOpt.isEmpty()) {
             throw new BadRequestException("Студент не находится ни в одном активном потоке");
         }
-        String eduStreamName = eduStreamNameOpt.get();
-        var prevStudentOpt = StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
-        String prevFormat = prevStudentOpt.map(s -> {
-            if (s.getPracticeFormatDisplayName() != null && !s.getPracticeFormatDisplayName().isBlank()) return s.getPracticeFormatDisplayName();
-            if (s.getPracticeFormat() != null) return s.getPracticeFormat().getDisplayName();
-            return "";
-        }).orElse("");
+        var student = prevStudentOpt.get();
+        String eduStreamName = student.getEduStream().getName();
+        int isu = student.getIsu();
+        String prevFormat;
+        Long prevPracticeFormatId = student.getPracticeFormatId();
+        if (prevPracticeFormatId != null) {
+            var fmtOpt = PracticeFormatService.findById(prevPracticeFormatId);
+            if (fmtOpt.isPresent()) {
+                prevFormat = fmtOpt.get().getDisplayName();
+            } else {
+                prevFormat = student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "";
+            }
+        } else {
+            prevFormat = student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "";
+        }
 
         String newFormat = "";
         if (practiceFormatId != null) {
@@ -108,11 +118,11 @@ public class StudentService {
 
         NotificationService.notifyAdmins("""
                 Пользователь изменил формат прохождения практики.
-                chatId: %d
+                ISU: %d
                 Поток: %s
                 Было: %s
                 Стало: %s
-                """.formatted(chatId, eduStreamName, prevFormat.isBlank() ? "Не указано" : prevFormat, newFormat.isBlank() ? "Не указано" : newFormat));
+                """.formatted(isu, eduStreamName, prevFormat.isBlank() ? "Не указано" : prevFormat, newFormat.isBlank() ? "Не указано" : newFormat));
     }
 
     public static boolean updateITMOPracticeInfo(ITMOPracticeInfoUpdateArgs args) throws InternalException, BadRequestException {
