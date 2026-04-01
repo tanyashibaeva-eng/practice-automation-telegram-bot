@@ -321,12 +321,24 @@ public class GuideRepository {
             connection.setAutoCommit(false);
             try {
                 if (isToc) {
-                    try (var shift = connection.prepareStatement("""
-                            UPDATE guide_subsection SET item_order = item_order + 1
+                    int offset = maxItemOrderInSection(connection, sectionId) + 1;
+                    try (var bump = connection.prepareStatement("""
+                            UPDATE guide_subsection
+                            SET item_order = item_order + ?
+                            WHERE section_id = ?;
+                            """);
+                         var normalize = connection.prepareStatement("""
+                            UPDATE guide_subsection
+                            SET item_order = item_order - ?
                             WHERE section_id = ?;
                             """)) {
-                        shift.setInt(1, sectionId);
-                        shift.executeUpdate();
+                        bump.setInt(1, offset);
+                        bump.setInt(2, sectionId);
+                        bump.executeUpdate();
+
+                        normalize.setInt(1, offset - 1);
+                        normalize.setInt(2, sectionId);
+                        normalize.executeUpdate();
                     }
                 }
                 int insertOrder = isToc ? 1 : maxItemOrderInSection(connection, sectionId) + 1;

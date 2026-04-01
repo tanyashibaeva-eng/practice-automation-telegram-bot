@@ -70,6 +70,10 @@ public class ApproveCompanyApprovalRequestCommand implements AdminCommand {
 
     static long parseRequestId(String text, String commandName) throws BadRequestException {
         var normalizedText = TextUtils.removeRedundantSpaces(text);
+        int callbackSeparatorIndex = normalizedText.indexOf('#');
+        if (callbackSeparatorIndex >= 0) {
+            normalizedText = normalizedText.substring(0, callbackSeparatorIndex);
+        }
         var fields = normalizedText.split(" +");
         if (fields.length >= 2) {
             return TextUtils.parseDoubleStrToLong(fields[1]);

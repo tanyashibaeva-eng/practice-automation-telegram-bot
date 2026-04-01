@@ -7,6 +7,7 @@ import ru.itmo.domain.model.EduStream;
 import ru.itmo.domain.model.PracticeOption;
 import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.docx.DocxGenerator;
@@ -173,6 +174,10 @@ public class StudentService {
         return StudentRepository.updateApplicationBytesByChatIdAndEduStreamName(chatId, eduStreamName, newBytes);
     }
 
+    public static boolean updateStatusByChatIdAndEduStreamName(long chatId, String eduStreamName, StudentStatus status) throws InternalException {
+        return StudentRepository.updateStatusByChatIdAndEduStreamName(chatId, eduStreamName, status);
+    }
+
     public static Optional<FileStreamDTO> updateStudentsFromExcel(File file, String eduStreamName) throws InternalException, BadRequestException {
         var eduStream = new EduStream(eduStreamName);
         var groups = EduStreamRepository.findAllGroupsByStreamName(eduStream);
@@ -308,6 +313,8 @@ public class StudentService {
 
         // проставляем флаг для компаний, у которых подтвержден офис в Санкт-Петербурге
         resBuilder.isSPB(ApprovedCompanyRegistryService.hasOfficeInSaintPetersburg(innLong));
+        String companyNameFromLocalBase = ApprovedCompanyRegistryService.getCompanyName(innLong);
+        String companyAddressFromLocalBase = ApprovedCompanyRegistryService.getCompanyAddress(innLong);
 
         // проверяем в списке компаний с договорами
         try {
@@ -333,6 +340,13 @@ public class StudentService {
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
             }
+        }
+
+        if (resBuilder.build().getCompanyName() == null) {
+            resBuilder.companyName(companyNameFromLocalBase);
+        }
+        if (resBuilder.build().getCompanyAddress() == null) {
+            resBuilder.companyAddress(companyAddressFromLocalBase);
         }
 
         // если компания не найдена/опция отключена – просим заполнить компанию

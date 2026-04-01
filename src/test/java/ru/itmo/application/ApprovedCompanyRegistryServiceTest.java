@@ -10,10 +10,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ApprovedCompanyRegistryServiceTest {
+    private static final String TEST_ADDRESS = "Санкт-Петербург, Тестовая ул., 1";
 
     @AfterEach
     void tearDown() {
@@ -41,6 +43,16 @@ class ApprovedCompanyRegistryServiceTest {
     }
 
     @Test
+    void getCompanyAddress_returnsAddressForExistingInn(@TempDir Path tempDir) throws Exception {
+        Path csv = createCsv(tempDir);
+        ApprovedCompanyRegistryService.overrideCsvPathForTests(csv);
+
+        String result = ApprovedCompanyRegistryService.getCompanyAddress(7800000000L);
+
+        assertEquals(TEST_ADDRESS, result);
+    }
+
+    @Test
     void saveApprovedCompany_persistsOnlySpbApprovalRequests(@TempDir Path tempDir) throws Exception {
         Path csv = createCsv(tempDir);
         ApprovedCompanyRegistryService.overrideCsvPathForTests(csv);
@@ -63,8 +75,8 @@ class ApprovedCompanyRegistryServiceTest {
 
         ApprovedCompanyRegistryService.saveApprovedCompany(CompanyApprovalRequest.builder()
                 .inn(7811111111L)
-                .companyName("Новая Компания")
-                .companyAddress("Санкт-Петербург, Невский пр., д. 1")
+                .companyName("Новая компания")
+                .companyAddress("Санкт-Петербург, Невский пр., 1")
                 .requiresSpbOfficeApproval(false)
                 .build());
 
@@ -74,9 +86,9 @@ class ApprovedCompanyRegistryServiceTest {
     private static Path createCsv(Path tempDir) throws Exception {
         Path csv = tempDir.resolve("SPARK_IT.csv");
         Files.write(csv, List.of(
-                "Выборка компаний;;;;;;;",
-                "№;Наименование;Регистрационный номер;Адрес (место нахождения);Код налогоплательщика;Код статистики;Регион регистрации;Вид деятельности/отрасль;2024, Среднесписочная численность работников",
-                "1;Компания А;123;Санкт-Петербург, ул. Тестовая, д. 1;7800000000;111;Санкт-Петербург;ИТ;10"
+                "Companies;;;;;;;",
+                "No;Name;RegNumber;Address;TaxId;StatCode;Region;Activity;2024",
+                "1;Компания А;123;" + TEST_ADDRESS + ";7800000000;111;Saint Petersburg;IT;10"
         ), StandardCharsets.UTF_8);
         return csv;
     }
