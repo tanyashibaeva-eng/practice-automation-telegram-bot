@@ -12,6 +12,7 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
+import ru.itmo.infra.handler.usecase.admin.configureexport.ConfigureExportCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.exportexcel.ExportExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.filledustream.FillEduStreamCommand;
@@ -51,6 +52,16 @@ public class GotoStreamCommand implements AdminCommand {
                                 .callbackData(
                                         CallbackData.builder()
                                                 .command(new ExportExcelCommand().getName())
+                                                .build()
+                                                .toString()
+                                ).build()
+                ))
+                .keyboardRow(new InlineKeyboardRow(
+                        InlineKeyboardButton.builder()
+                                .text(getIcon + " Настроить и получить выгрузку по студентам")
+                                .callbackData(
+                                        CallbackData.builder()
+                                                .command(new ConfigureExportCommand().getName())
                                                 .build()
                                                 .toString()
                                 ).build()

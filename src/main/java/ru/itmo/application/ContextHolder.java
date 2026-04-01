@@ -3,8 +3,12 @@ package ru.itmo.application;
 import lombok.AllArgsConstructor;
 import ru.itmo.exception.UnknownUserException;
 import ru.itmo.infra.handler.usecase.Command;
+import ru.itmo.infra.handler.usecase.admin.configureexport.StudentColumn;
 
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -100,6 +104,31 @@ public class ContextHolder {
         }
         return 0;
     }
+
+    public static Set<StudentColumn> getSelectedColumns(Long chatId) {
+        return (Set<StudentColumn>) contextMap
+                .computeIfAbsent(chatId, k -> new HashMap<>())
+                .computeIfAbsent(ContextHolderType.SELECTED_COLUMNS, k -> new LinkedHashSet<>());
+    }
+
+    public static void clearSelectedColumns(Long chatId) {
+        Map<ContextHolderType, Object> map = contextMap.get(chatId);
+        if (map != null) {
+            map.remove(ContextHolderType.SELECTED_COLUMNS);
+        }
+    }
+
+    public static void setCurrentColumn(Long chatId, String column) {
+        contextMap
+                .computeIfAbsent(chatId, k -> new HashMap<>())
+                .put(ContextHolderType.CURRENT_COLUMN, column);
+    }
+
+    public static String getCurrentColumn(Long chatId) {
+        return (String) contextMap
+                .getOrDefault(chatId, new HashMap<>())
+                .get(ContextHolderType.CURRENT_COLUMN);
+    }
 }
 
 
@@ -109,5 +138,7 @@ enum ContextHolderType {
     COMMAND_DATA,
     EDU_STREAM_NAME,
     LAST_MESSAGE_ID,
+    SELECTED_COLUMNS,
+    CURRENT_COLUMN,
 }
 

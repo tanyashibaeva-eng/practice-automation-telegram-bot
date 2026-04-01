@@ -263,7 +263,7 @@ public class StudentRepository {
         )) {
             statement.setObject(1, StudentStatus.COMPANY_INFO_WAITING_APPROVAL, Types.OTHER);
             statement.setObject(2, PracticePlace.OTHER_COMPANY, Types.OTHER);
-            
+
             statement.setObject(3, args.getPracticeFormat(), Types.OTHER);
             if (args.getPracticeFormatId() == null) {
                 statement.setNull(4, Types.BIGINT);
@@ -347,6 +347,8 @@ public class StudentRepository {
                         st_group = ?,
                         fullname = ?,
                         status = ?,
+                        application = ?,
+                        notifications = ?,
                         comments = ?,
                         call_status_comments = ?,
                         practice_place = ?,
@@ -372,43 +374,45 @@ public class StudentRepository {
                 statement.setString(2, student.getStGroup());
                 statement.setString(3, student.getFullName());
                 statement.setObject(4, student.getStatus(), Types.OTHER);
-                statement.setString(5, student.getComments() == null ? "" : student.getComments());
-                statement.setString(6, student.getCallStatusComments() == null ? "" : student.getCallStatusComments());
-                statement.setObject(7, student.getPracticePlace(), Types.OTHER);
-                statement.setObject(8, student.getPracticeFormat(), Types.OTHER);
-                
+                statement.setString(5, student.getApplication() == null ? "" : student.getApplication());
+                statement.setString(6, student.getNotifications() == null ? "" : student.getNotifications());
+                statement.setString(7, student.getComments() == null ? "" : student.getComments());
+                statement.setString(8, student.getCallStatusComments() == null ? "" : student.getCallStatusComments());
+                statement.setObject(9, student.getPracticePlace(), Types.OTHER);
+                statement.setObject(10, student.getPracticeFormat(), Types.OTHER);
+
                 if (student.getPracticeFormatId() == null) {
-                    statement.setNull(9, Types.BIGINT);
+                    statement.setNull(11, Types.BIGINT);
                 } else {
-                    statement.setLong(9, student.getPracticeFormatId());
+                    statement.setLong(11, student.getPracticeFormatId());
                 }
-                statement.setString(10, student.getPracticeFormat() == null ? null : student.getPracticeFormat().name());
+                statement.setString(12, student.getPracticeFormat() == null ? null : student.getPracticeFormat().name());
 
                 Long companyINN = student.getCompanyINN();
                 if (companyINN == null) {
-                    statement.setNull(11, Types.INTEGER);
-                } else statement.setLong(11, student.getCompanyINN());
+                    statement.setNull(13, Types.INTEGER);
+                } else statement.setLong(13, student.getCompanyINN());
 
-                statement.setString(12, student.getCompanyName());
-                statement.setString(13, student.getCompanyLeadFullName());
-                statement.setString(14, student.getCompanyLeadPhone());
-                statement.setString(15, student.getCompanyLeadEmail());
-                statement.setString(16, student.getCompanyLeadJobTitle());
-                statement.setString(17, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
-                statement.setBoolean(18, student.isManagedManually());
-                statement.setBytes(19, student.getApplicationBytes());
-                statement.setString(20, student.getSignedPhotoPath());
+                statement.setString(14, student.getCompanyName());
+                statement.setString(15, student.getCompanyLeadFullName());
+                statement.setString(16, student.getCompanyLeadPhone());
+                statement.setString(17, student.getCompanyLeadEmail());
+                statement.setString(18, student.getCompanyLeadJobTitle());
+                statement.setString(19, student.getCellHexColor().equals("000000") ? "FFFFFF" : student.getCellHexColor());
+                statement.setBoolean(20, student.isManagedManually());
+                statement.setBytes(21, student.getApplicationBytes());
+                statement.setString(22, student.getSignedPhotoPath());
 
                 if (student.getTelegramUser() != null) {
-                    statement.setLong(21, student.getTelegramUser().getChatId());
-                    statement.setLong(22, student.getTelegramUser().getChatId()); // второй параметр для проверки на NULL
+                    statement.setLong(23, student.getTelegramUser().getChatId());
+                    statement.setLong(24, student.getTelegramUser().getChatId());
                 } else {
-                    statement.setNull(21, Types.BIGINT);
-                    statement.setNull(22, Types.BIGINT); // второй параметр для проверки на NULL
+                    statement.setNull(23, Types.BIGINT);
+                    statement.setNull(24, Types.BIGINT);
                 }
 
-                statement.setInt(23, student.getIsu());
-                statement.setString(24, student.getEduStream().getName());
+                statement.setInt(25, student.getIsu());
+                statement.setString(26, student.getEduStream().getName());
 
                 updated.add(statement.executeUpdate());
             }
@@ -595,6 +599,8 @@ public class StudentRepository {
                     rs.getString("st_group"),
                     rs.getString("fullname"),
                     StudentStatus.valueOfIgnoreCase(rs.getString("status")),
+                    rs.getString("application"),
+                    rs.getString("notifications"),
                     rs.getString("comments"),
                     rs.getString("call_status_comments"),
                     PracticePlace.valueOfIgnoreCase(rs.getString("practice_place")),

@@ -42,6 +42,8 @@ public class Student {
     @Setter
     private String fullName;
     private StudentStatus status;
+    private String application;
+    private String notifications;
     private String comments;
     private String callStatusComments;
     private PracticePlace practicePlace;
@@ -70,7 +72,7 @@ public class Student {
         this.fullName = s.getFullName();
         this.status = StudentStatus.REGISTERED;
     }
-    
+
     // обратная совместимость
     public Student(
         TelegramUser telegramUser,
@@ -104,6 +106,8 @@ public class Student {
                 stGroup,
                 fullName,
                 status,
+                "",
+                "",
                 comments,
                 callStatusComments,
                 practicePlace,
@@ -224,6 +228,8 @@ public class Student {
         this.isu = dto.getIsu();
         this.stGroup = dto.getStGroup();
         this.fullName = dto.getFullName();
+        this.application = dto.getApplication();
+        this.notifications = dto.getNotifications();
         this.cellHexColor = dto.getCellHexColor() == null ? "FFFFFF" : dto.getCellHexColor().replace("#", "");
         this.comments = dto.getComments();
         this.callStatusComments = dto.getCallStatusComments();

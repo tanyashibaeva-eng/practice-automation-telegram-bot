@@ -40,7 +40,7 @@ class StudentPracticeFormatValidationTest {
 
         Student student = new Student(
                 null, null, 12345, "A1", "Ivan Ivanov", StudentStatus.REGISTERED,
-                "comment", "call comment", PracticePlace.ITMO_UNIVERSITY,
+                "comment", "call comment", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.ONLINE, 123456789L, "Company", "Lead",
                 "+7 123 456 7890", "lead@company.com", "Lead", "#FFFFFF", false,
                 exportedAt, updatedAt, null, null, false
@@ -49,7 +49,7 @@ class StudentPracticeFormatValidationTest {
         ExcelStudentDTO dto = new ExcelStudentDTO(
                 12345L,
                 12345, "A1", "Ivan Ivanov", StudentStatus.PRACTICE_IN_ITMO_MARKINA,
-                "comment", "call comment", PracticePlace.ITMO_UNIVERSITY,
+                "", "", "comment", "call comment", PracticePlace.ITMO_MARKINA,
                 PracticeFormat.OFFLINE, 1000000000L, "Company", "Lead",
                 "+7 123 456 7890", "lead@company.com", "Lead", "#FFFFFF", null
         );

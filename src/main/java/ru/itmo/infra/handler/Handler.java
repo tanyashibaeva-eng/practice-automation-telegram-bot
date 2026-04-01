@@ -31,6 +31,9 @@ import ru.itmo.infra.handler.usecase.admin.companyapproval.ApproveCompanyApprova
 import ru.itmo.infra.handler.usecase.admin.companyapproval.ListCompanyApprovalRequestsCommand;
 import ru.itmo.infra.handler.usecase.admin.companyapproval.RejectCompanyApprovalRequestCommand;
 import ru.itmo.infra.handler.usecase.admin.companyapproval.RejectCompanyApprovalRequestConfirmationCommand;
+import ru.itmo.infra.handler.usecase.admin.configureexport.ConfigureExportCommand;
+import ru.itmo.infra.handler.usecase.admin.configureexport.FinishColumnsCommand;
+import ru.itmo.infra.handler.usecase.admin.configureexport.ToggleColumnCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamCommand;
 import ru.itmo.infra.handler.usecase.admin.deletestream.DeleteStreamConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.downloadapplication.DownloadApplicationCommand;
@@ -239,6 +242,9 @@ public class Handler {
         commands.add(new DeleteStreamConfirmationCommand());
         commands.add(new DownloadApplicationCommand());
         commands.add(new ExportExcelCommand());
+        commands.add(new ConfigureExportCommand());
+        commands.add(new ToggleColumnCommand());
+        commands.add(new FinishColumnsCommand());
         commands.add(new FillEduStreamCommand());
         commands.add(new FillEduStreamMoreFilesCommand());
         commands.add(new FillEduStreamUploadCommand());
@@ -484,6 +490,9 @@ public class Handler {
         if (key.equals("eduStreamName")) {
             ContextHolder.setEduStreamName(chatId, value);
         }
+        if (key.equals("column")) {
+            ContextHolder.setCurrentColumn(chatId, value);
+        }
     }
 
     public static void updateCommandsDropOut(long chatId) {
@@ -594,6 +603,9 @@ public class Handler {
                 new DeleteStreamCommand(),
                 new DownloadApplicationCommand(),
                 new ExportExcelCommand(),
+                new ConfigureExportCommand(),
+                new ToggleColumnCommand(),
+                new FinishColumnsCommand(),
                 new ForceUpdateCommand(),
                 new InitEduStreamCommand(),
                 new AddAdminCommand(),

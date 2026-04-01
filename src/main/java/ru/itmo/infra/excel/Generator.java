@@ -17,6 +17,7 @@ import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.PracticePlace;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.InternalException;
+import ru.itmo.infra.handler.usecase.admin.configureexport.StudentColumn;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -24,6 +25,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 
 @Log
 public class Generator {
@@ -33,6 +36,8 @@ public class Generator {
             "Группа",
             "ФИО",
             "Статус",
+            "Заявка",
+            "Уведомления",
             "Комментарий",
             "Комментарий по звонкам руководителю",
             "Место практики",
@@ -136,19 +141,21 @@ public class Generator {
                 row.createCell(4).setCellValue(student.getComments() != null ? student.getStatus().getDisplayName() : "");
                 addEnumValidation(sheet, 4, student.getTransitionStatuses(), row.getRowNum(), row.getRowNum());
 
-                row.createCell(5).setCellValue(student.getComments() != null ? student.getComments() : "");
-                row.createCell(6).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
-                row.createCell(7).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
-                row.createCell(8).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
-                row.createCell(9).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
-                row.createCell(10).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
-                row.createCell(11).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
-                row.createCell(12).setCellValue(student.getCompanyLeadPhone() != null ? student.getCompanyLeadPhone() : "");
-                row.createCell(13).setCellValue(student.getCompanyLeadEmail() != null ? student.getCompanyLeadEmail() : "");
-                row.createCell(14).setCellValue(student.getCompanyLeadJobTitle() != null ? student.getCompanyLeadJobTitle() : "");
+                row.createCell(5).setCellValue(student.getApplication() != null ? student.getApplication() : "");
+                row.createCell(6).setCellValue(student.getNotifications() != null ? student.getNotifications() : "");
+                row.createCell(7).setCellValue(student.getComments() != null ? student.getComments() : "");
+                row.createCell(8).setCellValue(student.getCallStatusComments() != null ? student.getCallStatusComments() : "");
+                row.createCell(9).setCellValue(student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : "");
+                row.createCell(10).setCellValue(student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : "");
+                row.createCell(11).setCellValue(student.getCompanyINN() != null ? student.getCompanyINN() + "" : "");
+                row.createCell(12).setCellValue(student.getCompanyName() != null ? student.getCompanyName() : "");
+                row.createCell(13).setCellValue(student.getCompanyLeadFullName() != null ? student.getCompanyLeadFullName() : "");
+                row.createCell(14).setCellValue(student.getCompanyLeadPhone() != null ? student.getCompanyLeadPhone() : "");
+                row.createCell(15).setCellValue(student.getCompanyLeadEmail() != null ? student.getCompanyLeadEmail() : "");
+                row.createCell(16).setCellValue(student.getCompanyLeadJobTitle() != null ? student.getCompanyLeadJobTitle() : "");
 
-                for (int i = 0; i < 15; i++) {
-                    if (i == 5 || i == 6) {
+                for (int i = 0; i < 17; i++) {
+                    if (i >= 5 && i <= 8) {
                         continue;
                     }
                     if (row.getCell(i) == null) {
@@ -181,10 +188,101 @@ public class Generator {
 
             sheet.setAutoFilter(new CellRangeAddress(0, sheet.getLastRowNum(), 4, 4));
 
-            addEnumValidation(sheet, 7, practicePlaceOptions, 1, sheet.getLastRowNum());
-            addEnumValidation(sheet, 8, practiceFormatOptions, 1, sheet.getLastRowNum());
+            addEnumValidation(sheet, 9, practicePlaceOptions, 1, sheet.getLastRowNum());
+            addEnumValidation(sheet, 10, practiceFormatOptions, 1, sheet.getLastRowNum());
 
             for (int i = 0; i < headersColumns.length; i++) {
+                sheet.autoSizeColumn(i);
+            }
+        }
+
+        var streamName = eduStream.getName();
+        var fileName = String.format("список студентов_%s_%s.xlsx",
+                streamName, getTimestamp());
+
+        InputStream inputStream;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            workbook.write(bos);
+            byte[] bytes = bos.toByteArray();
+            inputStream = new ByteArrayInputStream(bytes);
+        } catch (IOException e) {
+            throw new InternalException("Произошла техническая ошибка: " + e.getMessage(), e);
+        }
+
+        return FileStreamDTO.builder()
+                .fileStream(inputStream)
+                .fileName(fileName)
+                .build();
+    }
+
+    public static FileStreamDTO generateExcel(
+            Map<String, List<Student>> groupToStudents,
+            List<String> groups,
+            EduStream eduStream,
+            List<StudentColumn> selectedColumns
+    ) throws InternalException {
+        var workbook = new XSSFWorkbook();
+
+        var practicePlaceOptions = getPracticePlaceOptions();
+        var practiceFormatOptions = getPracticeFormatOptions();
+
+        for (var groupName : groups) {
+            if (groupName == null) {
+                continue;
+            }
+            var students = groupToStudents.get(groupName);
+            var sheet = workbook.createSheet(groupName);
+
+            var headerRow = sheet.createRow(0);
+            for (int i = 0; i < selectedColumns.size(); i++) {
+                var col = selectedColumns.get(i);
+                var cell = headerRow.createCell(i);
+                cell.setCellValue(col.getTitle());
+
+                var style = workbook.createCellStyle();
+                var font = workbook.createFont();
+                font.setBoldweight((short) 700);
+                style.setFont(font);
+                cell.setCellStyle(style);
+            }
+
+            int rowNum = 1;
+            for (Student student : students) {
+                var row = sheet.createRow(rowNum++);
+
+                for (int colIndex = 0; colIndex < selectedColumns.size(); colIndex++) {
+                    StudentColumn col = selectedColumns.get(colIndex);
+                    String value = col.extractValue(student, groupName);
+                    var cell = row.createCell(colIndex);
+                    cell.setCellValue(value);
+
+                    if (!skipGrayCellStyle(col) && value.isBlank()) {
+                        cell.setCellStyle(createGrayCellStyle(workbook));
+                    } else if (col == StudentColumn.FULLNAME) {
+                        cell.setCellStyle(createColoredCellStyle(workbook, student.getCellHexColor()));
+                    }
+                }
+            }
+
+            applyConditionalFormatting(sheet, sheet.getPhysicalNumberOfRows());
+
+            int practicePlaceIndex = selectedColumns.indexOf(StudentColumn.PRACTICE_PLACE);
+            if (practicePlaceIndex != -1) {
+                addEnumValidation(sheet, practicePlaceIndex, practicePlaceOptions, 1, sheet.getLastRowNum());
+            }
+
+            int practiceFormatIndex = selectedColumns.indexOf(StudentColumn.PRACTICE_FORMAT);
+            if (practiceFormatIndex != -1) {
+                addEnumValidation(sheet, practiceFormatIndex, practiceFormatOptions, 1, sheet.getLastRowNum());
+            }
+
+            int statusIndex = selectedColumns.indexOf(StudentColumn.STATUS);
+            if (statusIndex != -1) {
+                sheet.setAutoFilter(new CellRangeAddress(0, sheet.getLastRowNum(), statusIndex, statusIndex));
+            }
+
+            for (int i = 0; i < selectedColumns.size(); i++) {
                 sheet.autoSizeColumn(i);
             }
         }
@@ -231,6 +329,13 @@ public class Generator {
         ((XSSFCellStyle) style).setFillForegroundColor(grayColor);
         ((XSSFCellStyle) style).setFillPattern(FillPatternType.SOLID_FOREGROUND);
         return style;
+    }
+
+    private static boolean skipGrayCellStyle(StudentColumn col) {
+        return col == StudentColumn.APPLICATION
+                || col == StudentColumn.NOTIFICATIONS
+                || col == StudentColumn.COMMENT
+                || col == StudentColumn.CALL_COMMENT;
     }
 
 

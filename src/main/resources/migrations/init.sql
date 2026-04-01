@@ -92,6 +92,8 @@ CREATE TABLE IF NOT EXISTS student (
     st_group                varchar(8)          NOT NULL,
     fullname                text                NOT NULL,
     status                  st_status           NOT NULL DEFAULT 'NOT_REGISTERED',
+    application             text                NOT NULL DEFAULT '',
+    notifications           text                NOT NULL DEFAULT '',
     comments                text                NOT NULL DEFAULT '',
     call_status_comments    text                NOT NULL DEFAULT '',
     practice_place          st_practice_place   NOT NULL DEFAULT 'NOT_SPECIFIED',
