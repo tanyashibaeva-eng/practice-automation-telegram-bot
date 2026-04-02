@@ -8,15 +8,66 @@ import ru.itmo.application.StudentService;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.ForceUpdateDTO;
+import ru.itmo.domain.model.Student;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.usecase.admin.AdminCommand;
-import ru.itmo.util.TextUtils;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
+/**
+ * Команда для принудительного обновления данных студента в обход валидаций.
+ * <p>
+ * Позволяет изменить следующие данные студента:
+ * <ul>
+ *     <li>Статус практики</li>
+ *     <li>Место прохождения практики</li>
+ *     <li>Формат практики</li>
+ *     <li>ИНН компании</li>
+ *     <li>Название компании</li>
+ *     <li>ФИО руководителя</li>
+ *     <li>Телефон руководителя</li>
+ *     <li>Email руководителя</li>
+ *     <li>Должность руководителя</li>
+ * </ul>
+ * <p>
+ * Поддерживаемые ключи:
+ * <ul>
+ *     <li>{@code --help} - показать доступные поля для обновления</li>
+ *     <li>{@code --dry-run} - режим предпросмотра без применения изменений</li>
+ * </ul>
+ * <p>
+ * Примеры использования:
+ * <ul>
+ *     <li>{@code /forceupdate 123456789 "Поток" status="PRACTICE_APPROVED"} - изменить статус</li>
+ *     <li>{@code /forceupdate 123456789 "Поток" place="ITMO_COMPANY" format="OFFLINE"} - изменить место и формат</li>
+ *     <li>{@code /forceupdate --dry-run 123456789 "Поток" status="PRACTICE_APPROVED"} - предпросмотр изменений</li>
+ *     <li>{@code /forceupdate --help} - показать доступные поля</li>
+ * </ul>
+ * <p>
+ * Процесс выполнения команды:
+ * <ol>
+ *     <li>Парсинг команды через {@link ForceUpdateCommandParser}</li>
+ *     <li>Если указан {@code --help} - возврат списка доступных полей</li>
+ *     <li>Если не указано ни одного поля - ошибка</li>
+ *     <li>Если указан {@code --dry-run} - показ изменений без применения</li>
+ *     <li>Поиск студента по chatId и имени потока</li>
+ *     <li>Формирование текста подтверждения с текущими и новыми значениями</li>
+ *     <li>Ожидание подтверждения от администратора ({@link ForceUpdateConfirmationCommand})</li>
+ * </ol>
+ *
+ * @see ForceUpdateCommandParser
+ * @see ForceUpdateConfirmationCommand
+ * @see ForceUpdateField
+ */
 @Log
 public class ForceUpdateCommand implements AdminCommand {
+
+    /**
+     * Множество допустимых имен полей (используется для обратной совместимости).
+     * @deprecated используется {@link ForceUpdateField} для определения полей
+     */
+    @Deprecated
     private final Set<String> fieldNames = Set.of(
             "статус",
             "место_практики",
@@ -29,135 +80,60 @@ public class ForceUpdateCommand implements AdminCommand {
             "должность_руководителя"
     );
 
+    /**
+     * Основной метод выполнения команды.
+     * <p>
+     * Выполняет:
+     * <ul>
+     *     <li>Парсинг входящего сообщения</li>
+     *     <li>Проверку на ключ --help</li>
+     *     <li>Валидацию наличия полей для обновления</li>
+     *     <li>Обработку режима dry-run</li>
+     *     <li>Поиск студента в базе данных</li>
+     *     <li>Формирование текста подтверждения</li>
+     * </ul>
+     *
+     * @param message входящее сообщение от пользователя
+     * @return MessageToUser с текстом ответа и клавиатурой подтверждения
+     */
     @Override
     @SneakyThrows
     public MessageToUser execute(MessageDTO message) {
         try {
-            var messageText = TextUtils.removeRedundantSpaces(message.getText());
-            var fields = messageText.split(" \"");
+            ForceUpdateCommandParser parser = ForceUpdateCommandParser.parse(message.getText());
 
-            /* Должно быть не меньше четырех токенов (`/forceupdate chatId` считаем за один),
-               так как обязательные -- `/forceupdate chatId`, `eduStreamName` и хотя бы одна пара `fieldName`, `fieldValue`;
-               также у каждого `fieldName` должна быть пара `fieldValue`, поэтому, с учетом `/forceupdate chatId` и `eduStreamName`,
-               общее количество токенов должно быть четно
-            */
-            if (fields.length < 4 || fields.length % 2 != 0) {
-                throw new BadRequestException("Неверный формат команды, пример (кавычки обязательны): `/forceupdate <chatId> \"<eduStreamName>\" \"<fieldName1>\" \"<fieldValue1>\", ...,  \"<fieldNameN>\" \"<fieldValueN>\"`");
+            if (parser.isShowFields()) {
+                return MessageToUser.builder()
+                        .text("Доступные поля для обновления:\n\n" + ForceUpdateField.getAvailableFieldsList())
+                        .keyboardMarkup(new ReplyKeyboardRemove(true))
+                        .build();
             }
 
-            fields[0] = fields[0].replace("/forceupdate ", "").trim();
-            var studentChatIdStr = fields[0];
-            long studentChatId;
-            try {
-                studentChatId = TextUtils.parseDoubleStrToLong(studentChatIdStr);
-            } catch (BadRequestException e) {
-                throw new BadRequestException("Неверный тип аргумента <chatId>, ожидалось число");
+            if (!parser.hasFieldsToUpdate()) {
+                throw new BadRequestException(
+                        "Не указано ни одного поля для обновления.\n" +
+                        "Пример: /forceupdate 123456 \"Поток\" status=\"PRACTICE_APPROVED\""
+                );
             }
 
-            var eduStreamName = TextUtils.removeAllSpaces(fields[1].replace("\"", ""));
-
-            var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(studentChatId, eduStreamName);
-            if (studentOpt.isEmpty()) {
-                throw new BadRequestException("Студент с chatId %d на потоке %s не найден".formatted(studentChatId, eduStreamName));
+            if (parser.isDryRun()) {
+                return handleDryRun(parser);
             }
 
-            var dtoBuilder = ForceUpdateDTO.builder();
-            dtoBuilder.chatId(studentChatId);
-            dtoBuilder.eduStreamName(eduStreamName);
+            Student student = findStudent(parser.getStudentChatId(), parser.getEduStreamName());
+            ForceUpdateDTO dto = parser.toDTO();
 
-            for (int i = 2; i < fields.length; i += 2) {
-                var fieldName = TextUtils.removeAllSpaces(fields[i].replace("\"", ""));
-                var fieldValue = TextUtils.removeAllSpaces(fields[i + 1].replace("\"", ""));
+            String text = buildConfirmationText(student, dto);
 
-                if (!fieldNames.contains(fieldName)) {
-                    throw new BadRequestException("Неизвестное поле \"%s\", список полей доступных для обновления: ".formatted(fieldName) + fieldNames.stream().map(v -> "\"" + v + "\"").collect(Collectors.joining(", ")));
-                }
-
-                switch (fieldName) {
-                    case "статус":
-                        dtoBuilder.status(fieldValue);
-                        break;
-                    case "место_практики":
-                        dtoBuilder.practicePlace(fieldValue);
-                        break;
-                    case "формат_практики":
-                        dtoBuilder.practiceFormat(fieldValue);
-                        break;
-                    case "инн_компании":
-                        dtoBuilder.companyINN(fieldValue);
-                        break;
-                    case "имя_компании":
-                        dtoBuilder.companyName(fieldValue);
-                        break;
-                    case "фио_руководителя":
-                        dtoBuilder.companyLeadFullName(fieldValue);
-                        break;
-                    case "телефон_руководителя":
-                        dtoBuilder.companyLeadPhone(fieldValue);
-                        break;
-                    case "почта_руководителя":
-                        dtoBuilder.companyLeadEmail(fieldValue);
-                        break;
-                    case "должность_руководителя":
-                        dtoBuilder.companyLeadJobTitle(fieldValue);
-                        break;
-                }
-            }
-
-
-            var textBuilder = new StringBuilder();
-            var student = studentOpt.get();
-            var dto = dtoBuilder.build();
-
-            var currStrValStatus = student.getStatus().getDisplayName().isEmpty() ? "Не заполнено" : student.getStatus().getDisplayName();
-            var currStrValPlace = student.getPracticePlace() == null
-                    ? "Не заполнено"
-                    : (student.getPracticePlace().getDisplayName().isBlank() ? "Не заполнено" : student.getPracticePlace().getDisplayName());
-            var currStrValFormat = student.getPracticeFormat() == null
-                    ? "Не заполнено"
-                    : (student.getPracticeFormat().getDisplayName().isBlank() ? "Не заполнено" : student.getPracticeFormat().getDisplayName());
-            var currStrValINN = student.getCompanyINN() == null ? "Не заполнено" : student.getCompanyINN();
-            var currStrValCompany = student.getCompanyName() == null ? "Не заполнено" : student.getCompanyName();
-            var currStrValLeadFullName = student.getCompanyLeadFullName() == null ? "Не заполнено" : student.getCompanyLeadFullName();
-            var currStrValLeadPhone = student.getCompanyLeadPhone() == null ? "Не заполнено" : student.getCompanyLeadPhone();
-            var currStrValLeadEmail = student.getCompanyLeadEmail() == null ? "Не заполнено" : student.getCompanyLeadEmail();
-            var currStrValLeadTitle = student.getCompanyLeadJobTitle() == null ? "Не заполнено" : student.getCompanyLeadJobTitle();
-
-            textBuilder.append("Текущие значения студента с chatId %d  в потоке %s:\n".formatted(studentChatId, eduStreamName));
-
-            textBuilder.append("\tФИО: %s\n".formatted(student.getFullName()));
-            textBuilder.append("\tСтатус: %s\n".formatted(currStrValStatus));
-            textBuilder.append("\tМесто практики: %s\n".formatted(currStrValPlace));
-            textBuilder.append("\tФормат практики: %s\n".formatted(currStrValFormat));
-            textBuilder.append("\tИНН компании: %s\n".formatted(currStrValINN));
-            textBuilder.append("\tИмя компании: %s\n".formatted(currStrValCompany));
-            textBuilder.append("\tФИО руководителя: %s\n".formatted(currStrValLeadFullName));
-            textBuilder.append("\tТелефон руководителя: %s\n".formatted(currStrValLeadPhone));
-            textBuilder.append("\tПочта руководителя: %s\n".formatted(currStrValLeadEmail));
-            textBuilder.append("\tДолжность руководителя: %s\n".formatted(currStrValLeadTitle));
-
-            textBuilder.append("\n");
-            textBuilder.append("Новые значения, которые будут установлены:\n");
-            textBuilder.append("\tФИО: %s\n".formatted(student.getFullName()));
-            textBuilder.append("\tСтатус: %s\n".formatted(dto.getStatus() == null ? currStrValStatus : dto.getStatus()));
-            textBuilder.append("\tМесто практики: %s\n".formatted(dto.getPracticePlace() == null ? currStrValPlace : dto.getPracticePlace()));
-            textBuilder.append("\tФормат практики: %s\n".formatted(dto.getPracticeFormat() == null ? currStrValFormat : dto.getPracticeFormat()));
-            textBuilder.append("\tИНН компании: %s\n".formatted(dto.getCompanyINN() == null ? currStrValINN : dto.getCompanyINN()));
-            textBuilder.append("\tИмя компании: %s\n".formatted(dto.getCompanyName() == null ? currStrValCompany : dto.getCompanyName()));
-            textBuilder.append("\tФИО руководителя: %s\n".formatted(dto.getCompanyLeadFullName() == null ? currStrValLeadFullName : dto.getCompanyLeadFullName()));
-            textBuilder.append("\tТелефон руководителя: %s\n".formatted(dto.getCompanyLeadPhone() == null ? currStrValLeadPhone : dto.getCompanyLeadPhone()));
-            textBuilder.append("\tПочта руководителя: %s\n".formatted(dto.getCompanyLeadEmail() == null ? currStrValLeadEmail : dto.getCompanyLeadEmail()));
-            textBuilder.append("\tДолжность руководителя: %s\n".formatted(dto.getCompanyLeadJobTitle() == null ? currStrValLeadTitle : dto.getCompanyLeadJobTitle()));
-
-
-            textBuilder.append("\nОбновить информацию о студенте (ВНИМАНИЕ: команда напрямую обновляет поля в обход всех валидаций)?");
             ContextHolder.setCommandData(message.getChatId(), dto);
             ContextHolder.setNextCommand(message.getChatId(), new ForceUpdateConfirmationCommand());
+
             return MessageToUser.builder()
-                    .text(textBuilder.toString())
+                    .text(text)
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .keyboardMarkup(getInlineKeyboard())
                     .build();
+
         } catch (BadRequestException e) {
             ContextHolder.endCommand(message.getChatId());
             return MessageToUser.builder()
@@ -167,18 +143,154 @@ public class ForceUpdateCommand implements AdminCommand {
         }
     }
 
+    /**
+     * Находит студента по chatId и имени потока.
+     *
+     * @param chatId       chatId студента
+     * @param eduStreamName имя потока
+     * @return найденный студент
+     * @throws BadRequestException если студент не найден
+     * @throws InternalException при ошибках работы с базой данных
+     */
+    private Student findStudent(long chatId, String eduStreamName) throws BadRequestException, InternalException {
+        var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(chatId, eduStreamName);
+        if (studentOpt.isEmpty()) {
+            throw new BadRequestException("Студент с chatId %d на потоке %s не найден".formatted(chatId, eduStreamName));
+        }
+        return studentOpt.get();
+    }
+
+    /**
+     * Обрабатывает режим предпросмотра (dry-run).
+     * <p>
+     * Показывает какие изменения будут применены, но не сохраняет их в базу данных.
+     *
+     * @param parser распарсенные данные команды
+     * @return MessageToUser с описанием планируемых изменений
+     */
+    private MessageToUser handleDryRun(ForceUpdateCommandParser parser) throws BadRequestException, InternalException {
+        Student student = findStudent(parser.getStudentChatId(), parser.getEduStreamName());
+        ForceUpdateDTO dto = parser.toDTO();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== DRY-RUN MODE ===\n\n");
+        sb.append("Студент: ").append(student.getFullName()).append("\n");
+        sb.append("ChatId: ").append(parser.getStudentChatId()).append("\n");
+        sb.append("Поток: ").append(parser.getEduStreamName()).append("\n\n");
+
+        sb.append("Изменения:\n");
+        sb.append(buildChangesList(dto, student));
+
+        sb.append("\nДанные не изменены (dry-run).\n");
+        sb.append("Для применения запустите без --dry-run.");
+
+        return MessageToUser.builder()
+                .text(sb.toString())
+                .keyboardMarkup(new ReplyKeyboardRemove(true))
+                .build();
+    }
+
+    /**
+     * Формирует текст подтверждения с текущими и новыми значениями.
+     *
+     * @param student текущий студент из базы данных
+     * @param dto     DTO с новыми значениями
+     * @return форматированный текст подтверждения
+     */
+    private String buildConfirmationText(Student student, ForceUpdateDTO dto) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Обновление студента ").append(student.getFullName()).append("\n");
+        sb.append("ChatId: ").append(dto.getChatId()).append("\n");
+        sb.append("Поток: ").append(student.getEduStream().getName()).append("\n\n");
+
+        sb.append("Изменения:\n");
+        sb.append(buildChangesList(dto, student));
+
+        sb.append("\nВНИМАНИЕ: обход валидаций! Продолжить?");
+
+        return sb.toString();
+    }
+
+    /**
+     * Формирует список изменений в читабельном формате.
+     *
+     * @param dto     DTO с новыми значениями
+     * @param student студент с текущими значениями
+     * @return форматированный список изменений
+     */
+    private String buildChangesList(ForceUpdateDTO dto, Student student) {
+        StringBuilder sb = new StringBuilder();
+
+        addChange(sb, "Статус", student.getStatus() != null ? student.getStatus().getDisplayName() : null, dto.getStatus());
+        addChange(sb, "Место практики", student.getPracticePlace() != null ? student.getPracticePlace().getDisplayName() : null, dto.getPracticePlace());
+        addChange(sb, "Формат практики", student.getPracticeFormat() != null ? student.getPracticeFormat().getDisplayName() : null, dto.getPracticeFormat());
+        addInnChange(sb, student.getCompanyINN(), dto.getCompanyINN());
+        addChange(sb, "Компания", student.getCompanyName(), dto.getCompanyName());
+        addChange(sb, "Руководитель", student.getCompanyLeadFullName(), dto.getCompanyLeadFullName());
+        addChange(sb, "Телефон", student.getCompanyLeadPhone(), dto.getCompanyLeadPhone());
+        addChange(sb, "Email", student.getCompanyLeadEmail(), dto.getCompanyLeadEmail());
+        addChange(sb, "Должность", student.getCompanyLeadJobTitle(), dto.getCompanyLeadJobTitle());
+
+        return sb.toString();
+    }
+
+    /**
+     * Добавляет строку изменения в StringBuilder.
+     *
+     * @param sb      StringBuilder для накопления строк
+     * @param field   имя поля
+     * @param oldVal  старое значение
+     * @param newVal  новое значение
+     */
+    private void addChange(StringBuilder sb, String field, String oldVal, String newVal) {
+        if (newVal == null || newVal.isBlank()) return;
+
+        String old = (oldVal == null || oldVal.isBlank()) ? "-" : oldVal;
+        sb.append("  ").append(field).append(": ").append(old).append(" -> ").append(newVal).append("\n");
+    }
+
+    /**
+     * Добавляет строку изменения для ИНН
+     *
+     * @param sb      StringBuilder для накопления строк
+     * @param oldInn  старый ИНН
+     * @param newInn  новый ИНН
+     */
+    private void addInnChange(StringBuilder sb, Long oldInn, String newInn) {
+        if (newInn == null || newInn.isBlank()) return;
+
+        String old = oldInn == null ? "-" : oldInn.toString();
+        sb.append("  ИНН: ").append(old).append(" -> ").append(newInn).append("\n");
+    }
+
+    /**
+     * Возвращает true, так как после этой команды требуется подтверждение.
+     *
+     * @return true
+     */
     @Override
     public boolean isNextCallNeeded() {
         return true;
     }
 
+    /**
+     * Возвращает имя команды.
+     *
+     * @return имя команды "/forceupdate"
+     */
     @Override
     public String getName() {
         return "/forceupdate";
     }
 
+    /**
+     * Возвращает описание команды для справки.
+     *
+     * @return текстовое описание команды
+     */
     @Override
     public String getDescription() {
-        return "Вручную обновить состояние студента (в обход валидаций). Пример: `/forceupdate 12345 \"Бакалавры 2025\" \"статус\" \"PRACTICE_APPROVED\" \"фио_руководителя\" \"Иванов Иван Иванович\"`";
+        return "Принудительно обновить данные студента. Ключи: --help, --dry-run. Пример: /forceupdate 123456 \"Поток\" status=\"PRACTICE_APPROVED\"";
     }
 }
