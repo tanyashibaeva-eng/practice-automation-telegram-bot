@@ -425,6 +425,24 @@ public class StudentService {
         return resBuilder.fileStreamDTO(file).build();
     }
 
+    public static boolean updateCompanyLeadField(long chatId, String column, String value) throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(chatId);
+        if (eduStreamNameOpt.isEmpty())
+            throw new BadRequestException("Студент не находится ни в одном активном потоке");
+        return StudentRepository.updateSingleCompanyLeadField(chatId, eduStreamNameOpt.get(), column, value);
+    }
+
+    public static Optional<Student> getStudentWithLeadInfo(long chatId) throws InternalException, BadRequestException {
+        Optional<String> eduStreamNameOpt = findActiveEduStreamNameByChatId(chatId);
+        if (eduStreamNameOpt.isEmpty())
+            return Optional.empty();
+        return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamNameOpt.get()));
+    }
+
+    public static List<Student> searchByGroupAndFullName(String group, String fullNamePattern, String eduStreamName) throws InternalException {
+        return StudentRepository.findByGroupAndFullNamePatternAndEduStreamName(group, fullNamePattern, eduStreamName);
+    }
+
     public static List<Student> getStudentsByChatId(long chatId) throws InternalException {
         return StudentRepository.findAllByChatId(chatId);
     }

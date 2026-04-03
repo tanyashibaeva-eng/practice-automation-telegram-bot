@@ -647,6 +647,41 @@ public class StudentRepository {
         }
     }
 
+    public static boolean updateSingleCompanyLeadField(long chatId, String eduStreamName, String column, String value) throws InternalException {
+        var allowed = Set.of("company_lead_fullname", "company_lead_phone", "company_lead_email", "company_lead_job_title");
+        if (!allowed.contains(column)) {
+            throw new InternalException("Недопустимое поле: " + column);
+        }
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                     "UPDATE student SET " + column + " = ?, updated_at = now() WHERE chat_id = ? AND edu_stream_name = ?;"
+             )) {
+            statement.setString(1, value);
+            statement.setLong(2, chatId);
+            statement.setString(3, eduStreamName);
+            return 1 == statement.executeUpdate();
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<Student> findByGroupAndFullNamePatternAndEduStreamName(String group, String fullNamePattern, String eduStreamName) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                     "SELECT * FROM student WHERE st_group = ? AND LOWER(fullname) LIKE LOWER(?) AND edu_stream_name = ?;"
+             )) {
+            statement.setString(1, group);
+            statement.setString(2, "%" + fullNamePattern + "%");
+            statement.setString(3, eduStreamName);
+            var rs = statement.executeQuery();
+            List<Student> result = mapToStudentList(rs);
+            result.sort(Comparator.comparing(Student::getFullName));
+            return result;
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static boolean existsByPracticeOptionId(long optionId) throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement("""

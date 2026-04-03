@@ -62,6 +62,8 @@ import ru.itmo.infra.handler.usecase.admin.practiceformat.CreatePracticeFormatCo
 import ru.itmo.infra.handler.usecase.admin.practiceformat.DeletePracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.admin.practiceformat.RenamePracticeFormatCommand;
 import ru.itmo.infra.handler.usecase.admin.practiceformat.SetUserPracticeFormatCommand;
+import ru.itmo.infra.handler.usecase.admin.searchstudent.SearchStudentByGroupCommand;
+import ru.itmo.infra.handler.usecase.admin.searchstudent.SearchStudentByIsuCommand;
 import ru.itmo.infra.handler.usecase.admin.studentinfo.GetStudentInfoCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanCommand;
 import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
@@ -72,6 +74,9 @@ import ru.itmo.infra.handler.usecase.admin.viewstudentphoto.ViewStudentPhotoComm
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
+import ru.itmo.infra.handler.usecase.user.companyleadinfo.ChangeLeadFieldCommand;
+import ru.itmo.infra.handler.usecase.user.companyleadinfo.ChangeLeadInfoCommand;
+import ru.itmo.infra.handler.usecase.user.companyleadinfo.ViewLeadInfoCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChangePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ChoosePracticePlaceCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.ErrorCompanyInputCommand;
@@ -187,6 +192,10 @@ public class Handler {
 
         commands.add(new ChangePracticeFormatCommand());
 
+        commands.add(new ChangeLeadInfoCommand());
+        commands.add(new ChangeLeadFieldCommand());
+        commands.add(new ViewLeadInfoCommand());
+
         commands.add(new UploadApplicationHandleCommand());
         commands.add(new StudentDownloadApplicationCommand());
         commands.add(new StudentFilledApplicationCommand());
@@ -276,6 +285,8 @@ public class Handler {
         commands.add(new RenamePracticeFormatCommand());
         commands.add(new DeletePracticeFormatCommand());
         commands.add(new SetUserPracticeFormatCommand());
+        commands.add(new SearchStudentByIsuCommand());
+        commands.add(new SearchStudentByGroupCommand());
 
         for (Command command : commands) {
             if (command.getName().isEmpty()) {
@@ -528,6 +539,8 @@ public class Handler {
         commands.add(new UploadSignedPhotoStartCommand());
         commands.add(new ViewSignedPhotoCommand());
         commands.add(new ChangePracticeFormatCommand());
+        commands.add(new ChangeLeadInfoCommand());
+        commands.add(new ViewLeadInfoCommand());
 
         // Фильтруем только те, которые доступны для текущего статуса.
         return commands.stream()
@@ -629,7 +642,9 @@ public class Handler {
                 new CreatePracticeFormatCommand(),
                 new DeletePracticeFormatCommand(),
                 new RenamePracticeFormatCommand(),
-                new SetUserPracticeFormatCommand()
+                new SetUserPracticeFormatCommand(),
+                new SearchStudentByIsuCommand(),
+                new SearchStudentByGroupCommand()
         );
     }
 
