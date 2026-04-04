@@ -4,10 +4,8 @@ import lombok.extern.java.Log;
 import ru.itmo.domain.model.PracticeFormatEntity;
 import ru.itmo.exception.InternalException;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,10 +13,10 @@ import java.util.UUID;
 
 @Log
 public class PracticeFormatRepository {
-    private static final Connection connection = DatabaseManager.getConnection();
 
     public static List<PracticeFormatEntity> findAllActive() throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 SELECT id, code, display_name, is_active
                 FROM practice_format
                 WHERE is_active = true
@@ -32,7 +30,8 @@ public class PracticeFormatRepository {
     }
 
     public static Optional<PracticeFormatEntity> findById(long id) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 SELECT id, code, display_name, is_active
                 FROM practice_format
                 WHERE id = ?;
@@ -46,7 +45,8 @@ public class PracticeFormatRepository {
     }
 
     public static Optional<PracticeFormatEntity> findByDisplayNameIgnoreCase(String displayName) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 SELECT id, code, display_name, is_active
                 FROM practice_format
                 WHERE lower(display_name) = lower(?)
@@ -61,7 +61,8 @@ public class PracticeFormatRepository {
     }
 
     public static Optional<PracticeFormatEntity> findByCodeIgnoreCase(String code) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 SELECT id, code, display_name, is_active
                 FROM practice_format
                 WHERE lower(code) = lower(?)
@@ -76,7 +77,8 @@ public class PracticeFormatRepository {
     }
 
     public static boolean existsByDisplayNameIgnoreCase(String displayName) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 SELECT 1
                 FROM practice_format
                 WHERE lower(display_name) = lower(?)
@@ -92,7 +94,8 @@ public class PracticeFormatRepository {
 
     public static PracticeFormatEntity create(String displayName) throws InternalException {
         String code = "CUSTOM_" + UUID.randomUUID();
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 INSERT INTO practice_format (code, display_name, is_active)
                 VALUES (?, ?, true)
                 RETURNING id, code, display_name, is_active;
@@ -111,7 +114,8 @@ public class PracticeFormatRepository {
     }
 
     public static boolean renameById(long id, String newDisplayName) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 UPDATE practice_format
                 SET display_name = ?, updated_at = now()
                 WHERE id = ?;
@@ -125,7 +129,8 @@ public class PracticeFormatRepository {
     }
 
     public static boolean deleteById(long id) throws InternalException {
-        try (var st = connection.prepareStatement("""
+        try (var connection = DatabaseManager.getConnection();
+             var st = connection.prepareStatement("""
                 DELETE FROM practice_format
                 WHERE id = ?;
                 """)) {
