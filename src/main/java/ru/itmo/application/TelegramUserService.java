@@ -20,17 +20,6 @@ import java.util.Optional;
 @Log
 public class TelegramUserService {
 
-    private static final Connection transactionConnection = DatabaseManager.initializeConnection();
-
-    static {
-        try {
-            transactionConnection.setAutoCommit(false);
-        } catch (SQLException ex) {
-            log.severe("Ошибка во время установки нового соединения с БД: " + ex.getMessage());
-            throw new RuntimeException(ex);
-        }
-    }
-
     /* Здесь мы считаем, что ИСУ уже корректный и такой студент существует */
     public static UserRegistrationResult registerUser(UserRegistrationArgs args) throws InternalException {
         boolean shouldCreateTelegramUser = false;
@@ -67,15 +56,20 @@ public class TelegramUserService {
 
         TelegramUser previouslyRegisteredUser = student.getTelegramUser();
         TelegramUser telegramUser = new TelegramUser(args.getChatId(), false, false, args.getUsername());
-        try {
-            if (shouldCreateTelegramUser)
-                TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
-            if (shouldDuplicateStudent)
-                StudentRepository.saveTransactional(student, transactionConnection);
-            student.setTelegramUser(telegramUser);
-            StudentRepository.updateChatIdTransactional(student, transactionConnection);
-
-            transactionConnection.commit();
+        try (Connection transactionConnection = DatabaseManager.getConnection()) {
+            transactionConnection.setAutoCommit(false);
+            try {
+                if (shouldCreateTelegramUser)
+                    TelegramUserRepository.saveTransactional(telegramUser, transactionConnection);
+                if (shouldDuplicateStudent)
+                    StudentRepository.saveTransactional(student, transactionConnection);
+                student.setTelegramUser(telegramUser);
+                StudentRepository.updateChatIdTransactional(student, transactionConnection);
+                transactionConnection.commit();
+            } catch (SQLException ex) {
+                transactionConnection.rollback();
+                throw ex;
+            }
         } catch (SQLException ex) {
             log.severe("Ошибка во время выполнения транзакции регистрации студента.\nStudent: " + student + "\nException: " + ex.getMessage());
             throw new InternalException("Что-то пошло не так");
