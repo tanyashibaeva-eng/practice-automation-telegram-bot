@@ -10,6 +10,8 @@ services:
       - "5555:5432"
     expose:
       - 5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - practice-bot-network
     healthcheck:
@@ -32,6 +34,9 @@ services:
     restart: unless-stopped
     networks:
       - practice-bot-network
+
+volumes:
+  postgres_data:
 
 networks:
   practice-bot-network:
