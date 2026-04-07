@@ -182,8 +182,12 @@ CREATE TABLE IF NOT EXISTS guide_section (
     title                text                NOT NULL CHECK (title <> ''),
     menu_order           int                 NOT NULL UNIQUE,
     command              text                NOT NULL UNIQUE CHECK (command <> ''),
-    is_active            boolean             NOT NULL DEFAULT TRUE
+    is_active            boolean             NOT NULL DEFAULT TRUE,
+    is_hidden            boolean             NOT NULL DEFAULT FALSE
 );
+
+ALTER TABLE guide_section
+    ADD COLUMN IF NOT EXISTS is_hidden boolean NOT NULL DEFAULT FALSE;
 
 CREATE TABLE IF NOT EXISTS guide_subsection (
     id                       serial PRIMARY KEY,
@@ -210,6 +214,30 @@ ON CONFLICT (slug) DO UPDATE SET
     menu_order = EXCLUDED.menu_order,
     command = EXCLUDED.command,
     is_active = EXCLUDED.is_active;
+
+INSERT INTO guide_section (slug, title, menu_order, command, is_active, is_hidden)
+VALUES ('registration_instruction', 'Инструкция по регистрации', 900, '/_registration_instruction', true, true)
+ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    menu_order = EXCLUDED.menu_order,
+    command = EXCLUDED.command,
+    is_active = EXCLUDED.is_active,
+    is_hidden = EXCLUDED.is_hidden;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Инструкция по регистрации', $reg_instr$
+При регистрации, требуется указать
+
+* название потока  
+* номер ИСУ
+
+**Текущее название потока:**
+Весна 2025/2026
+
+Введите название вашего потока
+$reg_instr$, 1
+FROM guide_section s WHERE s.slug = 'registration_instruction'
+ON CONFLICT (section_id, item_order) DO NOTHING;
 
 INSERT INTO guide_subsection (section_id, title, body, item_order)
 SELECT s.id, 'Содержание', $toc_po$
