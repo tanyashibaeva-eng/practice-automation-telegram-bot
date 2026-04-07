@@ -20,7 +20,7 @@ public class GuideMenuCommand implements Command {
     public MessageToUser execute(MessageDTO message) {
         ContextHolder.endCommand(message.getChatId());
         try {
-            var sections = GuideRepository.findAllActiveSectionsOrdered();
+            var sections = GuideRepository.findAllActiveSectionsVisibleInMenuOrdered();
             var markup = InlineKeyboardMarkup.builder();
             for (var sec : sections) {
                 String label = sec.getTitle().length() <= 64 ? sec.getTitle() : sec.getTitle().substring(0, 61) + "...";

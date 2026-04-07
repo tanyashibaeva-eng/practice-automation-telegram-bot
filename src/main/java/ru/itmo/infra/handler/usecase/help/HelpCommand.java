@@ -84,7 +84,7 @@ public class HelpCommand implements UserCommand {
         helpMessages.add("");
         helpMessages.add("Разделы мануала:");
         try {
-            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
                 helpMessages.add("- " + section.getCommand() + ": " + section.getTitle());
             }
         } catch (InternalException ignored) {

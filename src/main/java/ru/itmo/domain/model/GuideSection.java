@@ -12,4 +12,5 @@ public class GuideSection {
     private final int menuOrder;
     private final String command;
     private final boolean active;
+    private final boolean hidden;
 }

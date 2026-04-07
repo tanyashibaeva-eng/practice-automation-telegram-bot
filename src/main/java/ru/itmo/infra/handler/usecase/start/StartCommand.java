@@ -251,7 +251,7 @@ public class StartCommand implements UserCommand {
 
     private static void appendGuideSectionRows(InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder) {
         try {
-            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
                 markupBuilder.keyboardRow(new InlineKeyboardRow(
                         InlineKeyboardButton.builder()
                                 .text(trimForTelegramButton(section.getTitle()))

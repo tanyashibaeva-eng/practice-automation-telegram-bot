@@ -19,9 +19,28 @@ public class GuideRepository {
     public static List<GuideSection> findAllActiveSectionsOrdered() throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement("""
-                SELECT id, slug, title, menu_order, command, is_active
+                SELECT id, slug, title, menu_order, command, is_active, is_hidden
                 FROM guide_section
                 WHERE is_active = TRUE
+                ORDER BY menu_order;
+                """)) {
+            var rs = statement.executeQuery();
+            List<GuideSection> list = new ArrayList<>();
+            while (rs.next()) {
+                list.add(mapSection(rs));
+            }
+            return list;
+        } catch (SQLException ex) {
+            throw handle(ex);
+        }
+    }
+
+    public static List<GuideSection> findAllActiveSectionsVisibleInMenuOrdered() throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
+                SELECT id, slug, title, menu_order, command, is_active, is_hidden
+                FROM guide_section
+                WHERE is_active = TRUE AND is_hidden = FALSE
                 ORDER BY menu_order;
                 """)) {
             var rs = statement.executeQuery();
@@ -38,7 +57,7 @@ public class GuideRepository {
     public static Optional<GuideSection> findSectionById(int sectionId) throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement("""
-                SELECT id, slug, title, menu_order, command, is_active
+                SELECT id, slug, title, menu_order, command, is_active, is_hidden
                 FROM guide_section
                 WHERE id = ?;
                 """)) {
@@ -53,10 +72,28 @@ public class GuideRepository {
         }
     }
 
+    public static Optional<GuideSection> findActiveSectionBySlug(String slug) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement("""
+                SELECT id, slug, title, menu_order, command, is_active, is_hidden
+                FROM guide_section
+                WHERE is_active = TRUE AND slug = ?;
+                """)) {
+            statement.setString(1, slug);
+            var rs = statement.executeQuery();
+            if (rs.next()) {
+                return Optional.of(mapSection(rs));
+            }
+            return Optional.empty();
+        } catch (SQLException ex) {
+            throw handle(ex);
+        }
+    }
+
     public static Optional<GuideSection> findActiveSectionByCommand(String command) throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement("""
-                SELECT id, slug, title, menu_order, command, is_active
+                SELECT id, slug, title, menu_order, command, is_active, is_hidden
                 FROM guide_section
                 WHERE is_active = TRUE AND command = ?;
                 """)) {
@@ -416,7 +453,8 @@ public class GuideRepository {
                 rs.getString("title"),
                 rs.getInt("menu_order"),
                 rs.getString("command"),
-                rs.getBoolean("is_active")
+                rs.getBoolean("is_active"),
+                rs.getBoolean("is_hidden")
         );
     }
 

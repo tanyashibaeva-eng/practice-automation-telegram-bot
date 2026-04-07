@@ -214,7 +214,7 @@ public class Handler {
         commands.add(new StatusCommand());
 
         try {
-            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
                 commands.add(new GuideSectionOpenCommand(section.getCommand(), section.getTitle()));
             }
         } catch (InternalException e) {
@@ -562,7 +562,7 @@ public class Handler {
         addCommandIfExists(result, new StatusCommand());
 
         try {
-            for (var section : GuideRepository.findAllActiveSectionsOrdered()) {
+            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
                 addCommandIfExists(result, new GuideSectionOpenCommand(section.getCommand(), section.getTitle()));
             }
         } catch (InternalException e) {
