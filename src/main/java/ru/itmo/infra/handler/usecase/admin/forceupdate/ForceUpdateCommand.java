@@ -39,9 +39,9 @@ import java.util.Set;
  * <p>
  * Примеры использования:
  * <ul>
- *     <li>{@code /forceupdate 123456789 "Поток" status="PRACTICE_APPROVED"} - изменить статус</li>
- *     <li>{@code /forceupdate 123456789 "Поток" place="ITMO_COMPANY" format="OFFLINE"} - изменить место и формат</li>
- *     <li>{@code /forceupdate --dry-run 123456789 "Поток" status="PRACTICE_APPROVED"} - предпросмотр изменений</li>
+ *     <li>{@code /forceupdate 123456 "Поток" status="PRACTICE_APPROVED"} - изменить статус</li>
+ *     <li>{@code /forceupdate 123456 "Поток" place="ITMO_COMPANY" format="OFFLINE"} - изменить место и формат</li>
+ *     <li>{@code /forceupdate --dry-run 123456 "Поток" status="PRACTICE_APPROVED"} - предпросмотр изменений</li>
  *     <li>{@code /forceupdate --help} - показать доступные поля</li>
  * </ul>
  * <p>
@@ -120,7 +120,7 @@ public class ForceUpdateCommand implements AdminCommand {
                 return handleDryRun(parser);
             }
 
-            Student student = findStudent(parser.getStudentChatId(), parser.getEduStreamName());
+    Student student = findStudent(parser.getStudentIsu(), parser.getEduStreamName());
             ForceUpdateDTO dto = parser.toDTO();
 
             String text = buildConfirmationText(student, dto);
@@ -144,18 +144,18 @@ public class ForceUpdateCommand implements AdminCommand {
     }
 
     /**
-     * Находит студента по chatId и имени потока.
+     * Находит студента по ISU и имени потока.
      *
-     * @param chatId       chatId студента
+     * @param isu          ISU студента
      * @param eduStreamName имя потока
      * @return найденный студент
      * @throws BadRequestException если студент не найден
      * @throws InternalException при ошибках работы с базой данных
      */
-    private Student findStudent(long chatId, String eduStreamName) throws BadRequestException, InternalException {
-        var studentOpt = StudentService.findStudentByChatIdAndEduStreamName(chatId, eduStreamName);
+    private Student findStudent(int isu, String eduStreamName) throws BadRequestException, InternalException {
+        var studentOpt = StudentService.findStudentByIsuAndEduStreamName(isu, eduStreamName);
         if (studentOpt.isEmpty()) {
-            throw new BadRequestException("Студент с chatId %d на потоке %s не найден".formatted(chatId, eduStreamName));
+            throw new BadRequestException("Студент с isu %d на потоке %s не найден".formatted(isu, eduStreamName));
         }
         return studentOpt.get();
     }
@@ -169,13 +169,13 @@ public class ForceUpdateCommand implements AdminCommand {
      * @return MessageToUser с описанием планируемых изменений
      */
     private MessageToUser handleDryRun(ForceUpdateCommandParser parser) throws BadRequestException, InternalException {
-        Student student = findStudent(parser.getStudentChatId(), parser.getEduStreamName());
+        Student student = findStudent(parser.getStudentIsu(), parser.getEduStreamName());
         ForceUpdateDTO dto = parser.toDTO();
 
         StringBuilder sb = new StringBuilder();
         sb.append("=== DRY-RUN MODE ===\n\n");
         sb.append("Студент: ").append(student.getFullName()).append("\n");
-        sb.append("ChatId: ").append(parser.getStudentChatId()).append("\n");
+        sb.append("ISU: ").append(parser.getStudentIsu()).append("\n");
         sb.append("Поток: ").append(parser.getEduStreamName()).append("\n\n");
 
         sb.append("Изменения:\n");
@@ -201,7 +201,7 @@ public class ForceUpdateCommand implements AdminCommand {
         StringBuilder sb = new StringBuilder();
 
         sb.append("Обновление студента ").append(student.getFullName()).append("\n");
-        sb.append("ChatId: ").append(dto.getChatId()).append("\n");
+        sb.append("ISU: ").append(dto.getIsu()).append("\n");
         sb.append("Поток: ").append(student.getEduStream().getName()).append("\n\n");
 
         sb.append("Изменения:\n");

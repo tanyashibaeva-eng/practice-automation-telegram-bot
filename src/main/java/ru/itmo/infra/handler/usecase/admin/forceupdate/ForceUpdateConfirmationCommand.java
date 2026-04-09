@@ -62,7 +62,7 @@ public class ForceUpdateConfirmationCommand implements AdminCommand {
                             .build();
                 }
                 return MessageToUser.builder()
-                        .text("Пользователь с chatId %d был изменен вручную".formatted(args.getChatId()))
+                        .text("Пользователь с ISU %d был изменен вручную".formatted(args.getIsu()))
                         .keyboardMarkup(new ReplyKeyboardRemove(true))
                         .needRewriting(false)
                         .build();
