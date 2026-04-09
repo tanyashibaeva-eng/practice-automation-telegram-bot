@@ -29,10 +29,10 @@ public class SetUserPracticeFormatCommand implements AdminCommand {
 
             Matcher m = PATTERN.matcher(raw);
             if (!m.matches()) {
-                throw new BadRequestException("Неверный формат. Используйте: /practice_format_set_user <chatId> \"<формат>\"");
+                throw new BadRequestException("Неверный формат. Используйте: /practice_format_set_user <ISU> \"<формат>\"");
             }
 
-            long targetChatId = TextUtils.parseDoubleStrToLong(m.group(1));
+            int targetIsuId = TextUtils.parseIsu(m.group(1));
             String formatName = m.group(2).trim();
 
             var formatOpt = PracticeFormatService.findByDisplayNameIgnoreCase(formatName);
@@ -48,17 +48,23 @@ public class SetUserPracticeFormatCommand implements AdminCommand {
                 legacy = PracticeFormat.NOT_SPECIFIED;
             }
 
-            StudentService.changePracticeFormatForCurrentStream(targetChatId, legacy, format.getId());
+            var studentOpt = StudentService.findStudentByIsu(targetIsuId);
+            if (studentOpt.isEmpty()) {
+                throw new BadRequestException("Студент с заданным ИСУ не найден");
+            }
+            Long chatId = studentOpt.get().getTelegramUser().getChatId();
+
+            StudentService.changePracticeFormatForCurrentStream(targetIsuId, legacy, format.getId());
 
             // информируем несчастного студента
-            NotificationService.notifyUser(targetChatId, """
+            NotificationService.notifyUser(chatId, """
                     Администратор изменил формат прохождения вашей практики на: %s
 
                     Если вы уже загружали заявку, пожалуйста, загрузите её заново.
                     """.formatted(format.getDisplayName()));
 
             return MessageToUser.builder()
-                    .text("Формат практики пользователя %d обновлен".formatted(targetChatId))
+                    .text("Формат практики студента %d обновлен".formatted(targetIsuId))
                     .keyboardMarkup(new ReplyKeyboardRemove(true))
                     .build();
         } catch (BadRequestException e) {
@@ -80,7 +86,7 @@ public class SetUserPracticeFormatCommand implements AdminCommand {
 
     @Override
     public String getDescription() {
-        return "Изменить формат практики у пользователя. Пример: `/practice_format_set_user 123 \"Очно\"`";
+        return "Изменить формат практики у пользователя. Пример: `/practice_format_set_user 111111 \"Очно\"`";
     }
 }
 
