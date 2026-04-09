@@ -8,6 +8,7 @@ import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
 import ru.itmo.domain.type.PracticeFormat;
+import ru.itmo.exception.InnNoLongerValidException;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 import ru.itmo.infra.handler.usecase.user.companyinfoinput.itmo.AskingITMOPracticeLeadFullNameCommand;
 
@@ -21,6 +22,7 @@ public class InputInnValidationCommand implements UserCommand {
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
 
         var innResponse = StudentService.validateInn(userText);
+
         if (innResponse.getErrorText() != null) {
             ContextHolder.setNextCommand(chatId, this);
             return MessageToUser.builder()

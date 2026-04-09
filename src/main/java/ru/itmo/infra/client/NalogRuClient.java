@@ -4,6 +4,7 @@ import lombok.extern.java.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import ru.itmo.exception.InnNoLongerValidException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -85,12 +87,13 @@ public class NalogRuClient {
     public static String[] getCompanyInfoByInn(String inn) throws IOException {
         JSONObject jsonResponse;
 
-        synchronized(NalogRuClient.class) { // блок отправки запроса к сайту
+        synchronized (NalogRuClient.class) { // блок отправки запроса к сайту
             Long time_bonus = (long) (Math.random() * 250L);    // надбавка ко времени, для динамичности времени между
             // запросами
 
             // Ожидание таймаута для нового запроса. Необходимо выдерживать для избежания появления капчи
-            while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {}
+            while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {
+            }
 
             // следующие запросы могут вызвать ошибку, поэтому время обновляется до и после
             lastRequestTime = System.currentTimeMillis();
@@ -105,12 +108,19 @@ public class NalogRuClient {
         }
 
         try {
+            JSONObject defunctCompany = null;
+            JSONObject invalidCompany = null;
+
             JSONObject company;
             JSONArray rows = jsonResponse.getJSONArray("rows"); // массив с результатами
             for (int i = rows.length() - 1; i >= 0; i--) {
                 company = rows.getJSONObject(i);
                 // поля e и v есть только у недействительных компаний
-                if (company.has("e") || company.has("v")) {
+                if (company.has("e")) {
+                    defunctCompany = company;
+                    rows.remove(i);
+                } else if (company.has("v")) {
+                    invalidCompany = company;
                     rows.remove(i);
                 }
             }
@@ -120,12 +130,23 @@ public class NalogRuClient {
                 company = rows.getJSONObject(0);
                 String companyName = company.has("c") ? company.getString("c") : company.getString("n");
                 String region = company.getString("rn");
-                return new String[] { companyName, region };
+                return new String[]{companyName, region};
             } else {
-                return new String[] { null, null };
+                if (defunctCompany != null) {
+                    throw new InnNoLongerValidException(
+                            "Компания прекратила свою деятельность с " + defunctCompany.getString("e") + '.'
+                    );
+                } else if (invalidCompany != null) {
+                    throw new InnNoLongerValidException(
+                            "Регистрация компании признана недействительной с " + invalidCompany.getString("v") + '.'
+                    );
+                }
+                return new String[]{null, null};
             }
         } catch (JSONException ex) {
-            return new String[] { null, null };
+            return new String[]{null, null};
+        } catch (InnNoLongerValidException ex) {
+            throw ex;
         }
     }
 
@@ -164,12 +185,19 @@ public class NalogRuClient {
         }
 
         try {
+            JSONObject defunctCompany = null;
+            JSONObject invalidCompany = null;
+
             JSONObject company;
             JSONArray rows = jsonResponse.getJSONArray("rows"); // массив с результатами
             for (int i = rows.length() - 1; i >= 0; i--) {
                 company = rows.getJSONObject(i);
                 // поля e и v есть только у недействительных компаний
-                if (company.has("e") || company.has("v")) {
+                if (company.has("e")) {
+                    defunctCompany = company;
+                    rows.remove(i);
+                } else if (company.has("v")) {
+                    invalidCompany = company;
                     rows.remove(i);
                 }
             }
@@ -181,10 +209,21 @@ public class NalogRuClient {
                 String region = company.getString("rn");
                 return new String[] { companyName, region };
             } else {
+                if (defunctCompany != null) {
+                    throw new InnNoLongerValidException(
+                            "Компания прекратила свою деятельность с " + defunctCompany.getString("e") + '.'
+                    );
+                } else if (invalidCompany != null) {
+                    throw new InnNoLongerValidException(
+                            "Регистрация компании признана недействительной с " + invalidCompany.getString("v") + '.'
+                    );
+                }
                 return new String[] { null, null };
             }
         } catch (JSONException ex) {
             return new String[] { null, null };
+        } catch (InnNoLongerValidException ex) {
+            throw ex;
         }
     }
 }

@@ -9,6 +9,7 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.exception.InnNoLongerValidException;
 import ru.itmo.exception.InternalException;
 import ru.itmo.infra.docx.DocxGenerator;
 import ru.itmo.infra.excel.Generator;
@@ -359,6 +360,8 @@ public class StudentService {
                 }
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
+            } catch (InnNoLongerValidException e) {
+                return resBuilder.errorText(e.getMessage()).build();
             }
         }
 
