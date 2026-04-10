@@ -152,6 +152,8 @@ public class NalogRuClient {
             }
         } catch (JSONException ex) {
             return new String[]{null, null};
+        } catch (DefunctCompanyException | InvalidCompanyRegistrationException ex) {
+            throw ex;
         }
     }
 }
