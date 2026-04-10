@@ -185,7 +185,7 @@ public class StartCommand implements UserCommand {
                 .build();
         markupBuilder.keyboardRow(new InlineKeyboardRow(
                 InlineKeyboardButton.builder()
-                        .text("🏢 Редактирование мест практики")
+                        .text("🏢 Посмотреть места практики")
                         .callbackData(practiceOptionsCallbackData.toString())
                         .build()
         ));

@@ -222,6 +222,10 @@ public class PracticeAutomationBot implements LongPollingMultiThreadUpdateConsum
             telegramClient.execute(editMessage);
             updateMessageIds(message, chatId, editMessage.getMessageId());
         } catch (TelegramApiException ex) {
+            var lower = ex.getMessage() == null ? "" : ex.getMessage().toLowerCase();
+            if (lower.contains("message is not modified")) {
+                return;
+            }
             if (message.getFileStream() != null) {
                 sendDocument(message, chatId);
             } else {

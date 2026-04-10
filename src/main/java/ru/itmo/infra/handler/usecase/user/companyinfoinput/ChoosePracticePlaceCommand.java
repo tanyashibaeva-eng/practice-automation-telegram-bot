@@ -65,7 +65,7 @@ public class ChoosePracticePlaceCommand implements UserCommand {
                     .map(o -> o.getTitle())
                     .toList();
         } catch (Exception e) {
-            titles = List.of();
+            titles = List.of("Нет доступных мест практики");
         }
 
         for (int i = 0; i < titles.size(); i += 2) {

@@ -12,6 +12,23 @@ import java.util.Optional;
 
 @Log
 public class PracticeOptionRepository {
+    public static void ensureSchema() throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.createStatement()) {
+            statement.execute("""
+                    CREATE TABLE IF NOT EXISTS practice_option (
+                        id bigserial PRIMARY KEY,
+                        title text NOT NULL UNIQUE CHECK (title <> ''),
+                        enabled boolean NOT NULL DEFAULT TRUE
+                    );
+                    """);
+            statement.execute("ALTER TABLE practice_option ADD COLUMN IF NOT EXISTS requires_itmo_info boolean NOT NULL DEFAULT FALSE;");
+            statement.execute("ALTER TABLE practice_option ADD COLUMN IF NOT EXISTS requires_company_info boolean NOT NULL DEFAULT FALSE;");
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
     public static List<PracticeOption> findAll() throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement("""

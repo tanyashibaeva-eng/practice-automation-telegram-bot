@@ -9,10 +9,12 @@ import java.util.List;
 
 public class PracticeOptionService {
     public static List<PracticeOption> getAllOptions() throws InternalException {
+        PracticeOptionRepository.ensureSchema();
         return PracticeOptionRepository.findAll();
     }
 
     public static List<PracticeOption> getEnabledOptions() throws InternalException {
+        PracticeOptionRepository.ensureSchema();
         return PracticeOptionRepository.findAllEnabled();
     }
 
@@ -21,39 +23,46 @@ public class PracticeOptionService {
     }
 
     public static PracticeOption addOption(String title, boolean requiresItmoInfo, boolean requiresCompanyInfo) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         validateTitle(title);
         validateFlags(requiresItmoInfo, requiresCompanyInfo);
         return PracticeOptionRepository.create(title.trim(), requiresItmoInfo, requiresCompanyInfo);
     }
 
     public static void enableOption(long id) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         ensureExists(id);
         PracticeOptionRepository.updateEnabled(id, true);
     }
 
     public static void disableOption(long id) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         ensureExists(id);
         PracticeOptionRepository.updateEnabled(id, false);
     }
 
     public static void renameOption(long id, String newTitle) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         ensureExists(id);
         validateTitle(newTitle);
         PracticeOptionRepository.updateTitle(id, newTitle.trim());
     }
 
     public static void updateOptionFlags(long id, boolean requiresItmoInfo, boolean requiresCompanyInfo) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         ensureExists(id);
         validateFlags(requiresItmoInfo, requiresCompanyInfo);
         PracticeOptionRepository.updateFlags(id, requiresItmoInfo, requiresCompanyInfo);
     }
 
     public static void deleteOption(long id) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         ensureExists(id);
         PracticeOptionRepository.deleteById(id);
     }
 
     public static PracticeOption getEnabledOptionByTitleChecked(String title) throws InternalException, BadRequestException {
+        PracticeOptionRepository.ensureSchema();
         var optionOpt = PracticeOptionRepository.findByTitle(title);
         if (optionOpt.isEmpty()) {
             throw new BadRequestException("Выбранный вариант не найден");
