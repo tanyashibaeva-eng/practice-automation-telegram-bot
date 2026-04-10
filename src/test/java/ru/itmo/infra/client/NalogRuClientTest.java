@@ -1,6 +1,8 @@
 package ru.itmo.infra.client;
 
 import org.junit.jupiter.api.Test;
+import ru.itmo.exception.DefunctCompanyException;
+import ru.itmo.exception.InvalidCompanyRegistrationException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,9 +23,19 @@ class NalogRuClientTest {
     };
 
     private static final String[] INVALID_INNS = {
-            "0000000000",
+            "0101010101",
             "1234567890",
             "6767676767"
+    };
+
+    private static final String[] DEFUNCT_COMPANY_INNS = {
+            "6323075389",
+            "7830001028",
+            "9204002242"
+    };
+
+    private static final String[] INVALID_COMPANY_REGISTRATION_INNS = {
+            "0000000000"
     };
 
     @Test
@@ -57,6 +69,29 @@ class NalogRuClientTest {
             String region = NalogRuClient.getCompanyInfoByInn(inn)[1];
 
             assertNull(region, "Регион должен быть null для инн: " + inn);
+        }
+    }
+
+
+    @Test
+    void shouldThrowDefunctCompanyExceptionForDefunctInns() {
+        for (String inn : DEFUNCT_COMPANY_INNS) {
+            assertThrows(
+                    DefunctCompanyException.class,
+                    () -> NalogRuClient.getCompanyInfoByInn(inn),
+                    "Ожидалась DefunctCompanyException для ИНН: " + inn
+            );
+        }
+    }
+
+    @Test
+    void shouldThrowInvalidCompanyRegistrationExceptionForInvalidCompanyRegistrationInns() {
+        for (String inn : INVALID_COMPANY_REGISTRATION_INNS) {
+            assertThrows(
+                    InvalidCompanyRegistrationException.class,
+                    () -> NalogRuClient.getCompanyInfoByInn(inn),
+                    "Ожидалась InvalidCompanyRegistrationException для ИНН: " + inn
+            );
         }
     }
 }

@@ -4,7 +4,8 @@ import lombok.extern.java.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import ru.itmo.exception.InnNoLongerValidException;
+import ru.itmo.exception.DefunctCompanyException;
+import ru.itmo.exception.InvalidCompanyRegistrationException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,8 +15,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -80,31 +79,39 @@ public class NalogRuClient {
 
     /**
      * Метод для получения названия и региона регистрации компании по ИНН через запрос к egrul.nalog.ru
+     *
      * @param inn ИНН компании
      * @return массив из названия и региона регистрации компании, если была найдена ровно одна подходящая компания,
      * иначе массив из null
      */
     public static String[] getCompanyInfoByInn(String inn) throws IOException {
-        JSONObject jsonResponse;
+        JSONObject jsonResponse = null;
 
-        synchronized (NalogRuClient.class) { // блок отправки запроса к сайту
-            Long time_bonus = (long) (Math.random() * 250L);    // надбавка ко времени, для динамичности времени между
-            // запросами
+        for (int time = 0; time <= MAX_WAIT_STATUS_TIMES; time++) {
+            synchronized (NalogRuClient.class) { // блок отправки запроса к сайту
+                Long time_bonus = (long) (Math.random() * 250L);    // надбавка ко времени, для динамичности времени между
+                // запросами
 
-            // Ожидание таймаута для нового запроса. Необходимо выдерживать для избежания появления капчи
-            while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {
+                // Ожидание таймаута для нового запроса. Необходимо выдерживать для избежания появления капчи
+                while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {
+                }
+
+                // следующие запросы могут вызвать ошибку, поэтому время обновляется до и после
+                lastRequestTime = System.currentTimeMillis();
+                String key = sendPostRequest(inn);
+                jsonResponse = sendGetRequest(key);
+                lastRequestTime = System.currentTimeMillis();
             }
 
-            // следующие запросы могут вызвать ошибку, поэтому время обновляется до и после
-            lastRequestTime = System.currentTimeMillis();
-            String key = sendPostRequest(inn);
-            jsonResponse = sendGetRequest(key);
-            lastRequestTime = System.currentTimeMillis();
-        }
-
-        if (jsonResponse.has("status") && Objects.equals(jsonResponse.getString("status"), "wait")) {
-            log.severe("egrul.nalog.ru sent {\"status\":\"wait\"}");
-            return getCompanyInfoByInnAgain(inn, 1);
+            if ("wait".equals(jsonResponse.optString("status"))) {
+                if (time == MAX_WAIT_STATUS_TIMES) {
+                    return new String[]{null, null};
+                } else {
+                    log.severe("egrul.nalog.ru sent {\"status\":\"wait\"}");
+                }
+            } else {
+                break;
+            }
         }
 
         try {
@@ -133,11 +140,11 @@ public class NalogRuClient {
                 return new String[]{companyName, region};
             } else {
                 if (defunctCompany != null) {
-                    throw new InnNoLongerValidException(
+                    throw new DefunctCompanyException(
                             "Компания прекратила свою деятельность с " + defunctCompany.getString("e") + '.'
                     );
                 } else if (invalidCompany != null) {
-                    throw new InnNoLongerValidException(
+                    throw new InvalidCompanyRegistrationException(
                             "Регистрация компании признана недействительной с " + invalidCompany.getString("v") + '.'
                     );
                 }
@@ -145,85 +152,6 @@ public class NalogRuClient {
             }
         } catch (JSONException ex) {
             return new String[]{null, null};
-        } catch (InnNoLongerValidException ex) {
-            throw ex;
-        }
-    }
-
-    /**
-     * Метод для повторной попытки получения названия и региона регистрации компании по ИНН через запрос
-     * к egrul.nalog.ru, если был получен ответ {"status":"wait"}
-     * @param inn ИНН компании
-     * @param time Сколько раз уже был выполнен запрос по этому ИНН
-     * @return массив из названия и региона регистрации компании, если была найдена ровно одна подходящая компания,
-     * иначе массив из null
-     */
-    private static String[] getCompanyInfoByInnAgain(String inn, int time) throws IOException {
-        JSONObject jsonResponse;
-
-        synchronized(NalogRuClient.class) { // блок отправки запроса к сайту
-            Long time_bonus = (long) (Math.random() * 250L);    // надбавка ко времени, для динамичности времени между
-            // запросами
-
-            // Ожидание таймаута для нового запроса. Необходимо выдерживать для избежания появления капчи
-            while (System.currentTimeMillis() - lastRequestTime < REQUEST_TIME_PERIOD + time_bonus) {}
-
-            // следующие запросы могут вызвать ошибку, поэтому время обновляется до и после
-            lastRequestTime = System.currentTimeMillis();
-            String key = sendPostRequest(inn);
-            jsonResponse = sendGetRequest(key);
-            lastRequestTime = System.currentTimeMillis();
-        }
-
-        if (jsonResponse.has("status") && Objects.equals(jsonResponse.getString("status"), "wait")) {
-            if (time >= MAX_WAIT_STATUS_TIMES) {
-                return new String[] { null, null };
-            } else {
-                log.severe("egrul.nalog.ru sent {\"status\":\"wait\"}");
-                return getCompanyInfoByInnAgain(inn, time + 1);
-            }
-        }
-
-        try {
-            JSONObject defunctCompany = null;
-            JSONObject invalidCompany = null;
-
-            JSONObject company;
-            JSONArray rows = jsonResponse.getJSONArray("rows"); // массив с результатами
-            for (int i = rows.length() - 1; i >= 0; i--) {
-                company = rows.getJSONObject(i);
-                // поля e и v есть только у недействительных компаний
-                if (company.has("e")) {
-                    defunctCompany = company;
-                    rows.remove(i);
-                } else if (company.has("v")) {
-                    invalidCompany = company;
-                    rows.remove(i);
-                }
-            }
-
-
-            if (rows.length() == 1) {
-                company = rows.getJSONObject(0);
-                String companyName = company.has("c") ? company.getString("c") : company.getString("n");
-                String region = company.getString("rn");
-                return new String[] { companyName, region };
-            } else {
-                if (defunctCompany != null) {
-                    throw new InnNoLongerValidException(
-                            "Компания прекратила свою деятельность с " + defunctCompany.getString("e") + '.'
-                    );
-                } else if (invalidCompany != null) {
-                    throw new InnNoLongerValidException(
-                            "Регистрация компании признана недействительной с " + invalidCompany.getString("v") + '.'
-                    );
-                }
-                return new String[] { null, null };
-            }
-        } catch (JSONException ex) {
-            return new String[] { null, null };
-        } catch (InnNoLongerValidException ex) {
-            throw ex;
         }
     }
 }
