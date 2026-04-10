@@ -48,6 +48,10 @@ public class StudentService {
         return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
     }
 
+    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findStudentByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
+    }
+
     public static Optional<String> findActiveEduStreamNameByChatId(long chatId) throws InternalException {
         List<Student> students = StudentRepository.findAllByChatId(chatId);
         for (var student : students) {
@@ -460,9 +464,9 @@ public class StudentService {
                 throw new BadRequestException("Поток с именем %s не найден".formatted(dto.getEduStreamName()));
             }
 
-            var stOpt = StudentRepository.findByChatIdAndEduStreamName(dto.getChatId(), eduStreamName.get());
+            var stOpt = StudentRepository.findStudentByIsuAndEduStreamName(dto.getIsu(), eduStreamName.get());
             if (stOpt.isEmpty()) {
-                throw new BadRequestException("Студент с chatId %d не найден в потоке %s".formatted(dto.getChatId(), dto.getEduStreamName()));
+                throw new BadRequestException("Студент с ISU %d не найден в потоке %s".formatted(dto.getIsu(), dto.getEduStreamName()));
             }
 
             var student = stOpt.get();
