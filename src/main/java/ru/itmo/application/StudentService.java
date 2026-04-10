@@ -40,8 +40,18 @@ public class StudentService {
         return StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
     }
 
+    public static Optional<Student> findStudentByIsu(int isu)
+            throws InternalException, BadRequestException {
+        List<Student> students = StudentRepository.findAllByIsu(isu);
+        return students.stream().findFirst();
+    }
+
     public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException, BadRequestException {
         return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
+    }
+
+    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, String eduStreamName) throws InternalException, BadRequestException {
+        return StudentRepository.findStudentByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
     }
 
     public static Optional<String> findActiveEduStreamNameByChatId(long chatId) throws InternalException {
@@ -85,9 +95,9 @@ public class StudentService {
         return StudentRepository.updateCompanyInfo(args, eduStreamName);
     }
 
-    public static void changePracticeFormatForCurrentStream(long chatId, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
+    public static void changePracticeFormatForCurrentStream(int isu, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
             throws InternalException, BadRequestException {
-        var prevStudentOpt = StudentRepository.findAllByChatId(chatId).stream()
+        var prevStudentOpt = StudentRepository.findAllByIsu(isu).stream()
             .filter(s -> EduStreamChecker.isActiveStream(s.getEduStream()))
             .findFirst();
         if (prevStudentOpt.isEmpty()) {
@@ -95,9 +105,9 @@ public class StudentService {
         }
         var student = prevStudentOpt.get();
         String eduStreamName = student.getEduStream().getName();
-        int isu = student.getIsu();
         String prevFormat;
         Long prevPracticeFormatId = student.getPracticeFormatId();
+        Long chatId = student.getTelegramUser().getChatId();
         if (prevPracticeFormatId != null) {
             var fmtOpt = PracticeFormatService.findById(prevPracticeFormatId);
             if (fmtOpt.isPresent()) {
@@ -458,9 +468,9 @@ public class StudentService {
                 throw new BadRequestException("Поток с именем %s не найден".formatted(dto.getEduStreamName()));
             }
 
-            var stOpt = StudentRepository.findByChatIdAndEduStreamName(dto.getChatId(), eduStreamName.get());
+            var stOpt = StudentRepository.findStudentByIsuAndEduStreamName(dto.getIsu(), eduStreamName.get());
             if (stOpt.isEmpty()) {
-                throw new BadRequestException("Студент с chatId %d не найден в потоке %s".formatted(dto.getChatId(), dto.getEduStreamName()));
+                throw new BadRequestException("Студент с ISU %d не найден в потоке %s".formatted(dto.getIsu(), dto.getEduStreamName()));
             }
 
             var student = stOpt.get();

@@ -8,7 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 @Builder
 public class ForceUpdateDTO {
-    private long chatId;
+    private int isu;
     private String eduStreamName;
     private String status;
     private String practicePlace;

@@ -202,6 +202,38 @@ public class StudentRepository {
         }
     }
 
+    public static Optional<Student> findStudentByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "SELECT * FROM student WHERE isu = ? AND edu_stream_name = ?;"
+        )) {
+            statement.setLong(1, isu);
+            statement.setString(2, eduStream.getName());
+            var rs = statement.executeQuery();
+            return mapToStudentOptional(rs);
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+    public static List<Student> findAllByIsu(int isu) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "SELECT * FROM student WHERE isu = ?;"
+        )) {
+            statement.setInt(1, isu);
+            var rs = statement.executeQuery();
+
+            List<Student> result = mapToStudentList(rs);
+            result.sort(Comparator.comparing(Student::getFullName));
+            return result;
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
+    }
+
+
     public static List<Student> findAllByIsuAndEduStreamName(int isu, EduStream eduStream) throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement(

@@ -16,15 +16,15 @@ import java.util.regex.Pattern;
  * Обрабатывает следующие форматы команды:
  * <ul>
  *     <li>{@code /forceupdate --help} - показать доступные поля</li>
- *     <li>{@code /forceupdate --dry-run <chatId> "<поток>" поле="значение"...} - режим предпросмотра</li>
- *     <li>{@code /forceupdate <chatId> "<поток>" поле="значение"...} - выполнить обновление</li>
+ *     <li>{@code /forceupdate --dry-run <isu> "<поток>" поле="значение"...} - режим предпросмотра</li>
+ *     <li>{@code /forceupdate <isu> "<поток>" поле="значение"...} - выполнить обновление</li>
  * </ul>
  * <p>
  * Примеры использования:
  * <ul>
- *     <li>{@code /forceupdate 123456789 "Тестовый поток 2026" status="PRACTICE_APPROVED"}</li>
- *     <li>{@code /forceupdate 123456789 "Весна 2026" place="ITMO_COMPANY" format="OFFLINE"}</li>
- *     <li>{@code /forceupdate --dry-run 123456789 "Поток" status="PRACTICE_APPROVED"}</li>
+ *     <li>{@code /forceupdate 123456 "Тестовый поток 2026" status="PRACTICE_APPROVED"}</li>
+ *     <li>{@code /forceupdate 123456 "Весна 2026" place="ITMO_UNIVERSITY" format="OFFLINE"}</li>
+ *     <li>{@code /forceupdate --dry-run 123456 "Поток" status="PRACTICE_APPROVED"}</li>
  * </ul>
  *
  */
@@ -41,7 +41,7 @@ public class ForceUpdateCommandParser {
 
     /**
      * Базовый паттерн команды.
-     * Извлекает: /forceupdate, --dry-run (опционально), chatId, имя потока в кавычках, параметры.
+     * Извлекает: /forceupdate, --dry-run (опционально), isu, имя потока в кавычках, параметры.
      */
     private static final Pattern BASE_PATTERN = Pattern.compile(
             "^/forceupdate(\\s+--dry-run)?\\s+(\\d+)\\s+\"([^\"]+)\"\\s*(.*)$"
@@ -66,9 +66,9 @@ public class ForceUpdateCommandParser {
     private final boolean showFields;
 
     /**
-     * ChatId студента.
+     * ISU студента.
      */
-    private final long studentChatId;
+    private final int studentIsu;
 
     /**
      * Имя потока (eduStreamName).
@@ -107,11 +107,11 @@ public class ForceUpdateCommandParser {
 
         boolean dryRun = matcher.group(1) != null;
 
-        long chatId;
+        int isu;
         try {
-            chatId = Long.parseLong(matcher.group(2));
+            isu = Integer.parseInt(matcher.group(2));
         } catch (NumberFormatException e) {
-            throw new BadRequestException("Неверный тип chatId, ожидалось число");
+            throw new BadRequestException("Неверный тип isu, ожидалось число");
         }
 
         String eduStreamName = matcher.group(3).trim();
@@ -119,7 +119,7 @@ public class ForceUpdateCommandParser {
 
         Map<ForceUpdateField, String> parsedFields = parseParams(paramsPart);
 
-        return new ForceUpdateCommandParser(dryRun, false, chatId, eduStreamName, parsedFields);
+        return new ForceUpdateCommandParser(dryRun, false, isu, eduStreamName, parsedFields);
     }
 
     /**
@@ -190,7 +190,7 @@ public class ForceUpdateCommandParser {
      */
     public ForceUpdateDTO toDTO() {
         var builder = ForceUpdateDTO.builder()
-                .chatId(studentChatId)
+                .isu(studentIsu)
                 .eduStreamName(eduStreamName);
 
         for (Map.Entry<ForceUpdateField, String> entry : fieldValues.entrySet()) {
@@ -221,15 +221,15 @@ public class ForceUpdateCommandParser {
 
                 Ключи:
                 /forceupdate --help - показать доступные поля
-                /forceupdate --dry-run <chatId> "<поток>" поле="значение"... - режим предпросмотра
+                /forceupdate --dry-run <isu> "<поток>" поле="значение"... - режим предпросмотра
 
                 Синтаксис:
-                /forceupdate <chatId> "<поток>" поле="значение"...
+                /forceupdate <isu> "<поток>" поле="значение"...
 
                 Примеры:
-                /forceupdate 123456789 "Весна 2026" status="PRACTICE_APPROVED"
+                /forceupdate 123456 "Весна 2026" status="PRACTICE_APPROVED"
 
-                /forceupdate 123456789 "Весна 2026" status="PRACTICE_APPROVED" place="ITMO_COMPANY" format="OFFLINE" company="ООО Ромашка" inn="7801234567" lead="Иванов И.И." phone="+79000000000" email="boss@company.com" title="Директор"
+                /forceupdate 123456 "Весна 2026" status="PRACTICE_APPROVED" place="ITMO_UNIVERSITY" format="OFFLINE" company="ООО Ромашка" inn="7801234567" lead="Иванов И.И." phone="+79000000000" email="boss@company.com" title="Директор"
                 """;
     }
 }
