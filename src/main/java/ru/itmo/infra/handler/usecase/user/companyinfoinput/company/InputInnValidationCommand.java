@@ -49,7 +49,7 @@ public class InputInnValidationCommand implements UserCommand {
                     ? new AskingCompanyNameCommand()
                     : new AskingCompanyAddressCommand());
             var text = innResponse.isNonSpbCompany() && innResponse.getCompanyName() != null
-                    ? "Офис в СПб не найден. Введите адрес или заполните заявку заново с выбором дистанционного формата практики."
+                    ? "Офис в СПб не найден. Введите адрес в г. Санкт-Петербург или заполните заявку заново с выбором дистанционного формата практики."
                     : (
                             innResponse.getCompanyName() == null
                             ? "Не удалось получить данные о компании через egrul.nalog.ru."
