@@ -211,7 +211,12 @@ public class StudentRepository {
             statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
             return mapToStudentOptional(rs);
+
+        } catch (SQLException ex) {
+            throw handleAndWrapSQLException(ex);
+        }
     }
+
     public static List<Student> findAllByIsu(int isu) throws InternalException {
         try (var connection = DatabaseManager.getConnection();
              var statement = connection.prepareStatement(

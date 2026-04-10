@@ -40,7 +40,7 @@ import java.util.Set;
  * Примеры использования:
  * <ul>
  *     <li>{@code /forceupdate 123456 "Поток" status="PRACTICE_APPROVED"} - изменить статус</li>
- *     <li>{@code /forceupdate 123456 "Поток" place="ITMO_COMPANY" format="OFFLINE"} - изменить место и формат</li>
+ *     <li>{@code /forceupdate 123456 "Поток" place="ITMO_UNIVERSITY" format="OFFLINE"} - изменить место и формат</li>
  *     <li>{@code /forceupdate --dry-run 123456 "Поток" status="PRACTICE_APPROVED"} - предпросмотр изменений</li>
  *     <li>{@code /forceupdate --help} - показать доступные поля</li>
  * </ul>
