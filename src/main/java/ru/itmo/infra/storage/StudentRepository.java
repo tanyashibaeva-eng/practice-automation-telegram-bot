@@ -211,7 +211,18 @@ public class StudentRepository {
             statement.setString(2, eduStream.getName());
             var rs = statement.executeQuery();
             return mapToStudentOptional(rs);
+    }
+    public static List<Student> findAllByIsu(int isu) throws InternalException {
+        try (var connection = DatabaseManager.getConnection();
+             var statement = connection.prepareStatement(
+                "SELECT * FROM student WHERE isu = ?;"
+        )) {
+            statement.setInt(1, isu);
+            var rs = statement.executeQuery();
 
+            List<Student> result = mapToStudentList(rs);
+            result.sort(Comparator.comparing(Student::getFullName));
+            return result;
         } catch (SQLException ex) {
             throw handleAndWrapSQLException(ex);
         }

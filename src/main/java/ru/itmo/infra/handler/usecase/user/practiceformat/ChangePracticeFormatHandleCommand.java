@@ -49,7 +49,13 @@ public class ChangePracticeFormatHandleCommand implements Command {
                 legacy = PracticeFormat.NOT_SPECIFIED;
             }
 
-            StudentService.changePracticeFormatForCurrentStream(chatId, legacy, practiceFormatId);
+            var eduStreamOpt = StudentService.findActiveEduStreamNameByChatId(chatId);
+            if (eduStreamOpt.isEmpty()) {
+                throw new BadRequestException("Поток не найден");
+            }
+            String eduStream = eduStreamOpt.get();
+            int isu = StudentService.findStudentByChatIdAndEduStreamName(chatId, eduStream).get().getIsu();
+            StudentService.changePracticeFormatForCurrentStream(isu, legacy, practiceFormatId);
 
             ContextHolder.endCommand(chatId);
             return MessageToUser.builder()

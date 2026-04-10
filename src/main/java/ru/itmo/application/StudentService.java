@@ -38,6 +38,12 @@ public class StudentService {
         return StudentRepository.findAllByIsuAndEduStreamName(isu, new EduStream(eduStreamName));
     }
 
+    public static Optional<Student> findStudentByIsu(int isu)
+            throws InternalException, BadRequestException {
+        List<Student> students = StudentRepository.findAllByIsu(isu);
+        return students.stream().findFirst();
+    }
+
     public static Optional<Student> findStudentByChatIdAndEduStreamName(long chatId, String eduStreamName) throws InternalException, BadRequestException {
         return StudentRepository.findByChatIdAndEduStreamName(chatId, new EduStream(eduStreamName));
     }
@@ -87,9 +93,9 @@ public class StudentService {
         return StudentRepository.updateCompanyInfo(args, eduStreamName);
     }
 
-    public static void changePracticeFormatForCurrentStream(long chatId, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
+    public static void changePracticeFormatForCurrentStream(int isu, PracticeFormat legacyPracticeFormat, Long practiceFormatId)
             throws InternalException, BadRequestException {
-        var prevStudentOpt = StudentRepository.findAllByChatId(chatId).stream()
+        var prevStudentOpt = StudentRepository.findAllByIsu(isu).stream()
             .filter(s -> EduStreamChecker.isActiveStream(s.getEduStream()))
             .findFirst();
         if (prevStudentOpt.isEmpty()) {
@@ -97,9 +103,9 @@ public class StudentService {
         }
         var student = prevStudentOpt.get();
         String eduStreamName = student.getEduStream().getName();
-        int isu = student.getIsu();
         String prevFormat;
         Long prevPracticeFormatId = student.getPracticeFormatId();
+        Long chatId = student.getTelegramUser().getChatId();
         if (prevPracticeFormatId != null) {
             var fmtOpt = PracticeFormatService.findById(prevPracticeFormatId);
             if (fmtOpt.isPresent()) {
