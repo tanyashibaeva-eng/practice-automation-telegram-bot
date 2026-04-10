@@ -465,7 +465,7 @@ public class Handler {
             mapKeyToFunc(message.getChatId(), callbackData.getKey(), callbackData.getValue());
         }
         var commandName = resolveCommandName(callbackData.getCommand());
-        message.setText(callbackDataString);
+        message.setText(callbackData.getCommand());
         Command cmd = commandsMap.get(commandName);
         if (cmd == null) {
             return MessageToUser.builder()
