@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
  * Примеры использования:
  * <ul>
  *     <li>{@code /forceupdate 123456 "Тестовый поток 2026" status="PRACTICE_APPROVED"}</li>
- *     <li>{@code /forceupdate 123456 "Весна 2026" place="ITMO_COMPANY" format="OFFLINE"}</li>
+ *     <li>{@code /forceupdate 123456 "Весна 2026" place="ITMO_UNIVERSITY" format="OFFLINE"}</li>
  *     <li>{@code /forceupdate --dry-run 123456 "Поток" status="PRACTICE_APPROVED"}</li>
  * </ul>
  *
@@ -229,7 +229,7 @@ public class ForceUpdateCommandParser {
                 Примеры:
                 /forceupdate 123456 "Весна 2026" status="PRACTICE_APPROVED"
 
-                /forceupdate 123456 "Весна 2026" status="PRACTICE_APPROVED" place="ITMO_COMPANY" format="OFFLINE" company="ООО Ромашка" inn="7801234567" lead="Иванов И.И." phone="+79000000000" email="boss@company.com" title="Директор"
+                /forceupdate 123456 "Весна 2026" status="PRACTICE_APPROVED" place="ITMO_UNIVERSITY" format="OFFLINE" company="ООО Ромашка" inn="7801234567" lead="Иванов И.И." phone="+79000000000" email="boss@company.com" title="Директор"
                 """;
     }
 }
