@@ -9,7 +9,9 @@ import ru.itmo.domain.model.Student;
 import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.domain.type.StudentStatus;
 import ru.itmo.exception.BadRequestException;
+import ru.itmo.exception.DefunctCompanyException;
 import ru.itmo.exception.InternalException;
+import ru.itmo.exception.InvalidCompanyRegistrationException;
 import ru.itmo.infra.docx.DocxGenerator;
 import ru.itmo.infra.excel.Generator;
 import ru.itmo.infra.excel.GoogleSheetsExporter;
@@ -369,6 +371,8 @@ public class StudentService {
                 }
             } catch (IOException e) {
                 log.warning("Failed to resolve company name by INN " + inn + ": " + e.getMessage());
+            } catch (DefunctCompanyException | InvalidCompanyRegistrationException e) {
+                return resBuilder.errorText(e.getMessage()).build();
             }
         }
 

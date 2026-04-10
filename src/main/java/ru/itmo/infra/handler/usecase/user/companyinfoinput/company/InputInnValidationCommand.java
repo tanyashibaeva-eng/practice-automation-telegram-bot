@@ -21,6 +21,7 @@ public class InputInnValidationCommand implements UserCommand {
         var dto = (CompanyInfoUpdateArgs) ContextHolder.getCommandData(chatId);
 
         var innResponse = StudentService.validateInn(userText);
+
         if (innResponse.getErrorText() != null) {
             ContextHolder.setNextCommand(chatId, this);
             return MessageToUser.builder()
