@@ -5,6 +5,7 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.dto.command.CompanyInfoUpdateArgs;
+import ru.itmo.domain.type.PracticeFormat;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
 
 public class AskingCompanyAddressCommand implements UserCommand {
@@ -15,7 +16,7 @@ public class AskingCompanyAddressCommand implements UserCommand {
         ContextHolder.setNextCommand(chatId, new InputCompanyAddressCommand());
         return MessageToUser.builder()
                 .text(dto.isRequiresSpbOfficeApproval()
-                        ? "Введите адрес офиса компании в Санкт-Петербурге"
+                        ? "Офис в СПб не найден. Введите адрес в г. Санкт-Петербург или заполните заявку заново с выбором дистанционного формата практики."
                         : "Введите адрес компании")
                 .keyboardMarkup(getReturnToStartMarkup())
                 .needRewriting(true)
