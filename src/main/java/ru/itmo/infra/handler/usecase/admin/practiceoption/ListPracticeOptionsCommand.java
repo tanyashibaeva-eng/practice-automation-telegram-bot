@@ -49,6 +49,11 @@ public class ListPracticeOptionsCommand implements AdminCommand {
     private MessageToUser handleActionIfProvided(MessageDTO message) throws Exception {
         var text = message.getText();
         if (text == null) return null;
+        var hashIdx = text.indexOf('#');
+        if (hashIdx >= 0) {
+            text = text.substring(0, hashIdx);
+        }
+        text = text.trim();
 
         if (text.equals(COMMAND_NAME + " add") || text.equals(COMMAND_NAME + "_add")) {
             ContextHolder.setNextCommand(message.getChatId(), new PracticeOptionAddInputCommand());
