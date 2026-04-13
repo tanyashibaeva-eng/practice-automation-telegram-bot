@@ -471,6 +471,140 @@ $gi_contacts$, 1
 FROM guide_section s WHERE s.slug = 'general_info'
 ON CONFLICT (section_id, item_order) DO NOTHING;
 
+-- Новые разделы мануала
+DELETE FROM guide_section WHERE slug IN ('company_lead_mgmt', 'company_lead_teacher');
+
+UPDATE guide_section SET menu_order = 9000
+WHERE slug = 'search_students' AND menu_order <> 7;
+
+INSERT INTO guide_section (slug, title, menu_order, command, is_active)
+VALUES ('company_lead_student', 'Данные руководителя от компании', 6, '/lead_guide', true)
+ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    menu_order = EXCLUDED.menu_order,
+    command = EXCLUDED.command,
+    is_active = EXCLUDED.is_active;
+
+INSERT INTO guide_section (slug, title, menu_order, command, is_active)
+VALUES ('search_students', 'Поиск студентов (для преподавателей)', 7, '/search_guide', true)
+ON CONFLICT (slug) DO UPDATE SET
+    title = EXCLUDED.title,
+    menu_order = EXCLUDED.menu_order,
+    command = EXCLUDED.command,
+    is_active = EXCLUDED.is_active;
+
+-- Подразделы: Данные руководителя от компании (для студентов)
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Содержание', $cls_toc$
+В этом разделе описаны команды для просмотра и изменения данных руководителя практики от компании.
+
+**Для студентов:**
+Доступные действия:
+• Просмотр текущих данных руководителя
+• Изменение ФИО (полностью или отдельно фамилии, имени, отчества)
+• Изменение номера телефона
+• Изменение email
+• Изменение должности
+
+**Для преподавателей:**
+Изменение данных руководителя практики выполняется студентом самостоятельно. Если требуется изменить данные — направьте студента к использованию команды /change_lead_info.
+$cls_toc$, 1
+FROM guide_section s WHERE s.slug = 'company_lead_student'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Просмотр данных руководителя', $cls_view$
+Чтобы просмотреть текущие данные руководителя практики от компании, воспользуйтесь одним из способов:
+
+1. Нажмите кнопку «Данные руководителя от компании» в главном меню
+2. Используйте команду /change_lead_info
+3. В открывшемся меню нажмите «Посмотреть данные руководителя»
+
+Также можно использовать команду /view_lead_info напрямую.
+
+Бот отобразит:
+• ФИО руководителя
+• Номер телефона
+• Email
+• Должность
+$cls_view$, 2
+FROM guide_section s WHERE s.slug = 'company_lead_student'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Изменение данных руководителя', $cls_change$
+Для изменения данных руководителя практики:
+
+1. Нажмите «Данные руководителя от компании» в главном меню или используйте команду /change_lead_info
+2. Выберите нужное поле для изменения из списка кнопок
+3. Введите новое значение
+4. Бот подтвердит успешное обновление
+
+**Доступные поля для изменения:**
+
+• **ФИО руководителя** — полное ФИО (Фамилия Имя Отчество)
+• **Фамилия руководителя** — только фамилия (остальные части ФИО сохраняются)
+• **Имя руководителя** — только имя
+• **Отчество руководителя** — только отчество
+• **Телефон руководителя** — номер телефона (формат: +7XXXXXXXXXX или 8XXXXXXXXXX)
+• **Email руководителя** — адрес электронной почты
+• **Должность руководителя** — текст должности
+
+**Важно:**
+• Изменение отдельных частей ФИО (фамилии, имени, отчества) возможно только если текущее ФИО содержит ровно 3 части
+• При изменении телефона и email проверяется корректность формата
+• Команды доступны только после заполнения данных о компании
+$cls_change$, 3
+FROM guide_section s WHERE s.slug = 'company_lead_student'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+-- Подразделы: Поиск студентов (для преподавателей)
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Содержание', $ss_toc$
+В этом разделе описаны команды поиска информации о студентах, доступные преподавателю.
+
+Доступные команды:
+• Поиск по ISU номеру
+• Поиск по группе и ФИО
+$ss_toc$, 1
+FROM guide_section s WHERE s.slug = 'search_students'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Поиск по ISU', $ss_isu$
+Для поиска студента по номеру ISU используйте команду:
+
+/search_by_isu <номер ISU>
+
+**Пример:**
+/search_by_isu 345678
+
+Бот выполнит поиск в текущем потоке и отобразит найденную информацию о студенте:
+• ФИО, ISU, группа, статус
+• Формат практики, компания
+• Данные руководителя практики от компании (ФИО, телефон, email, должность)
+• ChatId студента в Telegram
+$ss_isu$, 2
+FROM guide_section s WHERE s.slug = 'search_students'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
+INSERT INTO guide_subsection (section_id, title, body, item_order)
+SELECT s.id, 'Поиск по группе и ФИО', $ss_group$
+Для поиска студентов по группе и ФИО (или части ФИО) используйте команду:
+
+/search_by_group <группа> <ФИО или часть ФИО>
+
+**Примеры:**
+/search_by_group M3100 Иванов
+/search_by_group P3200 Петров Иван
+
+Бот выполнит поиск в текущем потоке по указанной группе и частичному совпадению ФИО. Результаты отображаются в том же формате, что и при поиске по ISU.
+
+**Примечание:** поиск выполняется по подстроке — достаточно указать фамилию или её часть.
+$ss_group$, 3
+FROM guide_section s WHERE s.slug = 'search_students'
+ON CONFLICT (section_id, item_order) DO NOTHING;
+
 UPDATE guide_subsection u SET
     prev_subsection_id = o.prev_id,
     next_subsection_id = o.next_id
