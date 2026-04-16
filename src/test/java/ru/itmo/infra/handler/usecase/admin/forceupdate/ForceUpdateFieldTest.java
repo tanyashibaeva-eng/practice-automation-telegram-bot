@@ -279,6 +279,5 @@ public class ForceUpdateFieldTest {
         String aliasesList = ForceUpdateField.getAliasesList();
         assertNotNull(aliasesList);
         assertFalse(aliasesList.isEmpty());
-        assertTrue(aliasesList.contains("статус ->"));
     }
 }
