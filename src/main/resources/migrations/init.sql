@@ -156,7 +156,8 @@ WHERE s.practice_option_id IS NULL
 
 ALTER TABLE student ADD IF NOT EXISTS practice_format_id bigint;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_student_practice_format_id ON student (practice_format_id);
+DROP INDEX IF EXISTS idx_student_practice_format_id;
+CREATE INDEX IF NOT EXISTS idx_student_practice_format_id_lookup ON student (practice_format_id);
 
 -- backfill
 DO $$ BEGIN
