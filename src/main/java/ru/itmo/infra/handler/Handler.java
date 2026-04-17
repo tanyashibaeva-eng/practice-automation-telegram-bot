@@ -70,6 +70,7 @@ import ru.itmo.infra.handler.usecase.admin.unban.UnbanConfirmationCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelCommand;
 import ru.itmo.infra.handler.usecase.admin.uploadexcel.UploadExcelHandleCommand;
 import ru.itmo.infra.handler.usecase.admin.updategroup.UpdateGroupStudentsCommand;
+import ru.itmo.infra.handler.usecase.admin.viewstudentphoto.ViewStudentPhotoByIsuCommand;
 import ru.itmo.infra.handler.usecase.admin.viewstudentphoto.ViewStudentPhotoCommand;
 import ru.itmo.infra.handler.usecase.help.HelpCommand;
 import ru.itmo.infra.handler.usecase.start.StartCommand;
@@ -278,6 +279,7 @@ public class Handler {
         commands.add(new UnbanConfirmationCommand());
         commands.add(new UploadExcelCommand());
         commands.add(new UploadExcelHandleCommand());
+        commands.add(new ViewStudentPhotoByIsuCommand());
         commands.add(new ViewStudentPhotoCommand());
         commands.add(new GetStudentInfoCommand());
         commands.add(new UpdateGroupStudentsCommand());
@@ -644,7 +646,9 @@ public class Handler {
                 new RenamePracticeFormatCommand(),
                 new SetUserPracticeFormatCommand(),
                 new SearchStudentByIsuCommand(),
-                new SearchStudentByGroupCommand()
+                new SearchStudentByGroupCommand(),
+                new ViewStudentPhotoByIsuCommand(),
+                new ViewStudentPhotoCommand()
         );
     }
 
