@@ -327,6 +327,12 @@ public class StudentRepository {
                         practice_place = ?,
                         company_name = ?,
                         company_lead_fullname = ?,
+                        company_inn = DEFAULT,
+                        company_lead_phone = DEFAULT,
+                        company_lead_email = DEFAULT,
+                        company_lead_job_title = DEFAULT,
+                        practice_format = DEFAULT,
+                        practice_format_id = DEFAULT,
                         updated_at = now()
                     WHERE chat_id = ? AND edu_stream_name = ?;
                 """
