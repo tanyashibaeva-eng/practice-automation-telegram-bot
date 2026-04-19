@@ -560,14 +560,7 @@ public class Handler {
         addCommandIfExists(result, new StartCommand());
         addCommandIfExists(result, new HelpCommand());
         addCommandIfExists(result, new StatusCommand());
-
-        try {
-            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
-                addCommandIfExists(result, new GuideSectionOpenCommand(section.getCommand(), section.getTitle()));
-            }
-        } catch (InternalException e) {
-            log.warning("Guide commands not added to menu: " + e.getMessage());
-        }
+        addCommandIfExists(result, new GuideMenuCommand());
 
         // Команды, зависящие от статуса
         if (status != null) {

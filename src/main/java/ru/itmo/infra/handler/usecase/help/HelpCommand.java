@@ -6,10 +6,9 @@ import ru.itmo.application.ContextHolder;
 import ru.itmo.bot.MessageDTO;
 import ru.itmo.bot.MessageToUser;
 import ru.itmo.domain.type.StudentStatus;
-import ru.itmo.exception.InternalException;
 import ru.itmo.infra.handler.Handler;
 import ru.itmo.infra.handler.usecase.user.UserCommand;
-import ru.itmo.infra.storage.GuideRepository;
+import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,15 +80,9 @@ public class HelpCommand implements UserCommand {
             }
         });
 
+        var manualCmd = new GuideMenuCommand();
         helpMessages.add("");
-        helpMessages.add("Разделы мануала:");
-        try {
-            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
-                helpMessages.add("- " + section.getCommand() + ": " + section.getTitle());
-            }
-        } catch (InternalException ignored) {
-            // список разделов недоступен — пропускаем блок
-        }
+        helpMessages.add("- " + manualCmd.getName() + ": " + manualCmd.getDescription());
 
         return String.join("\n", helpMessages);
     }

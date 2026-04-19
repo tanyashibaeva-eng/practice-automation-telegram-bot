@@ -27,8 +27,6 @@ import ru.itmo.infra.handler.usecase.user.guide.GuideMenuCommand;
 import ru.itmo.infra.handler.usecase.user.manual.ManualEditStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentregistration.StudentRegistrationStartCommand;
 import ru.itmo.infra.handler.usecase.user.studentstatus.StatusCommand;
-import ru.itmo.infra.storage.GuideRepository;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -206,7 +204,7 @@ public class StartCommand implements UserCommand {
                                                         .toString()
                                         ).build()
                         ));
-        appendGuideSectionRows(markupBuilder);
+        appendGuideManualButtonRow(markupBuilder);
         return markupBuilder.build();
     }
 
@@ -228,7 +226,7 @@ public class StartCommand implements UserCommand {
                         .build()
         ));
 
-        appendGuideSectionRows(markupBuilder);
+        appendGuideManualButtonRow(markupBuilder);
 
         // Добавляем остальные команды, доступные для статуса.
         Handler.getAvailableStudentCommands(status).forEach(cmd -> {
@@ -249,30 +247,15 @@ public class StartCommand implements UserCommand {
         return markupBuilder.build();
     }
 
-    private static void appendGuideSectionRows(InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder) {
-        try {
-            for (var section : GuideRepository.findAllActiveSectionsVisibleInMenuOrdered()) {
-                markupBuilder.keyboardRow(new InlineKeyboardRow(
-                        InlineKeyboardButton.builder()
-                                .text(trimForTelegramButton(section.getTitle()))
-                                .callbackData(CallbackData.builder()
-                                        .command(section.getCommand())
-                                        .build()
-                                        .toString())
+    private static void appendGuideManualButtonRow(InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder) {
+        markupBuilder.keyboardRow(new InlineKeyboardRow(
+                InlineKeyboardButton.builder()
+                        .text("📖 Открыть мануал")
+                        .callbackData(CallbackData.builder()
+                                .command(GuideMenuCommand.COMMAND_NAME)
                                 .build()
-                ));
-            }
-        } catch (InternalException ignored) {
-        }
-    }
-
-    private static String trimForTelegramButton(String text) {
-        if (text == null) {
-            return "";
-        }
-        if (text.length() <= 64) {
-            return text;
-        }
-        return text.substring(0, 61) + "...";
+                                .toString())
+                        .build()
+        ));
     }
 }
